@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Award, CheckCircle, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 
 const Home: React.FC = () => {
-  const { news, trackRecord, studentMessages } = useData();
+  const { news, trackRecord, studentMessages, loading } = useData();
   const publishedNews = news.filter(n => n.status === 'Published').slice(0, 3);
-  const [activeTab, setActiveTab] = useState(Object.keys(trackRecord)[0] || '2024');
+  const [activeTab, setActiveTab] = useState('2024');
+
+  // Update activeTab when trackRecord loads if 2024 isn't there
+  useEffect(() => {
+    if (!loading && Object.keys(trackRecord).length > 0) {
+      if (!trackRecord[activeTab]) {
+        setActiveTab(Object.keys(trackRecord)[0]);
+      }
+    }
+  }, [loading, trackRecord]);
+
+  if (loading) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>Loading Sully Academy...</div>;
+  }
 
   const currentYearData = trackRecord[activeTab] || { stats: [], testimonial: { quote: '', author: '' } };
 
@@ -139,24 +152,23 @@ const Home: React.FC = () => {
         </div>
 
         <div style={{ margin: '0 auto' }}>
-          <div className="selection-chart">
-            <h3>Exam Performance</h3>
-            <p>Success metrics for {activeTab}</p>
+          <div className="stats-container">
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Exam Performance</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>Success metrics for {activeTab}</p>
+            </div>
 
-            <div className="selection-chart-rows">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
               {currentYearData.stats.map((stat, i) => (
-                <div key={i} className="selection-chart-row">
-                  <div className="selection-chart-head">
-                    <span>{stat.label}</span>
-                    <strong>{stat.value}</strong>
-                  </div>
-                  <div className="selection-chart-track">
-                    <div className="selection-chart-fill year-2024" style={{ "--fill": stat.value } as React.CSSProperties}></div>
-                  </div>
+                <div key={i} className="card stat-card reveal is-visible" style={{ "--delay": i, padding: '2rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } as React.CSSProperties}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</p>
+                  <h3 style={{ fontSize: '2.5rem', color: 'var(--accent-blue)', fontWeight: 800 }}>{stat.value}</h3>
                 </div>
               ))}
               {currentYearData.stats.length === 0 && (
-                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', padding: '1rem 0' }}>No data recorded for this year yet.</p>
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius)', border: '1px dashed var(--glass-border)' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No data recorded for this year yet.</p>
+                </div>
               )}
             </div>
           </div>
@@ -171,20 +183,20 @@ const Home: React.FC = () => {
 
         <div className="grid cards-3" style={{ marginTop: '3rem' }}>
           {publishedNews.map((article, i) => (
-            <div key={i} className="card news-card reveal is-visible" style={{ "--delay": i + 1 } as React.CSSProperties}>
+            <div key={i} className="card news-card reveal is-visible" style={{ "--delay": i + 1, display: 'flex', flexDirection: 'column' } as React.CSSProperties}>
               <div className="news-image">
                 <img src={article.image} alt={article.title} />
                 <span className="news-tag">{article.tag}</span>
               </div>
-              <div className="news-content">
+              <div className="news-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div className="news-meta">
                   <span>{article.date}</span>
                   <span>•</span>
                   <span>{article.author}</span>
                 </div>
                 <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{article.title}</h3>
-                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{article.description}</p>
-                <a href={article.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
+                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', flex: 1 }}>{article.description}</p>
+                <a href={article.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', marginTop: 'auto' }}>Read More <ArrowRight size={16} /></a>
               </div>
             </div>
           ))}

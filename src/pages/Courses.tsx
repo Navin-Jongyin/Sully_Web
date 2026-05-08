@@ -78,10 +78,14 @@ const Courses: React.FC = () => {
               <div style={{ background: 'var(--glass-bg)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--glass-border)', marginBottom: '2rem' }}>
                 <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Program Overview</h3>
                 <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}><Check size={20} color="var(--accent-blue)" /> CAAT Approved Curriculum</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}><Check size={20} color="var(--accent-blue)" /> Highly Experienced Instructors</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}><Check size={20} color="var(--accent-blue)" /> Modern Training Facilities</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}><Check size={20} color="var(--accent-blue)" /> Flexible Scheduling Options</li>
+                  {(selectedCourse.overview || []).map((point, idx) => (
+                    <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <Check size={20} color="var(--accent-blue)" /> {point}
+                    </li>
+                  ))}
+                  {(!selectedCourse.overview || selectedCourse.overview.length === 0) && (
+                    <li style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Program details coming soon.</li>
+                  )}
                 </ul>
               </div>
 

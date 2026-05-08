@@ -12,6 +12,7 @@ export interface Course {
   duration: string;
   description: string;
   price: string;
+  overview?: string[];
 }
 
 interface CourseCardProps {
