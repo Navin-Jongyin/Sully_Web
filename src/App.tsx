@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -8,6 +8,15 @@ import { DataProvider } from "./context/DataContext";
 import "./App.css";
 
 const App: React.FC = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close menu on route change / resize
+  useEffect(() => {
+    const close = () => setMenuOpen(false);
+    window.addEventListener('resize', close);
+    return () => window.removeEventListener('resize', close);
+  }, []);
+
   return (
     <DataProvider>
       <BrowserRouter>
@@ -19,23 +28,37 @@ const App: React.FC = () => {
 
       <header className="site-header">
         <div className="container nav-shell">
-          <Link className="brand" to="/">Sully Academy</Link>
+          <Link className="brand" to="/" onClick={() => setMenuOpen(false)}>Sully Academy</Link>
 
-          <button className="menu-toggle" aria-label="Toggle Menu">
+          <button
+            className={`menu-toggle${menuOpen ? ' is-open' : ''}`}
+            aria-label="Toggle Menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(o => !o)}
+          >
             <span></span>
             <span></span>
             <span></span>
           </button>
 
-          <nav className="main-nav">
-            <a href="/#home">Home</a>
-            <a href="/#about">About</a>
-            <a href="/#achievements">Achievements</a>
-            <a href="/#news">News</a>
-            <a href="/#contact">Contact</a>
-             <Link to="/courses">Courses</Link>
+          <nav className={`main-nav${menuOpen ? ' is-open' : ''}`}>
+            <a href="/#home" onClick={() => setMenuOpen(false)}>Home</a>
+            <a href="/#about" onClick={() => setMenuOpen(false)}>About</a>
+            <a href="/#achievements" onClick={() => setMenuOpen(false)}>Achievements</a>
+            <a href="/#news" onClick={() => setMenuOpen(false)}>News</a>
+            <a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
+            <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
           </nav>
         </div>
+
+        {/* Mobile overlay to close menu */}
+        {menuOpen && (
+          <div
+            className="nav-overlay"
+            aria-hidden="true"
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
       </header>
 
       <Routes>

@@ -237,55 +237,55 @@ const AdminPanel: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
-      {/* Sidebar */}
-      <aside style={{ width: '280px', background: 'var(--bg-secondary)', borderRight: '1px solid var(--glass-border)', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ marginBottom: '3rem', padding: '0 1rem' }}>
-          <h2 style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>Content<span style={{ color: 'var(--accent-blue)' }}>Manager</span></h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Sully Academy Site Editor</p>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Sidebar / Top-nav */}
+      <aside style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--glass-border)', padding: '1rem 1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          {/* Brand */}
+          <div>
+            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Content<span style={{ color: 'var(--accent-blue)' }}>Manager</span></h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Sully Academy</p>
+          </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexGrow: 1 }}>
-          <button 
-            onClick={() => { setActiveMenu('courses'); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 'var(--radius)', background: activeMenu === 'courses' ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: activeMenu === 'courses' ? 'var(--accent-blue)' : 'var(--text-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: activeMenu === 'courses' ? 600 : 400, transition: 'var(--transition)' }}
-          >
-            <BookOpen size={20} /> Manage Courses
-          </button>
-          <button 
-            onClick={() => { setActiveMenu('news'); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 'var(--radius)', background: activeMenu === 'news' ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: activeMenu === 'news' ? 'var(--accent-blue)' : 'var(--text-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: activeMenu === 'news' ? 600 : 400, transition: 'var(--transition)' }}
-          >
-            <Layout size={20} /> Manage News
-          </button>
-          <button 
-            onClick={() => { setActiveMenu('messages'); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 'var(--radius)', background: activeMenu === 'messages' ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: activeMenu === 'messages' ? 'var(--accent-blue)' : 'var(--text-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: activeMenu === 'messages' ? 600 : 400, transition: 'var(--transition)' }}
-          >
-            <MessageSquare size={20} /> Student Messages
-          </button>
-          <button 
-            onClick={() => { setActiveMenu('track'); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 'var(--radius)', background: activeMenu === 'track' ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: activeMenu === 'track' ? 'var(--accent-blue)' : 'var(--text-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: activeMenu === 'track' ? 600 : 400, transition: 'var(--transition)' }}
-          >
-            <Award size={20} /> Track Record
-          </button>
-          <button 
-            onClick={() => { setActiveMenu('settings'); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 'var(--radius)', background: activeMenu === 'settings' ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: activeMenu === 'settings' ? 'var(--accent-blue)' : 'var(--text-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: activeMenu === 'settings' ? 600 : 400, transition: 'var(--transition)' }}
-          >
-            <Settings size={20} /> Site Settings
-          </button>
-        </nav>
+          {/* Nav links — horizontal on all sizes, wrapping on mobile */}
+          <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {([
+              { key: 'courses', icon: <BookOpen size={16} />, label: 'Courses' },
+              { key: 'news',    icon: <Layout size={16} />, label: 'News' },
+              { key: 'messages', icon: <MessageSquare size={16} />, label: 'Messages' },
+              { key: 'track',   icon: <Award size={16} />, label: 'Track Record' },
+              { key: 'settings', icon: <Settings size={16} />, label: 'Settings' },
+            ] as const).map(({ key, icon, label }) => (
+              <button
+                key={key}
+                onClick={() => { setActiveMenu(key); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.4rem',
+                  padding: '0.5rem 0.875rem',
+                  borderRadius: 'var(--radius-full)',
+                  background: activeMenu === key ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                  color: activeMenu === key ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                  border: activeMenu === key ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
+                  cursor: 'pointer',
+                  fontWeight: activeMenu === key ? 600 : 400,
+                  fontSize: '0.875rem',
+                  transition: 'var(--transition)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </nav>
 
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)', marginTop: 'auto' }}>
-          <Link to="/" style={{ display: 'block', textAlign: 'center', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem' }}>&larr; Back to Main Site</Link>
+          {/* Back link */}
+          <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>&larr; Main Site</Link>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main style={{ flexGrow: 1, padding: '2rem 3rem', overflowY: 'auto' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+      <main style={{ flexGrow: 1, padding: 'clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem)', overflowY: 'auto', overflowX: 'hidden' }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>
               {activeMenu === 'courses' ? 'Manage Courses' : 
@@ -315,43 +315,47 @@ const AdminPanel: React.FC = () => {
         {/* Courses Editor View */}
         {activeMenu === 'courses' && !editingCourse && !isCreating && (
           <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              <span></span>
-              <span>Course Title</span>
-              <span>Category</span>
-              <span>Price</span>
-              <span style={{ textAlign: 'right' }}>Actions</span>
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ minWidth: '560px' }}>
+                <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  <span></span>
+                  <span>Course Title</span>
+                  <span>Category</span>
+                  <span>Price</span>
+                  <span style={{ textAlign: 'right' }}>Actions</span>
+                </div>
+                <Reorder.Group axis="y" values={courses} onReorder={setCourses} style={{ listStyle: 'none', padding: 0 }}>
+                  {courses.map((course) => (
+                    <Reorder.Item 
+                      key={course.id} 
+                      value={course}
+                      style={{ 
+                        padding: '1.25rem 2rem', 
+                        borderBottom: '1px solid var(--glass-border)', 
+                        display: 'grid', 
+                        gridTemplateColumns: '40px 1fr 1fr 1fr 120px',
+                        alignItems: 'center',
+                        background: 'var(--bg-secondary)',
+                        cursor: 'default'
+                      }}
+                    >
+                      <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
+                      <div style={{ fontWeight: 500 }}>{course.title}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{course.category}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{course.price}</div>
+                      <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setEditingCourse(course)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDeleteCourse(course.id, course.title)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
+              </div>
             </div>
-            <Reorder.Group axis="y" values={courses} onReorder={setCourses} style={{ listStyle: 'none', padding: 0 }}>
-              {courses.map((course) => (
-                <Reorder.Item 
-                  key={course.id} 
-                  value={course}
-                  style={{ 
-                    padding: '1.25rem 2rem', 
-                    borderBottom: '1px solid var(--glass-border)', 
-                    display: 'grid', 
-                    gridTemplateColumns: '40px 1fr 1fr 1fr 120px',
-                    alignItems: 'center',
-                    background: 'var(--bg-secondary)',
-                    cursor: 'default'
-                  }}
-                >
-                  <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
-                  <div style={{ fontWeight: 500 }}>{course.title}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{course.category}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{course.price}</div>
-                  <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditingCourse(course)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => handleDeleteCourse(course.id, course.title)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
           </div>
         )}
 
@@ -366,7 +370,7 @@ const AdminPanel: React.FC = () => {
             </div>
 
             <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSaveCourse}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
                 <label>
                   Course Title
                   <input type="text" name="title" defaultValue={editingCourse?.title || ''} placeholder="e.g. Advanced Flight Prep" required />
@@ -382,7 +386,7 @@ const AdminPanel: React.FC = () => {
                 </label>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
                 <label>
                   Price
                   <input 
@@ -480,43 +484,47 @@ const AdminPanel: React.FC = () => {
         {/* News Manager View */}
         {activeMenu === 'news' && !editingNews && !isCreating && (
           <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              <span></span>
-              <span>Article Title</span>
-              <span>Date</span>
-              <span>Author</span>
-              <span style={{ textAlign: 'right' }}>Actions</span>
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ minWidth: '580px' }}>
+                <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  <span></span>
+                  <span>Article Title</span>
+                  <span>Date</span>
+                  <span>Author</span>
+                  <span style={{ textAlign: 'right' }}>Actions</span>
+                </div>
+                <Reorder.Group axis="y" values={news} onReorder={setNews} style={{ listStyle: 'none', padding: 0 }}>
+                  {news.map((article) => (
+                    <Reorder.Item 
+                      key={article.id} 
+                      value={article}
+                      style={{ 
+                        padding: '1.25rem 2rem', 
+                        borderBottom: '1px solid var(--glass-border)', 
+                        display: 'grid', 
+                        gridTemplateColumns: '40px 1.5fr 1fr 1fr 120px',
+                        alignItems: 'center',
+                        background: 'var(--bg-secondary)',
+                        cursor: 'default'
+                      }}
+                    >
+                      <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
+                      <div style={{ fontWeight: 500 }}>{article.title}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{article.date}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{article.author}</div>
+                      <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setEditingNews(article)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDeleteNews(article.id, article.title)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
+              </div>
             </div>
-            <Reorder.Group axis="y" values={news} onReorder={setNews} style={{ listStyle: 'none', padding: 0 }}>
-              {news.map((article) => (
-                <Reorder.Item 
-                  key={article.id} 
-                  value={article}
-                  style={{ 
-                    padding: '1.25rem 2rem', 
-                    borderBottom: '1px solid var(--glass-border)', 
-                    display: 'grid', 
-                    gridTemplateColumns: '40px 1.5fr 1fr 1fr 120px',
-                    alignItems: 'center',
-                    background: 'var(--bg-secondary)',
-                    cursor: 'default'
-                  }}
-                >
-                  <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
-                  <div style={{ fontWeight: 500 }}>{article.title}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{article.date}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{article.author}</div>
-                  <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditingNews(article)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => handleDeleteNews(article.id, article.title)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
           </div>
         )}
 
@@ -536,7 +544,7 @@ const AdminPanel: React.FC = () => {
                 <input type="text" name="title" defaultValue={editingNews?.title || ''} placeholder="e.g. New Intake Announcement" required />
               </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <label>
                   Publish Date
                   <input type="date" name="date" defaultValue={editingNews?.date || new Date().toISOString().split('T')[0]} />
@@ -547,7 +555,7 @@ const AdminPanel: React.FC = () => {
                 </label>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <label>
                   Category Tag
                   <select name="tag" defaultValue={editingNews?.tag || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
@@ -618,43 +626,47 @@ const AdminPanel: React.FC = () => {
         {/* Student Messages View */}
         {activeMenu === 'messages' && !editingMessage && !isCreating && (
           <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 2fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              <span></span>
-              <span>Student Name</span>
-              <span>Position</span>
-              <span>Message Excerpt</span>
-              <span style={{ textAlign: 'right' }}>Actions</span>
+            <div style={{ overflowX: 'auto' }}>
+              <div style={{ minWidth: '580px' }}>
+                <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 2fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  <span></span>
+                  <span>Student Name</span>
+                  <span>Position</span>
+                  <span>Message Excerpt</span>
+                  <span style={{ textAlign: 'right' }}>Actions</span>
+                </div>
+                <Reorder.Group axis="y" values={studentMessages} onReorder={setStudentMessages} style={{ listStyle: 'none', padding: 0 }}>
+                  {studentMessages.map((msg) => (
+                    <Reorder.Item 
+                      key={msg.id} 
+                      value={msg}
+                      style={{ 
+                        padding: '1.25rem 2rem', 
+                        borderBottom: '1px solid var(--glass-border)', 
+                        display: 'grid', 
+                        gridTemplateColumns: '40px 1fr 1fr 2fr 120px',
+                        alignItems: 'center',
+                        background: 'var(--bg-secondary)',
+                        cursor: 'default'
+                      }}
+                    >
+                      <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
+                      <div style={{ fontWeight: 500 }}>{msg.name}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{msg.position}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{msg.message.substring(0, 50)}...</div>
+                      <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setEditingMessage(msg)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => handleDeleteMessage(msg.id, msg.name)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
+              </div>
             </div>
-            <Reorder.Group axis="y" values={studentMessages} onReorder={setStudentMessages} style={{ listStyle: 'none', padding: 0 }}>
-              {studentMessages.map((msg) => (
-                <Reorder.Item 
-                  key={msg.id} 
-                  value={msg}
-                  style={{ 
-                    padding: '1.25rem 2rem', 
-                    borderBottom: '1px solid var(--glass-border)', 
-                    display: 'grid', 
-                    gridTemplateColumns: '40px 1fr 1fr 2fr 120px',
-                    alignItems: 'center',
-                    background: 'var(--bg-secondary)',
-                    cursor: 'default'
-                  }}
-                >
-                  <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
-                  <div style={{ fontWeight: 500 }}>{msg.name}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{msg.position}</div>
-                  <div style={{ color: 'var(--text-secondary)' }}>{msg.message.substring(0, 50)}...</div>
-                  <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                    <button onClick={() => setEditingMessage(msg)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => handleDeleteMessage(msg.id, msg.name)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
           </div>
         )}
 
@@ -669,7 +681,7 @@ const AdminPanel: React.FC = () => {
             </div>
 
             <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSaveMessage}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
                 <label>
                   Student Name
                   <input type="text" name="name" defaultValue={editingMessage?.name || ''} placeholder="e.g. Jane Doe" required />

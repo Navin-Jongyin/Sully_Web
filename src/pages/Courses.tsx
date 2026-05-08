@@ -62,7 +62,7 @@ const Courses: React.FC = () => {
               <X size={20} />
             </button>
             
-            <div style={{ padding: '3rem' }}>
+            <div style={{ padding: 'clamp(1.25rem, 4vw, 3rem)' }}>
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 <span className="tag" style={{ background: selectedCourse.tagBg, color: selectedCourse.tagColor, border: 'none' }}>{selectedCourse.tag}</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-secondary)' }}>
@@ -70,8 +70,8 @@ const Courses: React.FC = () => {
                 </span>
               </div>
               
-              <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{selectedCourse.title}</h2>
-              <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '2rem' }}>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', marginBottom: '1rem' }}>{selectedCourse.title}</h2>
+              <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '2rem' }}>
                 {selectedCourse.description}
               </p>
               
