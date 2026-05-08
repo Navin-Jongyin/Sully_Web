@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { BookOpen, Award, CheckCircle, ArrowRight, PlayCircle, Plane, Check, Users, MessageCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { BookOpen, Award, CheckCircle, ArrowRight, PlayCircle, Plane, Users, MessageCircle } from 'lucide-react';
+
 
 const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState('2024');
@@ -14,9 +14,7 @@ const Home: React.FC = () => {
             We Make Your Dream Come True.
           </h1>
 
-          <p className="hero-copy">
-            Sully Academy provides premier tutoring for student pilots in Thailand. We break down complex aviation topics into easy-to-understand lessons, tailored specifically for your success.
-          </p>
+          
 
           <ul className="hero-meta">
             <li><CheckCircle size={16} /> High Pass Rate</li>
@@ -25,9 +23,6 @@ const Home: React.FC = () => {
           </ul>
 
           <div className="hero-actions" style={{ marginTop: '2rem' }}>
-            <a className="button button-primary" href="#courses">
-              <PlayCircle size={18} /> Explore Courses
-            </a>
             <a className="button button-secondary" href="#about">
               About Sully Academy
             </a>
@@ -78,40 +73,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <section id="courses" className="container section">
-        <div className="section-head reveal is-visible">
-          <p className="eyebrow">Our Curriculum</p>
-          <h2>Featured Courses</h2>
-        </div>
-
-        <div className="course-shell">
-          <div className="video-card reveal is-visible">
-            <div className="video-frame">
-              <iframe
-                src="https://www.youtube.com/embed/1AMbMS_D6WI"
-                title="Sully Academy Preview"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </div>
-
-          <div className="card reveal is-visible" style={{ "--delay": 1 } as React.CSSProperties}>
-            <h3>Private Pilot (PPL) Ground School Prep</h3>
-            <p>The complete path to passing your PPL written exam on the first try. Covers all 9 subjects required by CAAT.</p>
-            <ul className="course-list">
-              <li>Air Law & ATC Procedures</li>
-              <li>Aircraft General Knowledge</li>
-              <li>Flight Performance & Planning</li>
-              <li>Human Performance & Limitations</li>
-              <li>Meteorology</li>
-              <li>Navigation</li>
-            </ul>
-            <div style={{ marginTop: '1.5rem' }}>
-              <Link className="button button-primary" to="/auth">Enroll Now <ArrowRight size={16} /></Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       <section id="achievements" className="container section timeline reveal is-visible">
         <div className="section-head">
@@ -159,41 +121,42 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <section id="pricing" className="container section">
-         <div className="section-head reveal is-visible">
-          <p className="eyebrow">Enrollment</p>
-          <h2>Simple Pricing</h2>
+
+      <section id="news" className="container section">
+        <div className="section-head reveal is-visible">
+          <p className="eyebrow">Updates</p>
+          <h2>Latest News</h2>
         </div>
 
-        <div className="grid pricing-grid cards-2">
-          <div className="pricing-card reveal is-visible">
-            <h3>Self-Paced Plan</h3>
-            <p>For independent learners.</p>
-            <p className="price">฿4,900 <span>/ course</span></p>
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> 12-month access to video lessons</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> Practice question bank</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> Downloadable study notes</li>
-            </ul>
-            <Link className="button button-secondary" style={{ marginTop: 'auto' }} to="/auth">Get Started</Link>
+        <div className="scroll-grid">
+          <div className="card reveal is-visible" style={{ padding: 0, overflow: 'hidden' }}>
+            <img src="/tg_crew.png" alt="THAI Airways Crew Recruitment" style={{ width: '100%', height: '250px', objectFit: 'cover', borderBottom: '1px solid var(--glass-border)' }} />
+            <div style={{ padding: '1.5rem 2rem' }}>
+              <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Student Pilot</span>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thai Airways Student Pilot 2026</h3>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>FLY FOR THE NEW PRIDE. We are ready to fly to the farther future together. Explore recruitment opportunities with Thai Airways.</p>
+              <a href="https://career.thaiairways.com/student-pilot-recruitment-2026/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
+            </div>
           </div>
 
-          <div className="pricing-card featured reveal is-visible" style={{ "--delay": 1 } as React.CSSProperties}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3>Premium Bootcamp</h3>
-              <span className="tag">Most Popular</span>
+          <div className="card reveal is-visible" style={{ padding: 0, overflow: 'hidden', "--delay": 1 } as React.CSSProperties}>
+            <img src="/vz_crew.png" alt="Vietjet Air Student Pilot Recruitment" style={{ width: '100%', height: '250px', objectFit: 'cover', borderBottom: '1px solid var(--glass-border)' }} />
+            <div style={{ padding: '1.5rem 2rem' }}>
+              <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Career Opportunity</span>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thai Vietjet Student Pilot 2025</h3>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>ROAD TO SKY JOURNEY 2025. Student Pilot Recruitment program is now open. Join Vietjet Thailand and start your aviation journey.</p>
+              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
             </div>
-            <p>For guaranteed results with guidance.</p>
-            <p className="price">฿12,900 <span>/ course</span></p>
-            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> Everything in Self-Paced</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> Live weekly group tutoring</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> 3 hours of 1-on-1 coaching</li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}><Check size={16} color="var(--sky-500)" /> Mock exam review sessions</li>
-            </ul>
-            <Link className="button button-primary" style={{ marginTop: 'auto' }} to="/auth">Join Waitlist</Link>
+          </div>
+
+          <div className="card reveal is-visible" style={{ padding: 0, overflow: 'hidden', "--delay": 2 } as React.CSSProperties}>
+            <img src="/tg_crew.png" alt="THAI Airways Updates" style={{ width: '100%', height: '250px', objectFit: 'cover', borderBottom: '1px solid var(--glass-border)' }} />
+            <div style={{ padding: '1.5rem 2rem' }}>
+              <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Update</span>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thai Airways Cadet Program</h3>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Prepare for your future with the nation's leading carrier. Discover comprehensive training programs designed for upcoming aviation professionals.</p>
+              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
+            </div>
           </div>
         </div>
       </section>

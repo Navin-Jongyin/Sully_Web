@@ -7,6 +7,7 @@
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
   --accent-blue: #3b82f6;
+  --accent-purple: #470092;
   --accent-blue-hover: #60a5fa;
   --accent-gold: #fbbf24;
   --accent-gold-hover: #fcd34d;
@@ -312,11 +313,11 @@ p {
 }
 
 .cards-3 {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .cards-2 {
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 }
 
 .card {
@@ -493,7 +494,17 @@ p {
 
 /* Pricing Section */
 .pricing-grid {
-  align-items: center;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 2rem;
+  padding: 1rem 0 3rem 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pricing-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .pricing-card {
@@ -504,7 +515,39 @@ p {
   display: flex;
   flex-direction: column;
   transition: var(--transition);
+  flex: 0 0 calc(50% - 1rem);
+  scroll-snap-align: start;
 }
+
+/* Scrollable Grid Utility */
+.scroll-grid {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 2rem;
+  padding: 1rem 0 3rem 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scroll-grid::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-grid::-webkit-scrollbar-track {
+  background: var(--glass-bg);
+  border-radius: 4px;
+}
+.scroll-grid::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 4px;
+}
+.scroll-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
+}
+.scroll-grid > .card {
+  flex: 0 0 calc(50% - 1rem);
+  scroll-snap-align: start;
+}
+
 
 .pricing-card.featured {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
@@ -646,6 +689,14 @@ p {
     grid-template-columns: 1fr;
   }
   
+  .pricing-card {
+    flex: 0 0 100%;
+  }
+
+  .scroll-grid > .card {
+    flex: 0 0 100%;
+  }
+
   .pricing-card.featured {
     transform: none;
   }
@@ -669,4 +720,104 @@ p {
   .main-nav {
     display: none;
   }
+}
+
+/* Tabs Styling */
+.tabs-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.tab-button.active {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Modal Styling */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 4px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 10;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

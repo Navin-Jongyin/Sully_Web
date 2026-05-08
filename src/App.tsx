@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
+import Courses from "./pages/Courses";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -26,9 +27,8 @@ const App: React.FC = () => {
           <nav className="main-nav">
             <Link to="/">Home</Link>
             <a href="/#about">About</a>
-            <a href="/#courses">Courses</a>
+            <Link to="/courses">Courses</Link>
             <a href="/#achievements">Achievements</a>
-            <a href="/#pricing">Pricing</a>
             <a href="/#contact">Contact</a>
             <Link className="nav-cta" to="/auth">Login / My Courses</Link>
           </nav>
@@ -37,6 +37,7 @@ const App: React.FC = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/courses" element={<Courses />} />
         <Route path="/auth" element={<Auth />} />
       </Routes>
 
