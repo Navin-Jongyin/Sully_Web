@@ -3,11 +3,14 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
+import AdminPanel from "./pages/AdminPanel";
+import { DataProvider } from "./context/DataContext";
 import "./App.css";
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <DataProvider>
+      <BrowserRouter>
       <div className="background-shapes" aria-hidden="true">
         <span className="shape shape-one"></span>
         <span className="shape shape-two"></span>
@@ -25,12 +28,12 @@ const App: React.FC = () => {
           </button>
 
           <nav className="main-nav">
-            <Link to="/">Home</Link>
+            <a href="/#home">Home</a>
             <a href="/#about">About</a>
-            <Link to="/courses">Courses</Link>
             <a href="/#achievements">Achievements</a>
+            <a href="/#news">News</a>
             <a href="/#contact">Contact</a>
-            <Link className="nav-cta" to="/auth">Login / My Courses</Link>
+             <Link to="/courses">Courses</Link>
           </nav>
         </div>
       </header>
@@ -39,6 +42,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
 
       <footer className="site-footer">
@@ -47,10 +51,12 @@ const App: React.FC = () => {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms</a>
             <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy</a>
+            <Link to="/auth" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Admin</Link>
           </div>
         </div>
       </footer>
     </BrowserRouter>
+    </DataProvider>
   );
 };
 

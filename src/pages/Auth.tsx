@@ -2,16 +2,33 @@ import React, { useState } from 'react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLogin) {
+      if (username === 'admin' && password === 'sullyacademy2014') {
+        alert('Welcome to the Admin Panel!');
+        // Redirect to the new admin dashboard
+        window.location.href = '/admin'; 
+      } else {
+        alert('Invalid credentials. Please try again.');
+      }
+    } else {
+      alert('Sign up functionality is currently disabled.');
+    }
+  };
 
   return (
     <main className="container section" style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="card reveal is-visible" style={{ width: '100%', maxWidth: '440px', padding: '3rem 2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h2>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-          <p style={{ marginTop: '0.5rem' }}>{isLogin ? 'Log in to access your courses' : 'Sign up to start learning today'}</p>
+          <h2>{isLogin ? 'Admin Access' : 'Create Account'}</h2>
+          <p style={{ marginTop: '0.5rem' }}>{isLogin ? 'Log in to access the control panel' : 'Sign up to start learning today'}</p>
         </div>
 
-        <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={(e) => e.preventDefault()}>
+        <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSubmit}>
           {!isLogin && (
             <label>
               Full Name
@@ -19,12 +36,24 @@ const Auth: React.FC = () => {
             </label>
           )}
           <label>
-            Email Address
-            <input type="email" placeholder="jane@example.com" required />
+            Username
+            <input 
+              type="text" 
+              placeholder="admin" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required 
+            />
           </label>
           <label>
             Password
-            <input type="password" placeholder="••••••••" required />
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </label>
 
           <button className="button button-primary" style={{ width: '100%', marginTop: '1.5rem' }}>

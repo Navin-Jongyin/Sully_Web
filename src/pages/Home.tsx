@@ -1,48 +1,93 @@
 import React, { useState } from 'react';
 import { BookOpen, Award, CheckCircle, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
+import { useData } from '../context/DataContext';
 
 
 const Home: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('2024');
+  const { news, trackRecord, studentMessages } = useData();
+  const publishedNews = news.filter(n => n.status === 'Published').slice(0, 3);
+  const [activeTab, setActiveTab] = useState(Object.keys(trackRecord)[0] || '2024');
+
+  const currentYearData = trackRecord[activeTab] || { stats: [], testimonial: { quote: '', author: '' } };
 
   return (
-    <main id="home">
-      <section className="hero container">
+    <main>
+      <section className="hero container" id='home'>
         <div className="hero-content reveal is-visible">
           <p className="eyebrow">Student Pilot</p>
-          <h1>
-            We Make Your Dream Come True.
-          </h1>
-
-          
-
-          <ul className="hero-meta">
-            <li><CheckCircle size={16} /> High Pass Rate</li>
-            <li><CheckCircle size={16} /> Trusted by 100+ Students</li>
-            <li><CheckCircle size={16} /> Guidance Throughout the Process</li>  
-          </ul>
-
-          <div className="hero-actions" style={{ marginTop: '2rem' }}>
-            <a className="button button-secondary" href="#about">
-              About Sully Academy
-            </a>
+          <h1>Your Journey to the <span className="text-gradient">Flight Deck</span> Starts Here.</h1>
+          <p className="hero-description">
+            Sully Academy provides elite ground school preparation for student pilots and aviation professionals in Thailand. Master the knowledge, pass the exams, and launch your career.
+          </p>
+          <div className="hero-actions">
+            <a href="#courses" className="button button-primary">Explore Courses</a>
+            <a href="#contact" className="button button-secondary">Contact Us</a>
           </div>
         </div>
+        <div className="hero-image reveal is-visible" style={{ "--delay": 2 } as React.CSSProperties}>
+          <img src="/hero_cockpit.png" alt="Modern Cockpit" />
+        </div>
+      </section>
 
-        <div className="hero-image-wrapper reveal is-visible" style={{ "--delay": 1, position: 'relative' } as React.CSSProperties}>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, transparent 30%, var(--bg-primary) 120%)', zIndex: 1, borderRadius: 'var(--radius-lg)', pointerEvents: 'none' }}></div>
-          <img 
-            src="/hero_cockpit.png" 
-            alt="Airplane cockpit at sunset" 
-            style={{ 
-              width: '100%', 
-              height: 'auto', 
-              borderRadius: 'var(--radius-lg)', 
-              boxShadow: 'var(--glass-shadow)', 
-              border: '1px solid var(--glass-border)',
-              display: 'block'
-            }} 
-          />
+      <section id="stats" className="container reveal is-visible">
+        <div className="stats-grid">
+          <div className="stat-item">
+            <span className="stat-number">100+</span>
+            <span className="stat-label">Students Passed</span>
+          </div>
+         
+          <div className="stat-item">
+            <span className="stat-number">2017</span>
+            <span className="stat-label">Est. Since</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="container section">
+        <div className="section-head reveal is-visible">
+          <p className="eyebrow">Student Voice</p>
+          <h2>Message from our Students</h2>
+          <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '1rem auto 0' }}>
+            Hear from the pilots who have trained with us and achieved their aviation dreams.
+          </p>
+        </div>
+
+        <div className="scroll-grid">
+          {studentMessages.map((msg, i) => (
+            <div key={msg.id} className="card reveal is-visible" style={{ "--delay": i + 1, display: 'flex', flexDirection: 'column' } as React.CSSProperties}>
+              <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
+                {[...Array(msg.rating)].map((_, starI) => (
+                  <Award key={starI} size={16} color="var(--accent-gold)" />
+                ))}
+              </div>
+              <p style={{ fontStyle: 'italic', color: 'var(--text-primary)', marginBottom: '1.5rem', flex: 1 }}>
+                "{msg.message}"
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: 'auto' }}>
+                <div style={{ 
+                  width: '40px', 
+                  height: '40px', 
+                  borderRadius: '50%', 
+                  background: i % 2 === 0 ? 'var(--accent-blue)' : 'var(--accent-purple)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontWeight: 'bold',
+                  color: 'white',
+                  flexShrink: 0
+                }}>
+                  {msg.name.charAt(0)}
+                </div>
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.9rem' }}>{msg.name}</strong>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{msg.position}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {studentMessages.length === 0 && (
+            <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-secondary)' }}>No messages yet.</p>
+          )}
         </div>
       </section>
 
@@ -55,20 +100,20 @@ const Home: React.FC = () => {
         <div className="grid cards-3">
           <div className="card reveal is-visible" style={{ "--delay": 1 } as React.CSSProperties}>
             <Users color="var(--sky-500)" size={32} />
-            <h3>Instructor-Led Learning</h3>
-            <p>Learn directly from experienced commercial pilots and ground instructors who know exactly what you need to pass.</p>
+            <h3>Supportive Learning Environment</h3>
+            <p>Friendly fellow candidates who are always ready to help you with any questions you may have.</p>
           </div>
 
           <div className="card reveal is-visible" style={{ "--delay": 2 } as React.CSSProperties}>
             <BookOpen color="var(--sky-500)" size={32} />
-            <h3>Structured Study</h3>
-            <p>Follow a proven curriculum with structured modules, practice exams, and comprehensive study materials.</p>
+            <h3>Open Community</h3>
+            <p>Direct access to a network of seniors and alumni currently flying in major airlines, providing real-world insights and career mentorship.</p>
           </div>
 
           <div className="card reveal is-visible" style={{ "--delay": 3 } as React.CSSProperties}>
             <Plane color="var(--sky-500)" size={32} />
-            <h3>Thai Context</h3>
-            <p>Lessons and examples specifically tailored for the aviation environment and regulations in Thailand.</p>
+            <h3>Tailored Local Expertise</h3>
+            <p>Master the specific knowledge and standards required for Thai airline screenings (TG, VZ, FD) and CAAT regulations with our localized curriculum.</p>
           </div>
         </div>
       </section>
@@ -81,123 +126,104 @@ const Home: React.FC = () => {
           <h2>Our Track Record</h2>
         </div>
 
-        <div className="timeline-tabs">
-          <button className={`timeline-tab ${activeTab === '2024' ? 'is-active' : ''}`} onClick={() => setActiveTab('2024')}>2024 Success</button>
-          <button className={`timeline-tab ${activeTab === '2025' ? 'is-active' : ''}`} onClick={() => setActiveTab('2025')}>2025 Goals</button>
+        <div className="timeline-tabs" style={{ marginBottom: '2rem' }}>
+          {Object.keys(trackRecord).map(year => (
+            <button 
+              key={year}
+              className={`timeline-tab ${activeTab === year ? 'is-active' : ''}`} 
+              onClick={() => setActiveTab(year)}
+            >
+              {year} Results
+            </button>
+          ))}
         </div>
 
-        <div className="grid cards-2">
+        <div style={{ margin: '0 auto' }}>
           <div className="selection-chart">
-            <h3>Exam Pass Rates</h3>
-            <p>First-time pass rate for our students</p>
+            <h3>Exam Performance</h3>
+            <p>Success metrics for {activeTab}</p>
 
             <div className="selection-chart-rows">
-              <div className="selection-chart-row">
-                <div className="selection-chart-head">
-                  <span>PPL Written</span>
-                  <strong>96%</strong>
+              {currentYearData.stats.map((stat, i) => (
+                <div key={i} className="selection-chart-row">
+                  <div className="selection-chart-head">
+                    <span>{stat.label}</span>
+                    <strong>{stat.value}</strong>
+                  </div>
+                  <div className="selection-chart-track">
+                    <div className="selection-chart-fill year-2024" style={{ "--fill": stat.value } as React.CSSProperties}></div>
+                  </div>
                 </div>
-                <div className="selection-chart-track">
-                  <div className="selection-chart-fill year-2024" style={{ "--fill": "96%" } as React.CSSProperties}></div>
-                </div>
-              </div>
-              <div className="selection-chart-row">
-                <div className="selection-chart-head">
-                  <span>CPL Written</span>
-                  <strong>89%</strong>
-                </div>
-                <div className="selection-chart-track">
-                  <div className="selection-chart-fill year-2024" style={{ "--fill": "89%" } as React.CSSProperties}></div>
-                </div>
-              </div>
+              ))}
+              {currentYearData.stats.length === 0 && (
+                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', padding: '1rem 0' }}>No data recorded for this year yet.</p>
+              )}
             </div>
-          </div>
-
-          <div className="quote-card">
-            <Award size={40} color="var(--sun-500)" style={{ marginBottom: '1rem' }} />
-            <p><em>"Sully Academy transformed my ground school experience. I was struggling with Navigation, but their simplified approach made it click instantly. I passed my exam with a 92%!"</em></p>
-            <h3>— Student Pilot N. Srisuwan</h3>
           </div>
         </div>
       </section>
 
-
       <section id="news" className="container section">
         <div className="section-head reveal is-visible">
-          <p className="eyebrow">Updates</p>
-          <h2>Latest News</h2>
+          <p className="eyebrow">Latest Updates</p>
+          <h2>News & Announcements</h2>
         </div>
 
-        <div className="scroll-grid">
-          <div className="card reveal is-visible" style={{ padding: 0, overflow: 'hidden' }}>
-            <img src="/tg_crew.png" alt="THAI Airways Crew Recruitment" style={{ width: '100%', height: '250px', objectFit: 'cover', borderBottom: '1px solid var(--glass-border)' }} />
-            <div style={{ padding: '1.5rem 2rem' }}>
-              <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Student Pilot</span>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thai Airways Student Pilot 2026</h3>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>FLY FOR THE NEW PRIDE. We are ready to fly to the farther future together. Explore recruitment opportunities with Thai Airways.</p>
-              <a href="https://career.thaiairways.com/student-pilot-recruitment-2026/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
+        <div className="grid cards-3" style={{ marginTop: '3rem' }}>
+          {publishedNews.map((article, i) => (
+            <div key={i} className="card news-card reveal is-visible" style={{ "--delay": i + 1 } as React.CSSProperties}>
+              <div className="news-image">
+                <img src={article.image} alt={article.title} />
+                <span className="news-tag">{article.tag}</span>
+              </div>
+              <div className="news-content">
+                <div className="news-meta">
+                  <span>{article.date}</span>
+                  <span>•</span>
+                  <span>{article.author}</span>
+                </div>
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{article.title}</h3>
+                <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{article.description}</p>
+                <a href={article.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
+              </div>
             </div>
-          </div>
-
-          <div className="card reveal is-visible" style={{ padding: 0, overflow: 'hidden', "--delay": 1 } as React.CSSProperties}>
-            <img src="/vz_crew.png" alt="Vietjet Air Student Pilot Recruitment" style={{ width: '100%', height: '250px', objectFit: 'cover', borderBottom: '1px solid var(--glass-border)' }} />
-            <div style={{ padding: '1.5rem 2rem' }}>
-              <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Career Opportunity</span>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thai Vietjet Student Pilot 2025</h3>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>ROAD TO SKY JOURNEY 2025. Student Pilot Recruitment program is now open. Join Vietjet Thailand and start your aviation journey.</p>
-              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
+          ))}
+          {publishedNews.length === 0 && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', background: 'var(--glass-bg)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--glass-border)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>No news updates at the moment. Check back soon!</p>
             </div>
-          </div>
-
-          <div className="card reveal is-visible" style={{ padding: 0, overflow: 'hidden', "--delay": 2 } as React.CSSProperties}>
-            <img src="/tg_crew.png" alt="THAI Airways Updates" style={{ width: '100%', height: '250px', objectFit: 'cover', borderBottom: '1px solid var(--glass-border)' }} />
-            <div style={{ padding: '1.5rem 2rem' }}>
-              <span className="tag" style={{ marginBottom: '1rem', display: 'inline-block' }}>Update</span>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Thai Airways Cadet Program</h3>
-              <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Prepare for your future with the nation's leading carrier. Discover comprehensive training programs designed for upcoming aviation professionals.</p>
-              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>Read More <ArrowRight size={16} /></a>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
       <section id="contact" className="section contact">
-        <div className="container contact-shell">
+        <div className="container" style={{ textAlign: 'center', maxWidth: '800px' }}>
           <div className="reveal is-visible">
             <p className="eyebrow">Get In Touch</p>
-            <h2>Have questions?</h2>
-            <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', maxWidth: '400px' }}>
-              Not sure which course is right for you? Send us a message and our instructors will help guide your training path.
+            <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>Ready to Start Your Journey?</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '3rem' }}>
+              Have questions about our courses or the admission process? Our experienced instructors are ready to help guide you on the Line Official account.
             </p>
-            <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <MessageCircle size={24} color="var(--sky-500)" />
-              <div>
-                <strong style={{ color: 'var(--text-primary)' }}>Line Official</strong>
-                <br />
-                <a href="#" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 'bold' }}>@sullyacademy</a>
-              </div>
-            </div>
+            
+            <a 
+              href="https://line.me/R/ti/p/@sully2017" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="button button-primary"
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '1rem', 
+                padding: '1.25rem 2.5rem', 
+                fontSize: '1.1rem', 
+                borderRadius: 'var(--radius-full)',
+                background: '#06C755', // Line Brand Color
+                border: 'none'
+              }}
+            >
+              <MessageCircle size={24} /> Add Line Official @sully2017
+            </a>
           </div>
-
-          <form className="contact-form reveal is-visible" style={{ "--delay": 1 } as React.CSSProperties}>
-            <label>
-              Name
-              <input type="text" placeholder="Jane Doe" required />
-            </label>
-            <label>
-              Email
-              <input type="email" placeholder="jane@example.com" required />
-            </label>
-            <label>
-              Message
-              <textarea rows={4} placeholder="How can we help?" style={{
-                resize: 'vertical'
-              }} required></textarea>
-            </label>
-            <button className="button button-primary" style={{ marginTop: '0.5rem' }}>
-              Send Message
-            </button>
-          </form>
         </div>
       </section>
     </main>
