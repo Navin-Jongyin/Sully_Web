@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
-import { useData, type NewsArticle, type TrackRecord, type YearStats, type StudentMessage } from '../context/DataContext';
+import { useData, type NewsArticle, type YearStats, type StudentMessage } from '../context/DataContext';
 import { type Course } from '../components/courses/CourseCard';
 
 const AdminPanel: React.FC = () => {

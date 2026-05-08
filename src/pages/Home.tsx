@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Award, CheckCircle, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
+import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 
