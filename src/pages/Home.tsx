@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Award, CheckCircle, ArrowRight, PlayCircle, Plane, Users, MessageCircle } from 'lucide-react';
+import { BookOpen, Award, CheckCircle, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 
 
 const Home: React.FC = () => {
