@@ -48,15 +48,8 @@ const App: React.FC = () => {
             <a href="/#news" onClick={() => setMenuOpen(false)}>News</a>
             <a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
             <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
-            <a
-  href="https://sullytest.com"
-  target="_blank"
-  rel="noopener noreferrer"
-  onClick={() => setMenuOpen(false)}
-  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold px-5 py-2 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all duration-300 hover:scale-105"
->
-  ✈ Practice
-</a>
+            <a href="https://sullytest.com" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold px-5 py-2 rounded-2xl shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all duration-300 hover:scale-105">✈ Practice</a>
+            
           </nav>
         </div>
 
