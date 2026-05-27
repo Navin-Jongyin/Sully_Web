@@ -48,6 +48,7 @@ const App: React.FC = () => {
             <a href="/#news" onClick={() => setMenuOpen(false)}>News</a>
             <a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
             <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
+            <Link to="/sullytest" onClick={() => setMenuOpen(false)}>Practice</Link>
           </nav>
         </div>
 
