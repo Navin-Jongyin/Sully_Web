@@ -53,67 +53,6 @@ const App: React.FC = () => {
   }, []);
 
   return (
-<<<<<<< HEAD
-    <DataProvider>
-      <BrowserRouter>
-      <div className="background-shapes" aria-hidden="true">
-        <span className="shape shape-one"></span>
-        <span className="shape shape-two"></span>
-        <span className="shape shape-three"></span>
-      </div>
-
-      <header className="site-header">
-        <div className="container nav-shell">
-          <Link className="brand" to="/" onClick={() => setMenuOpen(false)}>Sully Academy</Link>
-
-          <button
-            className={`menu-toggle${menuOpen ? ' is-open' : ''}`}
-            aria-label="Toggle Menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(o => !o)}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <nav className={`main-nav${menuOpen ? ' is-open' : ''}`}>
-            <a href="/#home" onClick={() => setMenuOpen(false)}>Home</a>
-            <a href="/#about" onClick={() => setMenuOpen(false)}>About</a>
-            <a href="/#achievements" onClick={() => setMenuOpen(false)}>Achievements</a>
-            <a href="/#news" onClick={() => setMenuOpen(false)}>News</a>
-            <a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
-            <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
-            <a href="https://sully-test.com" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} className="external-cta-button">✈ Aptitude Practice</a>
-            
-          </nav>
-        </div>
-
-        {/* Mobile overlay to close menu */}
-        {menuOpen && (
-          <div
-            className="nav-overlay"
-            aria-hidden="true"
-            onClick={() => setMenuOpen(false)}
-          />
-        )}
-      </header>
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/courses" element={<Courses />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/admin" element={<AdminPanel />} />
-      </Routes>
-
-      <footer className="site-footer">
-        <div className="container footer-shell">
-          <p>© {new Date().getFullYear()} Sully Academy. All rights reserved.</p>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms</a>
-            <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy</a>
-            <Link to="/auth" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Admin</Link>
-=======
     <AuthProvider>
       <DataProvider>
         <BrowserRouter>
@@ -121,7 +60,6 @@ const App: React.FC = () => {
             <span className="shape shape-one"></span>
             <span className="shape shape-two"></span>
             <span className="shape shape-three"></span>
->>>>>>> 8f9749b (update)
           </div>
 
           <header className="site-header">
@@ -148,6 +86,15 @@ const App: React.FC = () => {
                 <a href="/#news" onClick={() => setMenuOpen(false)}>News</a>
                 <a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
+                <a
+                  href="https://sully-test.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                  className="external-cta-button"
+                >
+                  ✈ Aptitude Practice
+                </a>
               </nav>
             </div>
 
