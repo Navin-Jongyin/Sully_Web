@@ -1,26 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
-import { useData } from '../context/DataContext';
+import { useData } from '../hooks/useData';
 
 
 const Home: React.FC = () => {
   const { news, trackRecord, studentMessages, loading } = useData();
   const publishedNews = news.filter(n => n.status === 'Published').slice(0, 3);
-  const [activeTab, setActiveTab] = useState('2024');
-
-  // Update activeTab when trackRecord loads if 2024 isn't there
-  useEffect(() => {
-    if (!loading && Object.keys(trackRecord).length > 0) {
-      if (!trackRecord[activeTab]) {
-        setActiveTab(Object.keys(trackRecord)[0]);
-      }
-    }
-  }, [loading, trackRecord]);
+  const [requestedTab, setRequestedTab] = useState('2024');
 
   if (loading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>Loading Sully Academy...</div>;
   }
 
+  // Derive effective tab from state + data — no effect needed.
+  const years = Object.keys(trackRecord);
+  const activeTab = trackRecord[requestedTab] ? requestedTab : (years[0] ?? requestedTab);
+  const setActiveTab = setRequestedTab;
   const currentYearData = trackRecord[activeTab] || { stats: [], testimonial: { quote: '', author: '' } };
 
   return (
@@ -33,12 +28,20 @@ const Home: React.FC = () => {
             Sully Academy provides elite ground school preparation for student pilots and aviation professionals in Thailand. Master the knowledge, pass the exams, and launch your career.
           </p>
           <div className="hero-actions">
-            <a href="#courses" className="button button-primary">Explore Courses</a>
-            <a href="#contact" className="button button-secondary">Contact Us</a>
+            <a href="https://interview-booking.netlify.app/" target="_blank" rel="noopener noreferrer" className="button button-primary">Book Interview</a>
+            <a href="https://sully-test.com" target="_blank" rel="noopener noreferrer" className="button button-purple">Apptitude Practices</a>
+            <a href="#contact" className="button button-gold">Contact Us</a>
           </div>
         </div>
         <div className="hero-image reveal is-visible" style={{ "--delay": 2 } as React.CSSProperties}>
-          <img src="/hero_cockpit.png" alt="Modern Cockpit" />
+          <img
+            src="/hero_cockpit.png"
+            alt="Modern Cockpit"
+            fetchPriority="high"
+            decoding="async"
+            width={1200}
+            height={800}
+          />
         </div>
       </section>
 
@@ -185,7 +188,7 @@ const Home: React.FC = () => {
           {publishedNews.map((article, i) => (
             <div key={i} className="card news-card reveal is-visible" style={{ "--delay": i + 1, display: 'flex', flexDirection: 'column' } as React.CSSProperties}>
               <div className="news-image">
-                <img src={article.image} alt={article.title} />
+                <img src={article.image} alt={article.title} loading="lazy" decoding="async" />
                 <span className="news-tag">{article.tag}</span>
               </div>
               <div className="news-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -212,28 +215,32 @@ const Home: React.FC = () => {
         <div className="container" style={{ textAlign: 'center', maxWidth: '800px' }}>
           <div className="reveal is-visible">
             <p className="eyebrow">Get In Touch</p>
-            <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>Ready to Start Your Journey?</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '3rem' }}>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', marginBottom: '1.5rem' }}>
+              Ready to Start Your Journey?
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(1rem, 2.5vw, 1.1rem)', marginBottom: 'clamp(2rem, 5vw, 3rem)' }}>
               Have questions about our courses or the admission process? Our experienced instructors are ready to help guide you on the Line Official account.
             </p>
-            
-            <a 
-              href="https://line.me/R/ti/p/@sully2017" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+
+            <a
+              href="https://line.me/R/ti/p/@sully2017"
+              target="_blank"
+              rel="noopener noreferrer"
               className="button button-primary"
-              style={{ 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '1rem', 
-                padding: '1.25rem 2.5rem', 
-                fontSize: '1.1rem', 
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: 'clamp(0.875rem, 2.5vw, 1.25rem) clamp(1.25rem, 4vw, 2.5rem)',
+                fontSize: 'clamp(0.95rem, 2.5vw, 1.1rem)',
                 borderRadius: 'var(--radius-full)',
-                background: '#06C755', // Line Brand Color
-                border: 'none'
+                background: '#06C755',
+                border: 'none',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
               }}
             >
-              <MessageCircle size={24} /> Add Line Official @sully2017
+              <MessageCircle size={20} /> Add Line Official @sully2017
             </a>
           </div>
         </div>

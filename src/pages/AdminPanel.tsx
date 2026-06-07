@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
-import { useData, type NewsArticle, type YearStats, type StudentMessage } from '../context/DataContext';
+import { useData } from '../hooks/useData';
+import type { NewsArticle, YearStats, StudentMessage } from '../context/data-context';
+import { useAuth } from '../hooks/useAuth';
 import { type Course } from '../components/courses/CourseCard';
 
 const AdminPanel: React.FC = () => {
@@ -14,7 +16,14 @@ const AdminPanel: React.FC = () => {
     updateStudentMessage, addStudentMessage, deleteStudentMessage,
     setCourses, setNews, setStudentMessages
   } = useData();
-  
+  const { signOutUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    navigate('/', { replace: true });
+  };
+
   const [activeMenu, setActiveMenu] = useState('courses');
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editingNews, setEditingNews] = useState<NewsArticle | null>(null);
@@ -43,6 +52,9 @@ const AdminPanel: React.FC = () => {
     setFormattedPrice(formatPrice(rawValue));
   };
 
+  // TODO: extract the course form into its own component and pass `key={editingCourse?.id}`
+  // so React resets state on record change, eliminating this prefill effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (editingCourse) {
       setFormattedPrice(editingCourse.price);
@@ -58,6 +70,7 @@ const AdminPanel: React.FC = () => {
     }
   }, [editingCourse, isCreating]);
 
+  // TODO: same — extract the track-record editor sub-component and key it on `selectedYear`.
   useEffect(() => {
     if (trackRecord[selectedYear]) {
       setLocalYearStats(trackRecord[selectedYear]);
@@ -65,6 +78,7 @@ const AdminPanel: React.FC = () => {
       setSelectedYear(Object.keys(trackRecord)[0]);
     }
   }, [selectedYear, trackRecord]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSaveCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,8 +292,27 @@ const AdminPanel: React.FC = () => {
             ))}
           </nav>
 
-          {/* Back link */}
-          <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>&larr; Main Site</Link>
+          {/* Back link + sign out */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>&larr; Main Site</Link>
+            <button
+              onClick={handleSignOut}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.4rem',
+                padding: '0.5rem 0.875rem',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <LogOut size={14} /> Sign out
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -425,6 +458,8 @@ const AdminPanel: React.FC = () => {
                           <img 
                             src={selectedImage || editingCourse?.image} 
                             alt="Preview" 
+                            loading="lazy"
+                            decoding="async"
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} 
                           />
                         ) : (
@@ -592,6 +627,8 @@ const AdminPanel: React.FC = () => {
                           <img 
                             src={selectedImage || editingNews?.image} 
                             alt="Preview" 
+                            loading="lazy"
+                            decoding="async"
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius)' }} 
                           />
                         ) : (

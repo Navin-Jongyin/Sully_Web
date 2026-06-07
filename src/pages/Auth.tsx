@@ -1,76 +1,128 @@
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FirebaseError } from 'firebase/app';
+import { useAuth } from '../hooks/useAuth';
+
+interface LocationState {
+  from?: { pathname?: string };
+}
 
 const Auth: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as LocationState | null)?.from?.pathname || '/admin';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLogin) {
-      if (username === 'admin' && password === 'sullyacademy2014') {
-        alert('Welcome to the Admin Panel!');
-        // Redirect to the new admin dashboard
-        window.location.href = '/admin'; 
+    setError(null);
+    setSubmitting(true);
+    try {
+      await signIn(email.trim(), password);
+      navigate(from, { replace: true });
+    } catch (err) {
+      if (err instanceof FirebaseError) {
+        // Auth error codes: https://firebase.google.com/docs/auth/admin/errors
+        switch (err.code) {
+          case 'auth/invalid-credential':
+          case 'auth/wrong-password':
+          case 'auth/user-not-found':
+            setError('Invalid email or password.');
+            break;
+          case 'auth/too-many-requests':
+            setError('Too many attempts. Please try again later.');
+            break;
+          case 'auth/invalid-email':
+            setError('Please enter a valid email address.');
+            break;
+          default:
+            setError('Sign in failed. Please try again.');
+        }
       } else {
-        alert('Invalid credentials. Please try again.');
+        setError('Sign in failed. Please try again.');
       }
-    } else {
-      alert('Sign up functionality is currently disabled.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <main className="container section" style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card reveal is-visible" style={{ width: '100%', maxWidth: '440px', padding: '3rem 2rem' }}>
+    <main
+      className="container section"
+      style={{
+        minHeight: 'calc(100vh - 80px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div
+        className="card reveal is-visible"
+        style={{ width: '100%', maxWidth: '440px', padding: 'clamp(2rem, 6vw, 3rem) clamp(1.25rem, 5vw, 2rem)' }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h2>{isLogin ? 'Admin Access' : 'Create Account'}</h2>
-          <p style={{ marginTop: '0.5rem' }}>{isLogin ? 'Log in to access the control panel' : 'Sign up to start learning today'}</p>
+          <h2>Admin Access</h2>
+          <p style={{ marginTop: '0.5rem' }}>Log in to access the control panel</p>
         </div>
 
-        <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSubmit}>
-          {!isLogin && (
-            <label>
-              Full Name
-              <input type="text" placeholder="Jane Doe" required />
-            </label>
-          )}
+        <form
+          className="contact-form"
+          style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }}
+          onSubmit={handleSubmit}
+        >
           <label>
-            Username
-            <input 
-              type="text" 
-              placeholder="admin" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required 
+            Email
+            <input
+              type="email"
+              autoComplete="email"
+              placeholder="admin@sullyacademy.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </label>
           <label>
             Password
-            <input 
-              type="password" 
-              placeholder="••••••••" 
+            <input
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              required
             />
           </label>
 
-          <button className="button button-primary" style={{ width: '100%', marginTop: '1.5rem' }}>
-            {isLogin ? 'Log In' : 'Sign Up'}
+          {error && (
+            <p
+              role="alert"
+              style={{
+                color: '#ef4444',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '0.75rem 1rem',
+                fontSize: '0.9rem',
+                marginTop: '1rem',
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            className="button button-primary"
+            style={{ width: '100%', marginTop: '1.5rem' }}
+            disabled={submitting}
+          >
+            {submitting ? 'Logging in…' : 'Log In'}
           </button>
         </form>
-
-        <div style={{ textAlign: 'center', marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-          <button 
-            onClick={() => setIsLogin(!isLogin)}
-            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem', transition: 'var(--transition)' }}
-            onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-            onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
-          >
-            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
-          </button>
-        </div>
       </div>
     </main>
   );

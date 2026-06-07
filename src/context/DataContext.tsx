@@ -1,110 +1,68 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { type Course } from '../components/courses/CourseCard';
-
-export interface NewsArticle {
-  id: string;
-  title: string;
-  image: string;
-  tag: string;
-  description: string;
-  link: string;
-  date?: string;
-  author?: string;
-  status?: 'Published' | 'Draft';
-  order?: number;
-}
-
-export interface YearStats {
-  id: string; // The year string (e.g. "2024")
-  stats: { label: string; value: string }[];
-  testimonial: { quote: string; author: string };
-}
-
-export interface TrackRecord {
-  [year: string]: YearStats;
-}
-
-export interface StudentMessage {
-  id: string;
-  name: string;
-  message: string;
-  position: string;
-  rating: number;
-  order?: number;
-}
-
-interface DataContextType {
-  courses: Course[];
-  news: NewsArticle[];
-  trackRecord: TrackRecord;
-  studentMessages: StudentMessage[];
-  loading: boolean;
-  updateCourse: (updatedCourse: Course) => Promise<void>;
-  addCourse: (course: Course) => Promise<void>;
-  deleteCourse: (id: string) => Promise<void>;
-  setCourses: (courses: Course[]) => Promise<void>;
-  updateNews: (updatedNews: NewsArticle) => Promise<void>;
-  addNews: (news: NewsArticle) => Promise<void>;
-  deleteNews: (id: string) => Promise<void>;
-  setNews: (news: NewsArticle[]) => Promise<void>;
-  updateTrackRecord: (year: string, updatedStats: YearStats) => Promise<void>;
-  deleteTrackRecord: (year: string) => Promise<void>;
-  updateStudentMessage: (updatedMessage: StudentMessage) => Promise<void>;
-  addStudentMessage: (message: StudentMessage) => Promise<void>;
-  deleteStudentMessage: (id: string) => Promise<void>;
-  setStudentMessages: (messages: StudentMessage[]) => Promise<void>;
-}
-
-const DataContext = createContext<DataContextType | undefined>(undefined);
+import {
+  DataContext,
+  type NewsArticle,
+  type StudentMessage,
+  type TrackRecord,
+  type YearStats,
+} from './data-context';
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [courses, setCoursesState] = useState<Course[]>([]);
   const [news, setNewsState] = useState<NewsArticle[]>([]);
   const [trackRecord, setTrackRecordState] = useState<TrackRecord>({});
   const [studentMessages, setStudentMessagesState] = useState<StudentMessage[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  // Sync Courses
+  // Track loading per collection so we don't render empty grids prematurely.
+  const [loadedFlags, setLoadedFlags] = useState({
+    courses: false,
+    news: false,
+    trackRecord: false,
+    studentMessages: false,
+  });
+  const loading = !Object.values(loadedFlags).every(Boolean);
+
   useEffect(() => {
     const q = query(collection(db, 'courses'), orderBy('order', 'asc'));
     const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Course));
       setCoursesState(data);
-      setLoading(false);
+      setLoadedFlags((f) => ({ ...f, courses: true }));
     });
     return () => unsub();
   }, []);
 
-  // Sync News
   useEffect(() => {
     const q = query(collection(db, 'news'), orderBy('order', 'asc'));
     const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NewsArticle));
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as NewsArticle));
       setNewsState(data);
+      setLoadedFlags((f) => ({ ...f, news: true }));
     });
     return () => unsub();
   }, []);
 
-  // Sync Track Record
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'trackRecord'), (snapshot) => {
       const data: TrackRecord = {};
-      snapshot.docs.forEach(doc => {
-        data[doc.id] = { id: doc.id, ...doc.data() } as YearStats;
+      snapshot.docs.forEach((d) => {
+        data[d.id] = { id: d.id, ...d.data() } as YearStats;
       });
       setTrackRecordState(data);
+      setLoadedFlags((f) => ({ ...f, trackRecord: true }));
     });
     return () => unsub();
   }, []);
 
-  // Sync Student Messages
   useEffect(() => {
     const q = query(collection(db, 'studentMessages'), orderBy('order', 'asc'));
     const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudentMessage));
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as StudentMessage));
       setStudentMessagesState(data);
+      setLoadedFlags((f) => ({ ...f, studentMessages: true }));
     });
     return () => unsub();
   }, []);
@@ -122,10 +80,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await deleteDoc(doc(db, 'courses', id));
   };
 
+  // Atomic batch reorder: one round trip, all-or-nothing.
   const setCourses = async (newOrder: Course[]) => {
-    for (let i = 0; i < newOrder.length; i++) {
-      await updateDoc(doc(db, 'courses', newOrder[i].id), { order: i });
-    }
+    const batch = writeBatch(db);
+    newOrder.forEach((c, i) => {
+      batch.update(doc(db, 'courses', c.id), { order: i });
+    });
+    await batch.commit();
   };
 
   const updateNews = async (updatedNews: NewsArticle) => {
@@ -142,9 +103,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const setNews = async (newOrder: NewsArticle[]) => {
-    for (let i = 0; i < newOrder.length; i++) {
-      await updateDoc(doc(db, 'news', newOrder[i].id), { order: i });
-    }
+    const batch = writeBatch(db);
+    newOrder.forEach((n, i) => {
+      batch.update(doc(db, 'news', n.id), { order: i });
+    });
+    await batch.commit();
   };
 
   const updateTrackRecord = async (year: string, updatedStats: YearStats) => {
@@ -169,28 +132,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const setStudentMessages = async (newOrder: StudentMessage[]) => {
-    for (let i = 0; i < newOrder.length; i++) {
-      await updateDoc(doc(db, 'studentMessages', newOrder[i].id), { order: i });
-    }
+    const batch = writeBatch(db);
+    newOrder.forEach((m, i) => {
+      batch.update(doc(db, 'studentMessages', m.id), { order: i });
+    });
+    await batch.commit();
   };
 
   return (
-    <DataContext.Provider value={{ 
+    <DataContext.Provider value={{
       courses, news, trackRecord, studentMessages, loading,
       updateCourse, addCourse, deleteCourse, setCourses,
       updateNews, addNews, deleteNews, setNews,
       updateTrackRecord, deleteTrackRecord,
-      updateStudentMessage, addStudentMessage, deleteStudentMessage, setStudentMessages
+      updateStudentMessage, addStudentMessage, deleteStudentMessage, setStudentMessages,
     }}>
       {children}
     </DataContext.Provider>
   );
-};
-
-export const useData = () => {
-  const context = useContext(DataContext);
-  if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
-  }
-  return context;
 };

@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Clock, X, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Course } from '../components/courses/CourseCard';
-import StudentPilotTab from '../components/courses/StudentPilotTab';
-import QualifiedPilotTab from '../components/courses/QualifiedPilotTab';
-import ATCTab from '../components/courses/ATCTab';
-import OthersTab from '../components/courses/OthersTab';
+import CategoryTab, { type CourseCategory } from '../components/courses/CategoryTab';
 
-const tabs = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
+const tabs: CourseCategory[] = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
 
 const Courses: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('Student Pilot');
+  const [activeTab, setActiveTab] = useState<CourseCategory>('Student Pilot');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   // Prevent background scrolling when modal is open
@@ -25,7 +22,7 @@ const Courses: React.FC = () => {
 
   return (
     <main className="page-transition">
-      <section className="container section" style={{ paddingTop: '120px' }}>
+      <section className="container section" style={{ paddingTop: 'clamp(2rem, 8vw, 7.5rem)' }}>
         <div className="section-head reveal is-visible">
           <p className="eyebrow">Curriculum</p>
           <h2>Our Courses</h2>
@@ -46,11 +43,7 @@ const Courses: React.FC = () => {
           ))}
         </div>
 
-        {/* Dynamic Tab Rendering */}
-        {activeTab === 'Student Pilot' && <StudentPilotTab onSelectCourse={setSelectedCourse} />}
-        {activeTab === 'Qualified Pilot' && <QualifiedPilotTab onSelectCourse={setSelectedCourse} />}
-        {activeTab === 'ATC' && <ATCTab onSelectCourse={setSelectedCourse} />}
-        {activeTab === 'Others' && <OthersTab onSelectCourse={setSelectedCourse} />}
+        <CategoryTab category={activeTab} onSelectCourse={setSelectedCourse} />
 
       </section>
 

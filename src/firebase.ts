@@ -3,21 +3,29 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCOTXEtV2tQ_g-DRYNNIZIVKS9KRN7BVpQ",
-  authDomain: "sullyweb-5f6cc.firebaseapp.com",
-  projectId: "sullyweb-5f6cc",
-  storageBucket: "sullyweb-5f6cc.firebasestorage.app",
-  messagingSenderId: "962971337275",
-  appId: "1:962971337275:web:1db451f7db54faff89921e",
-  measurementId: "G-MWJ9HZ8727"
+const requireEnv = (key: keyof ImportMetaEnv): string => {
+  const value = import.meta.env[key];
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable: ${String(key)}. ` +
+        `Copy .env.example to .env and fill in your Firebase config.`,
+    );
+  }
+  return value;
 };
 
-// Initialize Firebase
+const firebaseConfig = {
+  apiKey: requireEnv('VITE_FIREBASE_API_KEY'),
+  authDomain: requireEnv('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: requireEnv('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: requireEnv('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: requireEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: requireEnv('VITE_FIREBASE_APP_ID'),
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
+
 const app = initializeApp(firebaseConfig);
 
-// Export services
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);

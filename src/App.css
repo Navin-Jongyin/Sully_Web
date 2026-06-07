@@ -30,6 +30,10 @@
   padding: 0;
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
@@ -92,18 +96,13 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 clamp(1.5rem, 6vw, 4rem);
 }
 
-@media (min-width: 640px) {
+/* On really wide viewports, give the page a comfortable gutter beyond max-width */
+@media (min-width: 1280px) {
   .container {
-    padding: 0 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 0 2rem;
+    padding: 0 4rem;
   }
 }
 
@@ -148,6 +147,7 @@ p {
   justify-content: space-between;
   align-items: center;
   height: 80px;
+  gap: 1rem;
 }
 
 .brand {
@@ -244,6 +244,8 @@ p {
   border: none;
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
+  max-width: 100%;
+  text-align: center;
 }
 
 .button-primary {
@@ -269,6 +271,30 @@ p {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
+}
+
+.button-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+  box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.39);
+}
+
+.button-purple:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+}
+
+.button-gold {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  color: #0f172a;
+  box-shadow: 0 4px 14px 0 rgba(251, 191, 36, 0.35);
+}
+
+.button-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+  background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
 }
 
 /* Sections */
@@ -343,14 +369,14 @@ p {
 /* Stats Section */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  padding: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: clamp(1.25rem, 3vw, 2rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(20px);
-  margin-bottom: 6rem;
+  margin-bottom: clamp(3rem, 8vw, 6rem);
 }
 
 .stat-item {
@@ -379,11 +405,11 @@ p {
 /* Grids & Cards */
 .grid {
   display: grid;
-  gap: 2rem;
+  gap: clamp(1.25rem, 3vw, 2rem);
 }
 
 .cards-3 {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
 }
 
 .cards-2 {
@@ -394,13 +420,14 @@ p {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 2.5rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
   transition: var(--transition);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .card:hover {
@@ -599,8 +626,8 @@ p {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  gap: 2rem;
-  padding: 1rem 0 2rem 0;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 1rem 0.25rem 2rem;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -620,7 +647,7 @@ p {
 
 @media (max-width: 768px) {
   .scroll-grid > .card {
-    flex: 0 0 100%;
+    flex: 0 0 min(85%, 360px);
   }
 }
 
@@ -676,7 +703,7 @@ p {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 2.5rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
   display: grid;
   gap: 1.5rem;
   backdrop-filter: blur(16px);
@@ -831,14 +858,8 @@ p {
 }
 
 @media (max-width: 640px) {
-  .pricing-card,
-  .scroll-grid > .card {
-    flex: 0 0 calc(100% - 0.5rem);
-  }
-
-  .stats-grid {
-    padding: 1.5rem;
-    gap: 1.25rem;
+  .pricing-card {
+    flex: 0 0 min(85%, 360px);
   }
 
   .stat-number {
@@ -848,10 +869,6 @@ p {
   /* Contact section: full width paddings */
   .contact-shell {
     gap: 2rem;
-  }
-
-  .contact-form {
-    padding: 1.5rem;
   }
 
   /* Timeline tabs: wrap + smaller padding */
@@ -868,6 +885,11 @@ p {
   .tab-button {
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
+  }
+
+  /* Hero: tighter top spacing on small phones */
+  .hero {
+    padding: 1.5rem 0 1rem;
   }
 }
 
@@ -981,7 +1003,7 @@ p {
 
 .news-image {
   position: relative;
-  height: 200px;
+  height: clamp(160px, 30vw, 200px);
   width: 100%;
 }
 
