@@ -39,6 +39,7 @@ export interface DataContextValue {
   trackRecord: TrackRecord;
   studentMessages: StudentMessage[];
   loading: boolean;
+  homeLoading: boolean;
   updateCourse: (updatedCourse: Course) => Promise<void>;
   addCourse: (course: Course) => Promise<void>;
   deleteCourse: (id: string) => Promise<void>;

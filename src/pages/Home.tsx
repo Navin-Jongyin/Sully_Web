@@ -4,11 +4,11 @@ import { useData } from '../hooks/useData';
 
 
 const Home: React.FC = () => {
-  const { news, trackRecord, studentMessages, loading } = useData();
+  const { news, trackRecord, studentMessages, homeLoading } = useData();
   const publishedNews = news.filter(n => n.status === 'Published').slice(0, 3);
   const [requestedTab, setRequestedTab] = useState('2024');
 
-  if (loading) {
+  if (homeLoading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>Loading Sully Academy...</div>;
   }
 

@@ -3,25 +3,21 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
-const requireEnv = (key: keyof ImportMetaEnv): string => {
+const env = (key: keyof ImportMetaEnv): string | undefined => {
   const value = import.meta.env[key];
-  if (!value) {
-    throw new Error(
-      `Missing required environment variable: ${String(key)}. ` +
-        `Copy .env.example to .env and fill in your Firebase config.`,
-    );
-  }
-  return value;
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
 };
 
+// Prefer .env in local dev; fall back to the hosted project config so production
+// builds still work when CI does not inject VITE_* variables.
 const firebaseConfig = {
-  apiKey: requireEnv('VITE_FIREBASE_API_KEY'),
-  authDomain: requireEnv('VITE_FIREBASE_AUTH_DOMAIN'),
-  projectId: requireEnv('VITE_FIREBASE_PROJECT_ID'),
-  storageBucket: requireEnv('VITE_FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: requireEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
-  appId: requireEnv('VITE_FIREBASE_APP_ID'),
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: env('VITE_FIREBASE_API_KEY') ?? 'AIzaSyCOTXEtV2tQ_g-DRYNNIZIVKS9KRN7BVpQ',
+  authDomain: env('VITE_FIREBASE_AUTH_DOMAIN') ?? 'sullyweb-5f6cc.firebaseapp.com',
+  projectId: env('VITE_FIREBASE_PROJECT_ID') ?? 'sullyweb-5f6cc',
+  storageBucket: env('VITE_FIREBASE_STORAGE_BUCKET') ?? 'sullyweb-5f6cc.firebasestorage.app',
+  messagingSenderId: env('VITE_FIREBASE_MESSAGING_SENDER_ID') ?? '962971337275',
+  appId: env('VITE_FIREBASE_APP_ID') ?? '1:962971337275:web:1db451f7db54faff89921e',
+  measurementId: env('VITE_FIREBASE_MEASUREMENT_ID') ?? 'G-MWJ9HZ8727',
 };
 
 const app = initializeApp(firebaseConfig);
