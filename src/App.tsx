@@ -5,28 +5,34 @@ import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
 import { DataProvider } from "./context/DataContext";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import RequireAuth from "./components/RequireAuth";
+import { LanguageToggle } from "./components/LanguageToggle";
+import { useTranslation } from "./hooks/useTranslation";
 import "./App.css";
 
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 
-const NotFound: React.FC = () => (
-  <main
-    className="container section"
-    style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
-  >
-    <div>
-      <p className="eyebrow">404</p>
-      <h2>Page not found</h2>
-      <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
-        The page you're looking for doesn't exist.
-      </p>
-      <Link to="/" className="button button-primary" style={{ marginTop: '2rem', display: 'inline-block' }}>
-        Back to Home
-      </Link>
-    </div>
-  </main>
-);
+const NotFound: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <main
+      className="container section"
+      style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
+    >
+      <div>
+        <p className="eyebrow">404</p>
+        <h2>{t.common.pageNotFound}</h2>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
+          {t.common.pageNotFoundDesc}
+        </p>
+        <Link to="/" className="button button-primary" style={{ marginTop: '2rem', display: 'inline-block' }}>
+          {t.common.backToHome}
+        </Link>
+      </div>
+    </main>
+  );
+};
 
 const PageFallback: React.FC = () => (
   <div
@@ -43,6 +49,7 @@ const PageFallback: React.FC = () => (
 );
 
 const App: React.FC = () => {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close menu on resize
@@ -53,9 +60,10 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <AuthProvider>
-      <DataProvider>
-        <BrowserRouter>
+    <LanguageProvider>
+      <AuthProvider>
+        <DataProvider>
+          <BrowserRouter>
           <div className="background-shapes" aria-hidden="true">
             <span className="shape shape-one"></span>
             <span className="shape shape-two"></span>
@@ -80,12 +88,12 @@ const App: React.FC = () => {
               </button>
 
               <nav className={`main-nav${menuOpen ? ' is-open' : ''}`}>
-                <a href="/#home" onClick={() => setMenuOpen(false)}>Home</a>
-                <a href="/#about" onClick={() => setMenuOpen(false)}>About</a>
-                <a href="/#achievements" onClick={() => setMenuOpen(false)}>Achievements</a>
-                <a href="/#news" onClick={() => setMenuOpen(false)}>News</a>
-                <a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
-                <Link to="/courses" onClick={() => setMenuOpen(false)}>Courses</Link>
+                <a href="/#home" onClick={() => setMenuOpen(false)}>{t.common.home}</a>
+                <a href="/#about" onClick={() => setMenuOpen(false)}>{t.common.about}</a>
+                <a href="/#achievements" onClick={() => setMenuOpen(false)}>{t.common.achievements}</a>
+                <a href="/#news" onClick={() => setMenuOpen(false)}>{t.common.news}</a>
+                <a href="/#contact" onClick={() => setMenuOpen(false)}>{t.common.contact}</a>
+                <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
                 <a
                   href="https://sully-test.com"
                   target="_blank"
@@ -95,6 +103,7 @@ const App: React.FC = () => {
                 >
                   ✈ Aptitude Practice
                 </a>
+                <LanguageToggle />
               </nav>
             </div>
 
@@ -126,17 +135,18 @@ const App: React.FC = () => {
 
           <footer className="site-footer">
             <div className="container footer-shell">
-              <p>© {new Date().getFullYear()} Sully Academy. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} Sully Academy. {t.footer.copyright}</p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms</a>
-                <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy</a>
-                <Link to="/auth" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Admin</Link>
+                <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>{t.common.terms}</a>
+                <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>{t.common.privacy}</a>
+                <Link to="/auth" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>{t.common.admin}</Link>
               </div>
             </div>
           </footer>
         </BrowserRouter>
       </DataProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 };
 

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 import { useData } from '../hooks/useData';
+import { useTranslation } from '../hooks/useTranslation';
 
 
 const Home: React.FC = () => {
   const { news, trackRecord, studentMessages, homeLoading } = useData();
+  const { t } = useTranslation();
   const publishedNews = news.filter(n => n.status === 'Published').slice(0, 3);
   const [requestedTab, setRequestedTab] = useState('2024');
 
   if (homeLoading) {
-    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>Loading Sully Academy...</div>;
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>{t.common.loading}</div>;
   }
 
   // Derive effective tab from state + data — no effect needed.
@@ -22,15 +24,15 @@ const Home: React.FC = () => {
     <main>
       <section className="hero container" id='home'>
         <div className="hero-content reveal is-visible">
-          <p className="eyebrow">Student Pilot</p>
-          <h1>Your Journey to the <span className="text-gradient">Flight Deck</span> Starts Here.</h1>
+          <p className="eyebrow">{t.home.eyebrow}</p>
+          <h1>{t.home.heroTitle}</h1>
           <p className="hero-description">
-            Sully Academy provides elite ground school preparation for student pilots and aviation professionals in Thailand. Master the knowledge, pass the exams, and launch your career.
+            {t.home.heroDescription}
           </p>
           <div className="hero-actions">
-            <a href="https://interview-booking.netlify.app/" target="_blank" rel="noopener noreferrer" className="button button-primary">Book Interview</a>
-            <a href="https://sully-test.com" target="_blank" rel="noopener noreferrer" className="button button-purple">Apptitude Practices</a>
-            <a href="#contact" className="button button-gold">Contact Us</a>
+            <a href="https://interview-booking.netlify.app/" target="_blank" rel="noopener noreferrer" className="button button-primary">{t.home.bookInterview}</a>
+            <a href="https://sully-test.com" target="_blank" rel="noopener noreferrer" className="button button-purple">{t.home.aptitudePractice}</a>
+            <a href="#contact" className="button button-gold">{t.home.contactUs}</a>
           </div>
         </div>
         <div className="hero-image reveal is-visible" style={{ "--delay": 2 } as React.CSSProperties}>
@@ -49,22 +51,22 @@ const Home: React.FC = () => {
         <div className="stats-grid">
           <div className="stat-item">
             <span className="stat-number">100+</span>
-            <span className="stat-label">Students Passed</span>
+            <span className="stat-label">{t.home.studentsPassed}</span>
           </div>
          
           <div className="stat-item">
             <span className="stat-number">2017</span>
-            <span className="stat-label">Est. Since</span>
+            <span className="stat-label">{t.home.estSince}</span>
           </div>
         </div>
       </section>
 
       <section className="container section">
         <div className="section-head reveal is-visible">
-          <p className="eyebrow">Student Voice</p>
-          <h2>Message from our Students</h2>
+          <p className="eyebrow">{t.home.studentVoiceEyebrow}</p>
+          <h2>{t.home.studentVoiceTitle}</h2>
           <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '1rem auto 0' }}>
-            Hear from the pilots who have trained with us and achieved their aviation dreams.
+            {t.home.studentVoiceDesc}
           </p>
         </div>
 
@@ -102,34 +104,34 @@ const Home: React.FC = () => {
             </div>
           ))}
           {studentMessages.length === 0 && (
-            <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-secondary)' }}>No messages yet.</p>
+            <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-secondary)' }}>{t.home.noMessages}</p>
           )}
         </div>
       </section>
 
       <section id="about" className="container section">
         <div className="section-head reveal is-visible">
-          <p className="eyebrow">Why Choose Us</p>
-          <h2>Built for Student Pilots</h2>
+          <p className="eyebrow">{t.home.whyChooseUsEyebrow}</p>
+          <h2>{t.home.whyChooseUsTitle}</h2>
         </div>
 
         <div className="grid cards-3">
           <div className="card reveal is-visible" style={{ "--delay": 1 } as React.CSSProperties}>
             <Users color="var(--sky-500)" size={32} />
-            <h3>Supportive Learning Environment</h3>
-            <p>Friendly fellow candidates who are always ready to help you with any questions you may have.</p>
+            <h3>{t.home.supportiveLearning}</h3>
+            <p>{t.home.supportiveLearningDesc}</p>
           </div>
 
           <div className="card reveal is-visible" style={{ "--delay": 2 } as React.CSSProperties}>
             <BookOpen color="var(--sky-500)" size={32} />
-            <h3>Open Community</h3>
-            <p>Direct access to a network of seniors and alumni currently flying in major airlines, providing real-world insights and career mentorship.</p>
+            <h3>{t.home.openCommunity}</h3>
+            <p>{t.home.openCommunityDesc}</p>
           </div>
 
           <div className="card reveal is-visible" style={{ "--delay": 3 } as React.CSSProperties}>
             <Plane color="var(--sky-500)" size={32} />
-            <h3>Tailored Local Expertise</h3>
-            <p>Master the specific knowledge and standards required for Thai airline screenings (TG, VZ, FD) and CAAT regulations with our localized curriculum.</p>
+            <h3>{t.home.tailoredExpertise}</h3>
+            <p>{t.home.tailoredExpertiseDesc}</p>
           </div>
         </div>
       </section>
@@ -138,8 +140,8 @@ const Home: React.FC = () => {
 
       <section id="achievements" className="container section timeline reveal is-visible">
         <div className="section-head">
-          <p className="eyebrow">Success Stories</p>
-          <h2>Our Track Record</h2>
+          <p className="eyebrow">{t.home.successStoriesEyebrow}</p>
+          <h2>{t.home.successStoriesTitle}</h2>
         </div>
 
         <div className="timeline-tabs" style={{ marginBottom: '2rem' }}>
@@ -157,8 +159,8 @@ const Home: React.FC = () => {
         <div style={{ margin: '0 auto' }}>
           <div className="stats-container">
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Exam Performance</h3>
-              <p style={{ color: 'var(--text-secondary)' }}>Success metrics for {activeTab}</p>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t.home.examPerformance}</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>{t.home.successMetrics} {activeTab}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
@@ -170,7 +172,7 @@ const Home: React.FC = () => {
               ))}
               {currentYearData.stats.length === 0 && (
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius)', border: '1px dashed var(--glass-border)' }}>
-                  <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No data recorded for this year yet.</p>
+                  <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>{t.home.noDataRecorded}</p>
                 </div>
               )}
             </div>
@@ -180,8 +182,8 @@ const Home: React.FC = () => {
 
       <section id="news" className="container section">
         <div className="section-head reveal is-visible">
-          <p className="eyebrow">Latest Updates</p>
-          <h2>News & Announcements</h2>
+          <p className="eyebrow">{t.home.latestUpdatesEyebrow}</p>
+          <h2>{t.home.latestUpdatesTitle}</h2>
         </div>
 
         <div className="grid cards-3" style={{ marginTop: '3rem' }}>
@@ -199,13 +201,13 @@ const Home: React.FC = () => {
                 </div>
                 <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{article.title}</h3>
                 <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', flex: 1 }}>{article.description}</p>
-                <a href={article.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', marginTop: 'auto' }}>Read More <ArrowRight size={16} /></a>
+                <a href={article.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', marginTop: 'auto' }}>{t.home.readMore} <ArrowRight size={16} /></a>
               </div>
             </div>
           ))}
           {publishedNews.length === 0 && (
             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', background: 'var(--glass-bg)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--glass-border)' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>No news updates at the moment. Check back soon!</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>{t.home.noNewsUpdates}</p>
             </div>
           )}
         </div>
@@ -214,12 +216,12 @@ const Home: React.FC = () => {
       <section id="contact" className="section contact">
         <div className="container" style={{ textAlign: 'center', maxWidth: '800px' }}>
           <div className="reveal is-visible">
-            <p className="eyebrow">Get In Touch</p>
+            <p className="eyebrow">{t.home.getInTouchEyebrow}</p>
             <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', marginBottom: '1.5rem' }}>
-              Ready to Start Your Journey?
+              {t.home.getInTouchTitle}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(1rem, 2.5vw, 1.1rem)', marginBottom: 'clamp(2rem, 5vw, 3rem)' }}>
-              Have questions about our courses or the admission process? Our experienced instructors are ready to help guide you on the Line Official account.
+              {t.home.getInTouchDesc}
             </p>
 
             <a
@@ -240,7 +242,7 @@ const Home: React.FC = () => {
                 justifyContent: 'center',
               }}
             >
-              <MessageCircle size={20} /> Add Line Official @sully2017
+              <MessageCircle size={20} /> {t.home.addLine}
             </a>
           </div>
         </div>
