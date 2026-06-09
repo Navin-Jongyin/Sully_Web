@@ -34,21 +34,24 @@ const NotFound: React.FC = () => {
   );
 };
 
-const PageFallback: React.FC = () => (
-  <div
-    style={{
-      height: '60vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: 'var(--text-secondary)',
-    }}
-  >
-    Loading…
-  </div>
-);
+const PageFallback: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <div
+      style={{
+        height: '60vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'var(--text-secondary)',
+      }}
+    >
+      {t.common.loading}
+    </div>
+  );
+};
 
-const App: React.FC = () => {
+const AppShell: React.FC = () => {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -60,10 +63,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <DataProvider>
-          <BrowserRouter>
+    <BrowserRouter>
           <div className="background-shapes" aria-hidden="true">
             <span className="shape shape-one"></span>
             <span className="shape shape-two"></span>
@@ -143,11 +143,18 @@ const App: React.FC = () => {
               </div>
             </div>
           </footer>
-        </BrowserRouter>
-      </DataProvider>
-    </AuthProvider>
-    </LanguageProvider>
+    </BrowserRouter>
   );
 };
+
+const App: React.FC = () => (
+  <LanguageProvider>
+    <AuthProvider>
+      <DataProvider>
+        <AppShell />
+      </DataProvider>
+    </AuthProvider>
+  </LanguageProvider>
+);
 
 export default App;
