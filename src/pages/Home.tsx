@@ -151,7 +151,7 @@ const Home: React.FC = () => {
               className={`timeline-tab ${activeTab === year ? 'is-active' : ''}`} 
               onClick={() => setActiveTab(year)}
             >
-              {year} Results
+              {t.home.yearResults.replace('{year}', year)}
             </button>
           ))}
         </div>

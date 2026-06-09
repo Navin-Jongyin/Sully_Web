@@ -101,7 +101,7 @@ const AppShell: React.FC = () => {
                   onClick={() => setMenuOpen(false)}
                   className="external-cta-button"
                 >
-                  ✈ Aptitude Practice
+                  ✈ {t.home.aptitudePractice}
                 </a>
                 <LanguageToggle />
               </nav>
