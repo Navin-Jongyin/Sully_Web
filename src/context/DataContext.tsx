@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { type Course } from '../components/courses/CourseCard';
 import {
@@ -9,6 +9,15 @@ import {
   type TrackRecord,
   type YearStats,
 } from './data-context';
+
+/** Firestore orderBy excludes docs without the field — sort client-side instead. */
+function sortByOrder<T>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const ao = (a as { order?: number }).order ?? Number.MAX_SAFE_INTEGER;
+    const bo = (b as { order?: number }).order ?? Number.MAX_SAFE_INTEGER;
+    return ao - bo;
+  });
+}
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [courses, setCoursesState] = useState<Course[]>([]);
@@ -31,11 +40,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const q = query(collection(db, 'courses'), orderBy('order', 'asc'));
     const unsub = onSnapshot(
-      q,
+      collection(db, 'courses'),
       (snapshot) => {
-        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Course));
+        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Course)));
         setCoursesState(data);
         markLoaded('courses');
       },
@@ -48,11 +56,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, 'news'), orderBy('order', 'asc'));
     const unsub = onSnapshot(
-      q,
+      collection(db, 'news'),
       (snapshot) => {
-        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as NewsArticle));
+        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as NewsArticle)));
         setNewsState(data);
         markLoaded('news');
       },
@@ -84,11 +91,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, 'studentMessages'), orderBy('order', 'asc'));
     const unsub = onSnapshot(
-      q,
+      collection(db, 'studentMessages'),
       (snapshot) => {
-        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as StudentMessage));
+        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as StudentMessage)));
         setStudentMessagesState(data);
         markLoaded('studentMessages');
       },
@@ -152,7 +158,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateStudentMessage = async (updatedMessage: StudentMessage) => {
-    await setDoc(doc(db, 'studentMessages', updatedMessage.id), updatedMessage);
+    const existing = studentMessages.find((m) => m.id === updatedMessage.id);
+    const order = updatedMessage.order ?? existing?.order ?? studentMessages.length;
+    await setDoc(doc(db, 'studentMessages', updatedMessage.id), { ...updatedMessage, order });
   };
 
   const addStudentMessage = async (message: StudentMessage) => {

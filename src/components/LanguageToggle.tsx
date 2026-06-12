@@ -10,7 +10,7 @@ export const LanguageToggle: React.FC = () => {
       className="language-toggle"
       style={{
         padding: '0.5rem 1rem',
-        borderRadius: 'var(--radius)',
+        borderRadius: 'var(--radius-full)',
         background: 'var(--glass-bg)',
         border: '1px solid var(--glass-border)',
         color: 'var(--text-primary)',

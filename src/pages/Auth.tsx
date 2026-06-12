@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FirebaseError } from 'firebase/app';
+import { getAuthErrorCode, isAuthError } from '../context/AuthContext';
 import { useAuth } from '../hooks/useAuth';
 
 interface LocationState {
@@ -13,7 +13,7 @@ const Auth: React.FC = () => {
   const location = useLocation();
   const from = (location.state as LocationState | null)?.from?.pathname || '/admin';
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -23,25 +23,20 @@ const Auth: React.FC = () => {
     setError(null);
     setSubmitting(true);
     try {
-      await signIn(email.trim(), password);
+      await signIn(username.trim(), password);
       navigate(from, { replace: true });
     } catch (err) {
-      if (err instanceof FirebaseError) {
-        // Auth error codes: https://firebase.google.com/docs/auth/admin/errors
-        switch (err.code) {
-          case 'auth/invalid-credential':
-          case 'auth/wrong-password':
-          case 'auth/user-not-found':
-            setError('Invalid email or password.');
+      if (isAuthError(err)) {
+        switch (getAuthErrorCode(err)) {
+          case 'credentials-not-found':
+            setError('Admin credentials were not found in Firebase.');
             break;
-          case 'auth/too-many-requests':
-            setError('Too many attempts. Please try again later.');
+          case 'invalid-credentials':
+            setError('Invalid username or password.');
             break;
-          case 'auth/invalid-email':
-            setError('Please enter a valid email address.');
+          case 'network':
+            setError('Could not verify credentials. Try again.');
             break;
-          default:
-            setError('Sign in failed. Please try again.');
         }
       } else {
         setError('Sign in failed. Please try again.');
@@ -76,13 +71,13 @@ const Auth: React.FC = () => {
           onSubmit={handleSubmit}
         >
           <label>
-            Email
+            Username
             <input
-              type="email"
-              autoComplete="email"
-              placeholder="admin@sullyacademy.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              autoComplete="username"
+              placeholder="admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </label>

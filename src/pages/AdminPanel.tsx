@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut } from 'lucide-react';
+import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -8,6 +8,9 @@ import { useData } from '../hooks/useData';
 import type { NewsArticle, YearStats, StudentMessage } from '../context/data-context';
 import { useAuth } from '../hooks/useAuth';
 import { type Course } from '../components/courses/CourseCard';
+import { BookingAdminPanel } from '../booking/BookingAdminPanel';
+import '../booking/booking-theme.css';
+import './AdminPanel.css';
 
 const AdminPanel: React.FC = () => {
   const { 
@@ -39,6 +42,8 @@ const AdminPanel: React.FC = () => {
   // Track Record Local State
   const [selectedYear, setSelectedYear] = useState(Object.keys(trackRecord)[0] || '2024');
   const [localYearStats, setLocalYearStats] = useState<YearStats>(trackRecord[selectedYear] || { id: selectedYear, stats: [], testimonial: { quote: '', author: '' } } as YearStats);
+  const [showAddYear, setShowAddYear] = useState(false);
+  const [newYearInput, setNewYearInput] = useState('');
 
   const formatPrice = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -219,6 +224,26 @@ const AdminPanel: React.FC = () => {
     setLocalYearStats({ ...localYearStats, stats: newStats });
   };
 
+  const handleAddYear = async () => {
+    const year = newYearInput.trim();
+    if (!year || trackRecord[year]) return;
+    await updateTrackRecord(year, {
+      id: year,
+      stats: [],
+      testimonial: { quote: '', author: '' },
+    } as YearStats);
+    setSelectedYear(year);
+    setNewYearInput('');
+    setShowAddYear(false);
+  };
+
+  const updateTestimonial = (field: 'quote' | 'author', value: string) => {
+    setLocalYearStats({
+      ...localYearStats,
+      testimonial: { ...localYearStats.testimonial, [field]: value },
+    });
+  };
+
   const addOverviewPoint = () => {
     setLocalOverview([...localOverview, '']);
   };
@@ -237,7 +262,7 @@ const AdminPanel: React.FC = () => {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ border: '3px solid rgba(255,255,255,0.1)', borderTop: '3px solid var(--accent-blue)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
+          <div className="spinner" style={{ border: '3px solid #e2e8f0', borderTop: '3px solid var(--accent-blue)', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
           <p>Connecting to Sully Cloud...</p>
         </div>
         <style>{`
@@ -250,83 +275,72 @@ const AdminPanel: React.FC = () => {
     );
   }
 
+  const menuItems = [
+    { key: 'courses', icon: <BookOpen size={18} />, label: 'Courses' },
+    { key: 'news', icon: <Layout size={18} />, label: 'News' },
+    { key: 'messages', icon: <MessageSquare size={18} />, label: 'Messages' },
+    { key: 'track', icon: <Award size={18} />, label: 'Track Record' },
+    { key: 'booking', icon: <Calendar size={18} />, label: 'Interview Booking' },
+    { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
+  ] as const;
+
+  const selectMenu = (key: typeof menuItems[number]['key']) => {
+    setActiveMenu(key);
+    setEditingCourse(null);
+    setEditingNews(null);
+    setEditingMessage(null);
+    setIsCreating(false);
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-primary)' }}>
-      {/* Sidebar / Top-nav */}
-      <aside style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--glass-border)', padding: '1rem 1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          {/* Brand */}
-          <div>
-            <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Content<span style={{ color: 'var(--accent-blue)' }}>Manager</span></h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Sully Academy</p>
-          </div>
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-brand">
+          <h2>Content<span>Manager</span></h2>
+          <p>Sully Academy</p>
+        </div>
 
-          {/* Nav links — horizontal on all sizes, wrapping on mobile */}
-          <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {([
-              { key: 'courses', icon: <BookOpen size={16} />, label: 'Courses' },
-              { key: 'news',    icon: <Layout size={16} />, label: 'News' },
-              { key: 'messages', icon: <MessageSquare size={16} />, label: 'Messages' },
-              { key: 'track',   icon: <Award size={16} />, label: 'Track Record' },
-              { key: 'settings', icon: <Settings size={16} />, label: 'Settings' },
-            ] as const).map(({ key, icon, label }) => (
-              <button
-                key={key}
-                onClick={() => { setActiveMenu(key); setEditingCourse(null); setEditingNews(null); setEditingMessage(null); setIsCreating(false); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.4rem',
-                  padding: '0.5rem 0.875rem',
-                  borderRadius: 'var(--radius-full)',
-                  background: activeMenu === key ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                  color: activeMenu === key ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                  border: activeMenu === key ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
-                  cursor: 'pointer',
-                  fontWeight: activeMenu === key ? 600 : 400,
-                  fontSize: '0.875rem',
-                  transition: 'var(--transition)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {icon} {label}
-              </button>
-            ))}
-          </nav>
-
-          {/* Back link + sign out */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>&larr; Main Site</Link>
+        <nav className="admin-sidebar-nav">
+          {menuItems.map(({ key, icon, label }) => (
             <button
-              onClick={handleSignOut}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.5rem 0.875rem',
-                borderRadius: 'var(--radius-full)',
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: '#ef4444',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontFamily: 'inherit',
-                whiteSpace: 'nowrap',
-              }}
+              key={key}
+              type="button"
+              className={`admin-sidebar-link${activeMenu === key ? ' is-active' : ''}`}
+              onClick={() => selectMenu(key)}
             >
-              <LogOut size={14} /> Sign out
+              {icon}
+              <span>{label}</span>
             </button>
-          </div>
+          ))}
+        </nav>
+
+        <div className="admin-sidebar-footer">
+          <Link to="/" className="admin-sidebar-link admin-sidebar-link--muted">
+            &larr; Main Site
+          </Link>
+          <button type="button" className="admin-sidebar-link admin-sidebar-link--danger" onClick={handleSignOut}>
+            <LogOut size={16} />
+            <span>Sign out</span>
+          </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main style={{ flexGrow: 1, padding: 'clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem)', overflowY: 'auto', overflowX: 'hidden' }}>
+      <main className="admin-main">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>
               {activeMenu === 'courses' ? 'Manage Courses' : 
                activeMenu === 'news' ? 'Manage News' : 
                activeMenu === 'messages' ? 'Student Messages' :
-               activeMenu === 'track' ? 'Track Record' : 'Site Settings'}
+               activeMenu === 'track' ? 'Track Record' :
+               activeMenu === 'booking' ? 'Interview Booking' : 'Site Settings'}
             </h1>
+            {activeMenu === 'track' && (
+              <p style={{ color: 'var(--text-secondary)' }}>Manage yearly exam stats shown on the home page achievements section.</p>
+            )}
+            {activeMenu !== 'booking' && activeMenu !== 'track' && (
             <p style={{ color: 'var(--text-secondary)' }}>Drag the <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}><GripVertical size={14} /></span> handle to reposition items.</p>
+            )}
           </div>
           {activeMenu === 'courses' && !editingCourse && !isCreating && (
             <button onClick={() => setIsCreating(true)} className="button button-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -343,6 +357,16 @@ const AdminPanel: React.FC = () => {
               <Plus size={18} /> Add New Message
             </button>
           )}
+          {activeMenu === 'track' && (
+            <button
+              type="button"
+              onClick={() => setShowAddYear((v) => !v)}
+              className="button button-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Plus size={18} /> Add Year
+            </button>
+          )}
         </header>
 
         {/* Courses Editor View */}
@@ -350,7 +374,7 @@ const AdminPanel: React.FC = () => {
           <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <div style={{ minWidth: '560px' }}>
-                <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                <div style={{ padding: '1.25rem 2rem', background: 'var(--surface-subtle)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                   <span></span>
                   <span>Course Title</span>
                   <span>Category</span>
@@ -377,7 +401,7 @@ const AdminPanel: React.FC = () => {
                       <div style={{ color: 'var(--text-secondary)' }}>{course.category}</div>
                       <div style={{ color: 'var(--text-secondary)' }}>{course.price}</div>
                       <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => setEditingCourse(course)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                        <button onClick={() => setEditingCourse(course)} style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
                           <Edit2 size={16} />
                         </button>
                         <button onClick={() => handleDeleteCourse(course.id, course.title)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
@@ -410,7 +434,7 @@ const AdminPanel: React.FC = () => {
                 </label>
                 <label>
                   Category
-                  <select name="category" defaultValue={editingCourse?.category || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
+                  <select name="category" defaultValue={editingCourse?.category || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
                     <option value="Student Pilot">Student Pilot</option>
                     <option value="Qualified Pilot">Qualified Pilot</option>
                     <option value="ATC">ATC</option>
@@ -448,7 +472,7 @@ const AdminPanel: React.FC = () => {
                         onChange={handleFileChange} 
                         style={{ position: 'absolute', inset: 0, opacity: 0, zIndex: 2, cursor: 'pointer' }} 
                       />
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--glass-border)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ position: 'absolute', inset: 0, background: 'var(--input-bg)', border: '2px dashed var(--glass-border)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem' }}>
                         {isUploading ? (
                           <>
                             <Loader2 className="animate-spin" size={24} color="var(--accent-blue)" />
@@ -476,11 +500,11 @@ const AdminPanel: React.FC = () => {
 
               <label style={{ marginTop: '1.5rem' }}>
                 Course Description
-                <textarea name="description" rows={4} defaultValue={editingCourse?.description || ''} placeholder="Enter course details..." style={{ width: '100%', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }}></textarea>
+                <textarea name="description" rows={4} defaultValue={editingCourse?.description || ''} placeholder="Enter course details..." style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }}></textarea>
               </label>
 
               {/* Course Overview Points */}
-              <div style={{ marginTop: '2rem', background: 'rgba(255, 255, 255, 0.02)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ marginTop: '2rem', background: 'var(--surface-subtle)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--glass-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                   <h3 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Check size={18} color="var(--accent-blue)" /> Program Overview Highlights</h3>
                   <button type="button" onClick={addOverviewPoint} className="button button-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>+ Add Point</button>
@@ -521,7 +545,7 @@ const AdminPanel: React.FC = () => {
           <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <div style={{ minWidth: '580px' }}>
-                <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                <div style={{ padding: '1.25rem 2rem', background: 'var(--surface-subtle)', display: 'grid', gridTemplateColumns: '40px 1.5fr 1fr 1fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                   <span></span>
                   <span>Article Title</span>
                   <span>Date</span>
@@ -548,7 +572,7 @@ const AdminPanel: React.FC = () => {
                       <div style={{ color: 'var(--text-secondary)' }}>{article.date}</div>
                       <div style={{ color: 'var(--text-secondary)' }}>{article.author}</div>
                       <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => setEditingNews(article)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                        <button onClick={() => setEditingNews(article)} style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
                           <Edit2 size={16} />
                         </button>
                         <button onClick={() => handleDeleteNews(article.id, article.title)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
@@ -593,7 +617,7 @@ const AdminPanel: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <label>
                   Category Tag
-                  <select name="tag" defaultValue={editingNews?.tag || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
+                  <select name="tag" defaultValue={editingNews?.tag || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
                     <option value="Student Pilot">Student Pilot</option>
                     <option value="Qualified Pilot">Qualified Pilot</option>
                     <option value="ATC">ATC</option>
@@ -617,7 +641,7 @@ const AdminPanel: React.FC = () => {
                         onChange={handleFileChange} 
                         style={{ position: 'absolute', inset: 0, opacity: 0, zIndex: 2, cursor: 'pointer' }} 
                       />
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.05)', border: '2px dashed var(--glass-border)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ position: 'absolute', inset: 0, background: 'var(--input-bg)', border: '2px dashed var(--glass-border)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem' }}>
                         {isUploading ? (
                           <>
                             <Loader2 className="animate-spin" size={24} color="var(--accent-blue)" />
@@ -645,7 +669,7 @@ const AdminPanel: React.FC = () => {
 
               <label style={{ marginTop: '1.5rem' }}>
                 Article Description (Excerpt)
-                <textarea name="description" rows={4} defaultValue={editingNews?.description || ''} placeholder="Enter article content..." style={{ width: '100%', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }}></textarea>
+                <textarea name="description" rows={4} defaultValue={editingNews?.description || ''} placeholder="Enter article content..." style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }}></textarea>
               </label>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
@@ -665,7 +689,7 @@ const AdminPanel: React.FC = () => {
           <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <div style={{ minWidth: '580px' }}>
-                <div style={{ padding: '1.25rem 2rem', background: 'rgba(255, 255, 255, 0.02)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 2fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                <div style={{ padding: '1.25rem 2rem', background: 'var(--surface-subtle)', display: 'grid', gridTemplateColumns: '40px 1fr 1fr 2fr 120px', fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                   <span></span>
                   <span>Student Name</span>
                   <span>Position</span>
@@ -692,7 +716,7 @@ const AdminPanel: React.FC = () => {
                       <div style={{ color: 'var(--text-secondary)' }}>{msg.position}</div>
                       <div style={{ color: 'var(--text-secondary)' }}>{msg.message.substring(0, 50)}...</div>
                       <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <button onClick={() => setEditingMessage(msg)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                        <button onClick={() => setEditingMessage(msg)} style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
                           <Edit2 size={16} />
                         </button>
                         <button onClick={() => handleDeleteMessage(msg.id, msg.name)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
@@ -731,7 +755,7 @@ const AdminPanel: React.FC = () => {
 
               <label style={{ marginTop: '1.5rem' }}>
                 Message
-                <textarea name="message" rows={4} defaultValue={editingMessage?.message || ''} placeholder="Enter student feedback..." style={{ width: '100%', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }} required></textarea>
+                <textarea name="message" rows={4} defaultValue={editingMessage?.message || ''} placeholder="Enter student feedback..." style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }} required></textarea>
               </label>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
@@ -748,94 +772,175 @@ const AdminPanel: React.FC = () => {
 
         {/* Track Record Management */}
         {activeMenu === 'track' && (
-          <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-              {Object.keys(trackRecord).sort().map(year => (
-                <button 
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  style={{ 
-                    padding: '0.75rem 1.5rem', 
-                    borderRadius: 'var(--radius)', 
-                    background: selectedYear === year ? 'var(--accent-blue)' : 'rgba(255,255,255,0.05)',
-                    color: selectedYear === year ? 'white' : 'var(--text-secondary)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
-                  {year} Data
-                </button>
-              ))}
-              <button 
-                onClick={() => {
-                  const newYear = prompt('Enter year (e.g. 2026):');
-                  if (newYear && !trackRecord[newYear]) {
-                    updateTrackRecord(newYear, {
-                      id: newYear,
-                      stats: [], testimonial: { quote: '', author: '' }
-                    } as YearStats);
-                    setSelectedYear(newYear);
-                  }
-                }}
-                className="button button-secondary" style={{ padding: '0.75rem 1rem' }}
-              >
-                <Plus size={18} /> Add Year
-              </button>
-            </div>
+          <div className="track-record-panel">
+            {showAddYear && (
+              <div className="track-record-section" style={{ marginBottom: '1.25rem' }}>
+                <div className="track-record-section-head">
+                  <h3>Add new year</h3>
+                  <button type="button" onClick={() => { setShowAddYear(false); setNewYearInput(''); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <X size={18} />
+                  </button>
+                </div>
+                <div className="track-add-year-inline">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="e.g. 2026"
+                    value={newYearInput}
+                    onChange={(e) => setNewYearInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddYear())}
+                  />
+                  <button type="button" className="button button-primary" onClick={handleAddYear} disabled={!newYearInput.trim() || !!trackRecord[newYearInput.trim()]}>
+                    Create
+                  </button>
+                </div>
+              </div>
+            )}
 
-            <form onSubmit={handleSaveTrackRecord}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem' }}>Success Statistics ({selectedYear})</h3>
-                <button 
-                  type="button" 
-                  onClick={handleDeleteYear}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.5rem 1rem', borderRadius: 'var(--radius)', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem' }}
-                >
-                  <Trash2 size={16} /> Delete {selectedYear} Year
+            {Object.keys(trackRecord).length === 0 ? (
+              <div className="track-empty-state">
+                <Award size={48} />
+                <h3 style={{ marginBottom: '0.5rem' }}>No track record yet</h3>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Add a year to start publishing success statistics on the home page.</p>
+                <button type="button" className="button button-primary" onClick={() => setShowAddYear(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Plus size={18} /> Add First Year
                 </button>
               </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
-                {localYearStats.stats.map((stat, index) => (
-                  <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 40px', gap: '1rem' }}>
-                    <input 
-                      type="text" 
-                      value={stat.label} 
-                      onChange={(e) => updateStat(index, 'label', e.target.value)}
-                      placeholder="Stat Label (e.g. PPL Written)"
-                    />
-                    <input 
-                      type="text" 
-                      value={stat.value} 
-                      onChange={(e) => updateStat(index, 'value', e.target.value)}
-                      placeholder="Result (e.g. 250+ or 96%)"
-                    />
-                    <button 
+            ) : (
+              <>
+                <div className="track-year-tabs">
+                  {Object.keys(trackRecord).sort().reverse().map((year) => (
+                    <button
+                      key={year}
                       type="button"
-                      onClick={() => {
-                        const newStats = localYearStats.stats.filter((_, i) => i !== index);
-                        setLocalYearStats({ ...localYearStats, stats: newStats });
-                      }}
-                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                      className={`track-year-tab${selectedYear === year ? ' is-active' : ''}`}
+                      onClick={() => setSelectedYear(year)}
                     >
-                      <X size={18} />
+                      {year}
                     </button>
-                  </div>
-                ))}
-                <button 
-                  type="button" 
-                  onClick={() => setLocalYearStats({ ...localYearStats, stats: [...localYearStats.stats, { label: '', value: '' }] })}
-                  style={{ alignSelf: 'flex-start', background: 'none', border: '1px dashed var(--glass-border)', padding: '0.5rem 1rem', borderRadius: 'var(--radius)', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                >
-                  + Add Stat Row
-                </button>
-              </div>
+                  ))}
+                </div>
 
-              <button type="submit" className="button button-primary" style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Save size={18} /> Update {selectedYear} Record
-              </button>
-            </form>
+                <form onSubmit={handleSaveTrackRecord}>
+                  <div className="track-record-grid">
+                    <div className="track-record-editor">
+                      <div className="track-record-section">
+                        <div className="track-record-section-head">
+                          <h3>Exam statistics — {selectedYear}</h3>
+                        </div>
+                        {localYearStats.stats.length > 0 && (
+                          <div className="track-stat-table-head">
+                            <span>Label</span>
+                            <span>Result</span>
+                            <span></span>
+                          </div>
+                        )}
+                        {localYearStats.stats.map((stat, index) => (
+                          <div key={index} className="track-stat-row">
+                            <input
+                              type="text"
+                              value={stat.label}
+                              onChange={(e) => updateStat(index, 'label', e.target.value)}
+                              placeholder="e.g. PPL Written"
+                            />
+                            <input
+                              type="text"
+                              value={stat.value}
+                              onChange={(e) => updateStat(index, 'value', e.target.value)}
+                              placeholder="e.g. 96%"
+                            />
+                            <button
+                              type="button"
+                              className="track-stat-remove"
+                              onClick={() => {
+                                const newStats = localYearStats.stats.filter((_, i) => i !== index);
+                                setLocalYearStats({ ...localYearStats, stats: newStats });
+                              }}
+                              aria-label="Remove stat"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="track-add-stat"
+                          onClick={() => setLocalYearStats({ ...localYearStats, stats: [...localYearStats.stats, { label: '', value: '' }] })}
+                        >
+                          <Plus size={14} /> Add stat
+                        </button>
+                      </div>
+
+                      <div className="track-record-section">
+                        <div className="track-record-section-head">
+                          <h3>Featured quote (optional)</h3>
+                        </div>
+                        <div className="track-testimonial-fields">
+                          <label>
+                            Quote
+                            <textarea
+                              value={localYearStats.testimonial.quote}
+                              onChange={(e) => updateTestimonial('quote', e.target.value)}
+                              placeholder="Student success story for this year..."
+                              rows={3}
+                            />
+                          </label>
+                          <label>
+                            Author
+                            <input
+                              type="text"
+                              value={localYearStats.testimonial.author}
+                              onChange={(e) => updateTestimonial('author', e.target.value)}
+                              placeholder="e.g. Cadet Name, Thai Airways"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="track-record-actions">
+                        <button type="submit" className="button button-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Save size={18} /> Save {selectedYear}
+                        </button>
+                        <button type="button" className="track-delete-year" onClick={handleDeleteYear}>
+                          <Trash2 size={16} /> Delete year
+                        </button>
+                      </div>
+                    </div>
+
+                    <aside className="track-record-preview">
+                      <p className="track-record-preview-label">Home page preview</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>{selectedYear} results</p>
+                      {localYearStats.stats.filter((s) => s.label || s.value).length > 0 ? (
+                        <div className="track-preview-stats">
+                          {localYearStats.stats.filter((s) => s.label || s.value).map((stat, i) => (
+                            <div key={i} className="track-preview-stat">
+                              <p className="track-preview-stat-label">{stat.label || 'Label'}</p>
+                              <p className="track-preview-stat-value">{stat.value || '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="track-preview-empty">No stats added yet</div>
+                      )}
+                      {localYearStats.testimonial.quote && (
+                        <blockquote className="track-preview-quote">
+                          <p>&ldquo;{localYearStats.testimonial.quote}&rdquo;</p>
+                          {localYearStats.testimonial.author && (
+                            <cite>— {localYearStats.testimonial.author}</cite>
+                          )}
+                        </blockquote>
+                      )}
+                    </aside>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        )}
+
+        {activeMenu === 'booking' && (
+          <div className="booking-shell">
+            <BookingAdminPanel />
           </div>
         )}
 

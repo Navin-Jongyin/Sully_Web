@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth } from "firebase/auth";
 
 const env = (key: keyof ImportMetaEnv): string | undefined => {
   const value = import.meta.env[key];
@@ -24,6 +23,10 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const auth = getAuth(app);
+
+export async function fetchAdminCredentials() {
+  const snap = await getDoc(doc(db, 'admin', 'adminAuthen'));
+  return snap.exists() ? snap.data() : null;
+}
 
 export default app;

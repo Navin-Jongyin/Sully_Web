@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
@@ -30,7 +31,7 @@ const Home: React.FC = () => {
             {t.home.heroDescription}
           </p>
           <div className="hero-actions">
-            <a href="https://interview-booking.netlify.app/" target="_blank" rel="noopener noreferrer" className="button button-primary">{t.home.bookInterview}</a>
+            <Link to="/book" className="button button-primary">{t.home.bookInterview}</Link>
             <a href="https://sully-test.com" target="_blank" rel="noopener noreferrer" className="button button-purple">{t.home.aptitudePractice}</a>
             <a href="#contact" className="button button-gold">{t.home.contactUs}</a>
           </div>
@@ -144,8 +145,8 @@ const Home: React.FC = () => {
           <h2>{t.home.successStoriesTitle}</h2>
         </div>
 
-        <div className="timeline-tabs" style={{ marginBottom: '2rem' }}>
-          {Object.keys(trackRecord).map(year => (
+        <div className="timeline-tabs">
+          {Object.keys(trackRecord).sort().reverse().map(year => (
             <button 
               key={year}
               className={`timeline-tab ${activeTab === year ? 'is-active' : ''}`} 
@@ -156,27 +157,34 @@ const Home: React.FC = () => {
           ))}
         </div>
 
-        <div style={{ margin: '0 auto' }}>
-          <div className="stats-container">
-            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t.home.examPerformance}</h3>
-              <p style={{ color: 'var(--text-secondary)' }}>{t.home.successMetrics} {activeTab}</p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-              {currentYearData.stats.map((stat, i) => (
-                <div key={i} className="card stat-card reveal is-visible" style={{ "--delay": i, padding: '2rem', textAlign: 'center', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' } as React.CSSProperties}>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</p>
-                  <h3 style={{ fontSize: '2.5rem', color: 'var(--accent-blue)', fontWeight: 800 }}>{stat.value}</h3>
-                </div>
-              ))}
-              {currentYearData.stats.length === 0 && (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius)', border: '1px dashed var(--glass-border)' }}>
-                  <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>{t.home.noDataRecorded}</p>
-                </div>
-              )}
-            </div>
+        <div className="stats-container">
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t.home.examPerformance}</h3>
+            <p style={{ color: 'var(--text-secondary)' }}>{t.home.successMetrics} {activeTab}</p>
           </div>
+
+          <div className="stats-grid">
+            {currentYearData.stats.map((stat, i) => (
+              <div key={i} className="stat-card reveal is-visible" style={{ "--delay": i } as React.CSSProperties}>
+                <p className="stat-card-label">{stat.label}</p>
+                <p className="stat-card-value">{stat.value}</p>
+              </div>
+            ))}
+            {currentYearData.stats.length === 0 && (
+              <div className="stats-empty">
+                <p>{t.home.noDataRecorded}</p>
+              </div>
+            )}
+          </div>
+
+          {currentYearData.testimonial.quote && (
+            <blockquote className="year-testimonial reveal is-visible">
+              <p>&ldquo;{currentYearData.testimonial.quote}&rdquo;</p>
+              {currentYearData.testimonial.author && (
+                <cite>— {currentYearData.testimonial.author}</cite>
+              )}
+            </blockquote>
+          )}
         </div>
       </section>
 

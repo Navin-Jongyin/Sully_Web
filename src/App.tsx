@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
@@ -7,11 +7,15 @@ import { DataProvider } from "./context/DataContext";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import RequireAuth from "./components/RequireAuth";
+import AdminShortcut from "./components/AdminShortcut";
 import { LanguageToggle } from "./components/LanguageToggle";
 import { useTranslation } from "./hooks/useTranslation";
 import "./App.css";
 
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const InterviewBookingRoutes = lazy(() =>
+  import("./booking/InterviewBookingRoutes").then((m) => ({ default: m.InterviewBookingRoutes }))
+);
 
 const NotFound: React.FC = () => {
   const { t } = useTranslation();
@@ -53,6 +57,8 @@ const PageFallback: React.FC = () => {
 
 const AppShell: React.FC = () => {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith('/admin');
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close menu on resize
@@ -63,13 +69,17 @@ const AppShell: React.FC = () => {
   }, []);
 
   return (
-    <BrowserRouter>
+    <>
+          <AdminShortcut />
+          {!isAdminRoute && (
           <div className="background-shapes" aria-hidden="true">
             <span className="shape shape-one"></span>
             <span className="shape shape-two"></span>
             <span className="shape shape-three"></span>
           </div>
+          )}
 
+          {!isAdminRoute && (
           <header className="site-header">
             <div className="container nav-shell">
               <Link className="brand" to="/" onClick={() => setMenuOpen(false)}>
@@ -89,10 +99,7 @@ const AppShell: React.FC = () => {
 
               <nav className={`main-nav${menuOpen ? ' is-open' : ''}`}>
                 <a href="/#home" onClick={() => setMenuOpen(false)}>{t.common.home}</a>
-                <a href="/#about" onClick={() => setMenuOpen(false)}>{t.common.about}</a>
-                <a href="/#achievements" onClick={() => setMenuOpen(false)}>{t.common.achievements}</a>
-                <a href="/#news" onClick={() => setMenuOpen(false)}>{t.common.news}</a>
-                <a href="/#contact" onClick={() => setMenuOpen(false)}>{t.common.contact}</a>
+                <Link to="/book" onClick={() => setMenuOpen(false)}>{t.home.bookInterview}</Link>
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
                 <a
                   href="https://sully-test.com"
@@ -115,11 +122,13 @@ const AppShell: React.FC = () => {
               />
             )}
           </header>
+          )}
 
           <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/book/*" element={<InterviewBookingRoutes />} />
               <Route path="/auth" element={<Auth />} />
               <Route
                 path="/admin"
@@ -133,6 +142,7 @@ const AppShell: React.FC = () => {
             </Routes>
           </Suspense>
 
+          {!isAdminRoute && (
           <footer className="site-footer">
             <div className="container footer-shell">
               <p>© {new Date().getFullYear()} Sully Academy. {t.footer.copyright}</p>
@@ -143,15 +153,22 @@ const AppShell: React.FC = () => {
               </div>
             </div>
           </footer>
-    </BrowserRouter>
+          )}
+    </>
   );
 };
+
+const AppRouter: React.FC = () => (
+  <BrowserRouter>
+    <AppShell />
+  </BrowserRouter>
+);
 
 const App: React.FC = () => (
   <LanguageProvider>
     <AuthProvider>
       <DataProvider>
-        <AppShell />
+        <AppRouter />
       </DataProvider>
     </AuthProvider>
   </LanguageProvider>
