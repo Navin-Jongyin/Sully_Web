@@ -133,7 +133,7 @@ export const translations: Record<Language, Translations> = {
     home: {
       eyebrow: 'ศิษย์การบิน',
       heroTitle: 'เส้นทางสู่ห้องนักบิน เริ่มต้นที่ Sully Academy',
-      heroDescription: 'Sully Academy เตรียมความพร้อมเพื่อเข้าสู้อาชีพการบิน ระดับมืออาชีพสำหรับนักเรียน,นักบินและผู้ประกอบวิชาชีพด้านการบินในประเทศไทย ตั้งรากฐานความรู้เพื่อผ่านการสอบและก้าวสู่อาชีพในฝัน',
+      heroDescription: 'Sully Academy เตรียมความพร้อมเพื่อเข้าสู่อาชีพการบิน ระดับมืออาชีพสำหรับนักเรียน นักบินและผู้ประกอบวิชาชีพด้านการบินในประเทศไทย ตั้งรากฐานความรู้เพื่อผ่านการสอบและก้าวสู่อาชีพในฝัน',
       bookInterview: 'จองนัดสัมภาษณ์',
       aptitudePractice: 'ฝึกทดสอบความถนัด',
       contactUs: 'ติดต่อเรา',
@@ -146,7 +146,7 @@ export const translations: Record<Language, Translations> = {
       whyChooseUsEyebrow: 'ทำไมต้องเรา',
       whyChooseUsTitle: 'ออกแบบมาเพื่อนักเรียนโดยเฉพาะในทุกๆอาชีพ',
       supportiveLearning: 'บรรยากาศเรียนรู้ที่เป็นกันเอง',
-      supportiveLearningDesc: 'เพื่อนร่วมคอร์สที่เป็นมิตร พร้อมช่วยตอบทุกคำถามที่คุณสงสัย',
+      supportiveLearningDesc: 'ทีมครูผู้สอน พร้อมช่วยตอบทุกคำถามที่คุณสงสัย',
       openCommunity: 'สังคมในโรงเรียน',
       openCommunityDesc: ' Connect กับรุ่นพี่และศิษย์เก่าที่บินอยู่กับสายการบินที่มาแบ่งปันประสบการณ์จริงและให้คำปรึกษาด้านอาชีพ',
       tailoredExpertise: 'เชี่ยวชาญเฉพาะทางในไทย',
