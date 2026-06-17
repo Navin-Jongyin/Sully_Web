@@ -7,7 +7,7 @@ import { storage } from '../firebase';
 import { useData } from '../hooks/useData';
 import type { NewsArticle, YearStats, StudentMessage } from '../context/data-context';
 import { useAuth } from '../hooks/useAuth';
-import { type Course } from '../components/courses/CourseCard';
+import { type Course, COURSE_CATEGORIES, getCourseCategories } from '../components/courses/CourseCard';
 import { BookingAdminPanel } from '../booking/BookingAdminPanel';
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
@@ -38,6 +38,8 @@ const AdminPanel: React.FC = () => {
   
   // Local state for overview bullet points
   const [localOverview, setLocalOverview] = useState<string[]>([]);
+  // Local state for the course's selected categories (supports multiple)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // Track Record Local State
   const [selectedYear, setSelectedYear] = useState(Object.keys(trackRecord)[0] || '2024');
@@ -64,6 +66,7 @@ const AdminPanel: React.FC = () => {
     if (editingCourse) {
       setFormattedPrice(editingCourse.price);
       setLocalOverview(editingCourse.overview || []);
+      setSelectedCategories(getCourseCategories(editingCourse));
     } else if (isCreating) {
       setFormattedPrice('');
       setLocalOverview([
@@ -72,6 +75,7 @@ const AdminPanel: React.FC = () => {
         'Modern Training Facilities',
         'Flexible Scheduling Options'
       ]);
+      setSelectedCategories(['Student Pilot']);
     }
   }, [editingCourse, isCreating]);
 
@@ -88,15 +92,21 @@ const AdminPanel: React.FC = () => {
   const handleSaveCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    
+
+    if (selectedCategories.length === 0) {
+      alert('Please select at least one category.');
+      return;
+    }
+
     const courseData: Partial<Course> = {
       title: formData.get('title') as string,
-      category: formData.get('category') as string,
+      category: selectedCategories[0],
+      categories: selectedCategories,
       price: formattedPrice,
       duration: formData.get('duration') as string,
       description: formData.get('description') as string,
       image: selectedImage || editingCourse?.image || '/course_ppl.png',
-      tag: (formData.get('category') as string),
+      tag: selectedCategories.join(' · '),
       tagColor: 'var(--text-primary)',
       tagBg: 'rgba(150, 0, 251, 0.2)',
       overview: localOverview
@@ -114,6 +124,7 @@ const AdminPanel: React.FC = () => {
     setIsCreating(false);
     setFormattedPrice('');
     setSelectedImage(null);
+    setSelectedCategories([]);
   };
 
   const handleDeleteCourse = async (id: string, title: string) => {
@@ -398,7 +409,7 @@ const AdminPanel: React.FC = () => {
                     >
                       <div style={{ cursor: 'grab', color: 'var(--text-secondary)' }}><GripVertical size={18} /></div>
                       <div style={{ fontWeight: 500 }}>{course.title}</div>
-                      <div style={{ color: 'var(--text-secondary)' }}>{course.category}</div>
+                      <div style={{ color: 'var(--text-secondary)' }}>{getCourseCategories(course).join(' · ')}</div>
                       <div style={{ color: 'var(--text-secondary)' }}>{course.price}</div>
                       <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                         <button onClick={() => setEditingCourse(course)} style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer' }}>
@@ -433,13 +444,43 @@ const AdminPanel: React.FC = () => {
                   <input type="text" name="title" defaultValue={editingCourse?.title || ''} placeholder="e.g. Advanced Flight Prep" required />
                 </label>
                 <label>
-                  Category
-                  <select name="category" defaultValue={editingCourse?.category || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
-                    <option value="Student Pilot">Student Pilot</option>
-                    <option value="Qualified Pilot">Qualified Pilot</option>
-                    <option value="ATC">ATC</option>
-                    <option value="Others">Others</option>
-                  </select>
+                  Categories
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Select one or more. The course appears under every selected tab.
+                  </span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    {COURSE_CATEGORIES.map((cat) => {
+                      const checked = selectedCategories.includes(cat);
+                      return (
+                        <button
+                          type="button"
+                          key={cat}
+                          aria-pressed={checked}
+                          onClick={() =>
+                            setSelectedCategories((prev) =>
+                              prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
+                            )
+                          }
+                          style={{
+                            padding: '0.6rem 1rem',
+                            borderRadius: 'var(--radius)',
+                            border: '1px solid ' + (checked ? 'var(--accent-blue)' : 'var(--glass-border)'),
+                            background: checked ? 'rgba(150, 0, 251, 0.2)' : 'var(--input-bg)',
+                            color: 'var(--text-primary)',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            fontSize: '0.95rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          {checked && <Check size={14} />}
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </label>
               </div>
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, X, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import type { Course } from '../components/courses/CourseCard';
+import { type Course, getCourseCategories } from '../components/courses/CourseCard';
 import CategoryTab, { type CourseCategory } from '../components/courses/CategoryTab';
 
 const tabs: CourseCategory[] = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
@@ -57,7 +56,9 @@ const Courses: React.FC = () => {
             
             <div style={{ padding: 'clamp(1.25rem, 4vw, 3rem)' }}>
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <span className="tag" style={{ background: selectedCourse.tagBg, color: selectedCourse.tagColor, border: 'none' }}>{selectedCourse.tag}</span>
+                {getCourseCategories(selectedCourse).map((cat) => (
+                  <span key={cat} className="tag" style={{ background: selectedCourse.tagBg, color: selectedCourse.tagColor, border: 'none', whiteSpace: 'nowrap' }}>{cat}</span>
+                ))}
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-secondary)' }}>
                   <Clock size={16} /> {selectedCourse.duration}
                 </span>
@@ -87,9 +88,15 @@ const Courses: React.FC = () => {
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Total Tuition Fee</p>
                   <span style={{ fontWeight: 700, fontSize: '2rem', color: 'var(--text-primary)' }}>{selectedCourse.price}</span>
                 </div>
-                <Link to="/auth" className="button button-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
+                <a
+                  href="https://line.me/R/ti/p/@sully2017"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="button button-primary"
+                  style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}
+                >
                   Enroll Now
-                </Link>
+                </a>
               </div>
             </div>
           </div>

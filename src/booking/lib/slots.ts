@@ -1,5 +1,5 @@
 import { DEFAULT_SLOT_TITLE, SLOT_CATEGORIES } from '../constants'
-import type { AdminSection, PendingSlot, SlotEntry, StoredSlot } from '../types'
+import type { AdminSection, BookingRecord, PendingSlot, SlotEntry, StoredSlot } from '../types'
 import { normalizeTimeStr, pad2, timeToMinutes, toISODate, todayISODate } from './dates'
 
 export function normalizeCategory(value: string) {
@@ -200,6 +200,7 @@ export function updatePublishedSlot(
 export function purgePastDateData(
   slots: AdminSection[],
   bookingCounts: Record<string, number>,
+  bookings: BookingRecord[] = [],
 ) {
   const today = todayISODate()
   const pastSectionIds: Record<string, boolean> = {}
@@ -222,15 +223,22 @@ export function purgePastDateData(
     nextMap[key] = bookingCounts[key]
   })
 
+  const nextBookings = bookings.filter((rec) => !(rec.date && rec.date < today))
+  const bookingsRemoved = bookings.length - nextBookings.length
+
   const hadChanges =
-    nextSlots.length !== slots.length || Object.keys(nextMap).length !== Object.keys(bookingCounts).length
+    nextSlots.length !== slots.length ||
+    Object.keys(nextMap).length !== Object.keys(bookingCounts).length ||
+    bookingsRemoved > 0
 
   return {
     hadChanges,
     slots: nextSlots,
     bookingCounts: nextMap,
+    bookings: nextBookings,
     slotsRemoved: slots.length - nextSlots.length,
     countsRemoved,
+    bookingsRemoved,
   }
 }
 
@@ -238,10 +246,11 @@ export function purgePastDateDataMessage(result: {
   hadChanges: boolean
   slotsRemoved: number
   countsRemoved: number
+  bookingsRemoved: number
 }) {
   if (!result.hadChanges) return 'No past slot data to delete.'
   return (
-    'Deleted past slot data: ' +
+    'Deleted past data: ' +
     result.slotsRemoved +
     ' slot day' +
     (result.slotsRemoved === 1 ? '' : 's') +
@@ -249,7 +258,11 @@ export function purgePastDateDataMessage(result: {
     result.countsRemoved +
     ' slot count' +
     (result.countsRemoved === 1 ? '' : 's') +
-    '. Booking records were kept so session limits stay correct.'
+    ', ' +
+    result.bookingsRemoved +
+    ' booking record' +
+    (result.bookingsRemoved === 1 ? '' : 's') +
+    '.'
   )
 }
 

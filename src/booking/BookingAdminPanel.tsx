@@ -384,11 +384,12 @@ export function BookingAdminPanel() {
   }
 
   function handlePurgePast() {
-    if (!confirm('Delete all past slot days and their counts? Booking records will be kept.')) return
-    const result = purgePastDateData(slots, bookingCounts)
+    if (!confirm('Delete all past slot days, their counts, and their booking records? This frees up affected applicants\u2019 lifetime session count and cannot be undone.')) return
+    const result = purgePastDateData(slots, bookingCounts, bookings)
     if (result.hadChanges) {
       saveSlots(result.slots)
       saveCounts(result.bookingCounts)
+      saveBookings(result.bookings)
     }
     if (selectedDateISO && selectedDateISO < todayISODate()) {
       setSelectedDateISO(todayISODate())
