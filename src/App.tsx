@@ -122,15 +122,6 @@ const AppShell: React.FC = () => {
                 <Link to="/book" onClick={() => setMenuOpen(false)}>{t.home.bookInterview}</Link>
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
                 <Link to="/shop" onClick={() => setMenuOpen(false)}>Shop</Link>
-                <a
-                  href="https://sully-test.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                  className="external-cta-button"
-                >
-                  ✈ {t.home.aptitudePractice}
-                </a>
                 <CartIcon />
                 <Link to="/account" onClick={() => setMenuOpen(false)} style={{ fontSize: '0.875rem' }}>Account</Link>
                 <LanguageToggle />

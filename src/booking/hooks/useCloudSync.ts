@@ -51,31 +51,25 @@ export function useCloudSync() {
   useEffect(() => {
     loadCloudState()
       .then((state) => {
-        const localSlots = loadSlotsFromStorage()
-        const localCounts = loadBookingMap()
-        const localBookings = loadBookingsDetail()
-        const cloudCountsEmpty = !Object.keys(state.bookingCounts || {}).length
+        // The cloud (Firestore) is the single source of truth. localStorage is
+        // only a cache for instant render; it must never override or be pushed
+        // back to the cloud, otherwise records deleted in the database keep
+        // reappearing from the stale local copy.
+        const cloudSlots = state.slots || []
+        const cloudCounts = state.bookingCounts || {}
+        const cloudBookings = state.bookings || []
 
-        if ((!state.slots || !state.slots.length) && localSlots.length) syncSlotsToCloud(localSlots)
-        if (cloudCountsEmpty && Object.keys(localCounts).length) syncBookingCountsToCloud(localCounts)
-        if ((!state.bookings || !state.bookings.length) && localBookings.length) syncBookingsToCloud(localBookings)
-
-        const mergedSlots = state.slots?.length ? state.slots : localSlots
-        const mergedCounts = cloudCountsEmpty ? localCounts : state.bookingCounts
-        const mergedBookings = state.bookings?.length ? state.bookings : localBookings
-
-        const purged = purgePastDateData(mergedSlots, mergedCounts)
+        const purged = purgePastDateData(cloudSlots, cloudCounts, cloudBookings)
         if (purged.hadChanges) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(purged.slots))
-          localStorage.setItem(BOOKINGS_KEY, JSON.stringify(purged.bookingCounts))
           syncSlotsToCloud(purged.slots).catch(() => {})
           syncBookingCountsToCloud(purged.bookingCounts).catch(() => {})
+          syncBookingsToCloud(purged.bookings).catch(() => {})
         }
 
         applyCloudState({
           slots: purged.slots,
           bookingCounts: purged.bookingCounts,
-          bookings: mergedBookings,
+          bookings: purged.bookings,
         })
       })
       .catch((err) => console.error('Could not load Firebase data', err))

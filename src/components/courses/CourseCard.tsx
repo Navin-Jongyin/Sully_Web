@@ -4,6 +4,7 @@ import { ArrowRight, Clock } from 'lucide-react';
 export interface Course {
   id: string;
   category: string;
+  categories?: string[];
   title: string;
   image: string;
   tag: string;
@@ -13,6 +14,22 @@ export interface Course {
   description: string;
   price: string;
   overview?: string[];
+}
+
+export const COURSE_CATEGORIES = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'] as const;
+
+export function getCourseCategories(course: Pick<Course, 'categories' | 'category'>): string[] {
+  if (course.categories && course.categories.length) return course.categories;
+  return course.category ? [course.category] : [];
+}
+
+const CATEGORY_CHIP_LABELS: Record<string, string> = {
+  'Student Pilot': 'SP',
+  'Qualified Pilot': 'QP',
+};
+
+export function categoryChipLabel(category: string): string {
+  return CATEGORY_CHIP_LABELS[category] || category;
 }
 
 interface CourseCardProps {
@@ -29,9 +46,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, index, onSelect }) => {
       onClick={() => onSelect(course)}
     >
       <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <span className="tag" style={{ background: course.tagBg, color: course.tagColor, border: 'none' }}>{course.tag}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+            {getCourseCategories(course).map((cat) => (
+              <span key={cat} className="tag" style={{ background: course.tagBg, color: course.tagColor, border: 'none', whiteSpace: 'nowrap' }}>{categoryChipLabel(cat)}</span>
+            ))}
+          </div>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
             <Clock size={14} /> {course.duration}
           </span>
         </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import CourseCard, { type Course } from './CourseCard';
+import CourseCard, { type Course, getCourseCategories } from './CourseCard';
 import { useData } from '../../hooks/useData';
 
 export type CourseCategory = 'Student Pilot' | 'Qualified Pilot' | 'ATC' | 'Others';
@@ -11,7 +11,7 @@ interface Props {
 
 const CategoryTab: React.FC<Props> = ({ category, onSelectCourse }) => {
   const { courses } = useData();
-  const filtered = courses.filter((c) => c.category === category);
+  const filtered = courses.filter((c) => getCourseCategories(c).includes(category));
 
   if (filtered.length === 0) {
     return (
