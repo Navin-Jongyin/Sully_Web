@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar } from 'lucide-react';
+import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -9,6 +9,7 @@ import type { NewsArticle, YearStats, StudentMessage } from '../context/data-con
 import { useAuth } from '../hooks/useAuth';
 import { type Course } from '../components/courses/CourseCard';
 import { BookingAdminPanel } from '../booking/BookingAdminPanel';
+import { StoreAdminPanel } from '../ecommerce/StoreAdminPanel';
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
 
@@ -281,6 +282,7 @@ const AdminPanel: React.FC = () => {
     { key: 'messages', icon: <MessageSquare size={18} />, label: 'Messages' },
     { key: 'track', icon: <Award size={18} />, label: 'Track Record' },
     { key: 'booking', icon: <Calendar size={18} />, label: 'Interview Booking' },
+    { key: 'store', icon: <ShoppingBag size={18} />, label: 'Store' },
     { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ] as const;
 
@@ -333,12 +335,13 @@ const AdminPanel: React.FC = () => {
                activeMenu === 'news' ? 'Manage News' : 
                activeMenu === 'messages' ? 'Student Messages' :
                activeMenu === 'track' ? 'Track Record' :
-               activeMenu === 'booking' ? 'Interview Booking' : 'Site Settings'}
+               activeMenu === 'booking' ? 'Interview Booking' :
+               activeMenu === 'store' ? 'Store & Products' : 'Site Settings'}
             </h1>
             {activeMenu === 'track' && (
               <p style={{ color: 'var(--text-secondary)' }}>Manage yearly exam stats shown on the home page achievements section.</p>
             )}
-            {activeMenu !== 'booking' && activeMenu !== 'track' && (
+            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'store' && (
             <p style={{ color: 'var(--text-secondary)' }}>Drag the <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}><GripVertical size={14} /></span> handle to reposition items.</p>
             )}
           </div>
@@ -942,6 +945,10 @@ const AdminPanel: React.FC = () => {
           <div className="booking-shell">
             <BookingAdminPanel />
           </div>
+        )}
+
+        {activeMenu === 'store' && (
+          <StoreAdminPanel />
         )}
 
         {/* Site Settings Placeholder */}

@@ -5,16 +5,37 @@ import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
 import { DataProvider } from "./context/DataContext";
 import { AuthProvider } from "./context/AuthContext";
+import { EcommerceAuthProvider } from "./context/EcommerceAuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import RequireAuth from "./components/RequireAuth";
 import AdminShortcut from "./components/AdminShortcut";
 import { LanguageToggle } from "./components/LanguageToggle";
+import { CartIcon } from "./ecommerce/components/CartIcon";
+import { RequireCustomerAuth } from "./ecommerce/components/RequireCustomerAuth";
 import { useTranslation } from "./hooks/useTranslation";
 import "./App.css";
 
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const InterviewBookingRoutes = lazy(() =>
   import("./booking/InterviewBookingRoutes").then((m) => ({ default: m.InterviewBookingRoutes }))
+);
+const ShopRoutes = lazy(() =>
+  import("./ecommerce/EcommerceRoutes").then((m) => ({ default: m.ShopRoutes }))
+);
+const CartPage = lazy(() =>
+  import("./ecommerce/pages/CartPage").then((m) => ({ default: m.CartPage }))
+);
+const CheckoutPage = lazy(() =>
+  import("./ecommerce/pages/CheckoutPage").then((m) => ({ default: m.CheckoutPage }))
+);
+const DashboardPage = lazy(() =>
+  import("./ecommerce/pages/DashboardPage").then((m) => ({ default: m.DashboardPage }))
+);
+const CoursePlayerPage = lazy(() =>
+  import("./ecommerce/pages/CoursePlayerPage").then((m) => ({ default: m.CoursePlayerPage }))
+);
+const CustomerAuthPage = lazy(() =>
+  import("./ecommerce/pages/CustomerAuthPage").then((m) => ({ default: m.CustomerAuthPage }))
 );
 
 const NotFound: React.FC = () => {
@@ -61,7 +82,6 @@ const AppShell: React.FC = () => {
   const isAdminRoute = pathname.startsWith('/admin');
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Close menu on resize
   useEffect(() => {
     const close = () => setMenuOpen(false);
     window.addEventListener('resize', close);
@@ -101,6 +121,7 @@ const AppShell: React.FC = () => {
                 <a href="/#home" onClick={() => setMenuOpen(false)}>{t.common.home}</a>
                 <Link to="/book" onClick={() => setMenuOpen(false)}>{t.home.bookInterview}</Link>
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
+                <Link to="/shop" onClick={() => setMenuOpen(false)}>Shop</Link>
                 <a
                   href="https://sully-test.com"
                   target="_blank"
@@ -110,6 +131,8 @@ const AppShell: React.FC = () => {
                 >
                   ✈ {t.home.aptitudePractice}
                 </a>
+                <CartIcon />
+                <Link to="/account" onClick={() => setMenuOpen(false)} style={{ fontSize: '0.875rem' }}>Account</Link>
                 <LanguageToggle />
               </nav>
             </div>
@@ -130,6 +153,33 @@ const AppShell: React.FC = () => {
               <Route path="/courses" element={<Courses />} />
               <Route path="/book/*" element={<InterviewBookingRoutes />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/shop/*" element={<ShopRoutes />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route
+                path="/checkout"
+                element={
+                  <RequireCustomerAuth>
+                    <CheckoutPage />
+                  </RequireCustomerAuth>
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <RequireCustomerAuth>
+                    <DashboardPage />
+                  </RequireCustomerAuth>
+                }
+              />
+              <Route
+                path="/account/courses/:courseId"
+                element={
+                  <RequireCustomerAuth>
+                    <CoursePlayerPage />
+                  </RequireCustomerAuth>
+                }
+              />
+              <Route path="/login" element={<CustomerAuthPage />} />
               <Route
                 path="/admin"
                 element={
@@ -160,7 +210,9 @@ const AppShell: React.FC = () => {
 
 const AppRouter: React.FC = () => (
   <BrowserRouter>
-    <AppShell />
+    <EcommerceAuthProvider>
+      <AppShell />
+    </EcommerceAuthProvider>
   </BrowserRouter>
 );
 

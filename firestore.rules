@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /cart/{itemId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /orders/{orderId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // TODO: Orders should be written only by Cloud Functions in production
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /enrollments/{courseId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        // TODO: Enrollments should be written only by Cloud Functions in production
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /wishlist/{productId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    match /coupons/{code} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Existing CMS collections — adjust to match your deployment
+    match /admin/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /courses/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /news/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /studentMessages/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /trackRecord/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

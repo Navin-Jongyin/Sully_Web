@@ -128,23 +128,47 @@ function AttendanceControls({
   status: AttendanceStatus
   onChange: (next: AttendanceStatus) => void
 }) {
+  if (status === 'attended') {
+    return (
+      <button
+        type="button"
+        className="attendance-status attendance-status--attended"
+        aria-label="Marked attended. Click to change."
+        onClick={() => onChange('pending')}
+      >
+        Attended
+      </button>
+    )
+  }
+
+  if (status === 'absent') {
+    return (
+      <button
+        type="button"
+        className="attendance-status attendance-status--absent"
+        aria-label="Marked absent. Click to change."
+        onClick={() => onChange('pending')}
+      >
+        Absent
+      </button>
+    )
+  }
+
   return (
     <div className="attendance-controls" role="group" aria-label="Attendance">
       <button
         type="button"
-        className={'attendance-icon-btn attendance-icon-btn--check' + (status === 'attended' ? ' is-active' : '')}
+        className="attendance-icon-btn attendance-icon-btn--check"
         aria-label="Mark attended"
-        aria-pressed={status === 'attended'}
-        onClick={() => onChange(status === 'attended' ? 'pending' : 'attended')}
+        onClick={() => onChange('attended')}
       >
         ✓
       </button>
       <button
         type="button"
-        className={'attendance-icon-btn attendance-icon-btn--cross' + (status === 'absent' ? ' is-active' : '')}
+        className="attendance-icon-btn attendance-icon-btn--cross"
         aria-label="Mark absent"
-        aria-pressed={status === 'absent'}
-        onClick={() => onChange(status === 'absent' ? 'pending' : 'absent')}
+        onClick={() => onChange('absent')}
       >
         ✕
       </button>
@@ -302,7 +326,7 @@ export function BookingAdminPanel() {
       return
     }
     const res = mergeOrAppendSlots(slots, d, pendingSlots)
-    if (!res.ok) {
+    if (res.ok === false) {
       setMsg(res.reason, 'error')
       return
     }
@@ -334,7 +358,7 @@ export function BookingAdminPanel() {
       end: editTimeEnd,
       category: editSlotCategory,
     })
-    if (!res.ok) {
+    if (res.ok === false) {
       setEditSlotMsg(res.reason)
       setEditSlotMsgKind('error')
       return
@@ -578,10 +602,7 @@ export function BookingAdminPanel() {
               const att = attendanceSummary(people)
 
               return (
-                <div
-                  key={startKey}
-                  className={'slot-booking-block' + (booked >= MAX_BOOKINGS_PER_SLOT ? ' is-full' : '')}
-                >
+                <div key={startKey} className="slot-booking-block">
                   <div className="slot-booking-head">
                     <span className="slot-booking-time">{label}</span>
                     <span className="slot-category-badge">{slotCat || 'Uncategorized'}</span>

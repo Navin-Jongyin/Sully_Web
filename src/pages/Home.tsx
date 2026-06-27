@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
+import { FeaturedProducts } from '../ecommerce/components/FeaturedProducts';
 
 
 const Home: React.FC = () => {
@@ -137,7 +138,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      
+      <FeaturedProducts />
 
       <section id="achievements" className="container section timeline reveal is-visible">
         <div className="section-head">

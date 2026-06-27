@@ -621,11 +621,6 @@ button:active {
   transition: border-color var(--transition);
 }
 
-.slot-booking-block.is-full {
-  border-color: rgba(244, 63, 94, 0.3);
-  background: var(--full-soft);
-}
-
 .slot-booking-head {
   display: flex;
   flex-wrap: wrap;
@@ -647,11 +642,6 @@ button:active {
   color: var(--primary);
   background: var(--primary-soft);
   border-radius: var(--radius-pill);
-}
-
-.slot-booking-block.is-full .slot-booking-count {
-  color: var(--full);
-  background: rgba(244, 63, 94, 0.1);
 }
 
 .slot-booking-people {
@@ -717,13 +707,6 @@ button:active {
   border-color: #22c55e;
 }
 
-.attendance-icon-btn--check.is-active {
-  background: #22c55e;
-  border-color: #22c55e;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
-}
-
 .attendance-icon-btn--cross {
   color: #dc2626;
   border-color: rgba(239, 68, 68, 0.35);
@@ -734,11 +717,33 @@ button:active {
   border-color: #ef4444;
 }
 
-.attendance-icon-btn--cross.is-active {
-  background: #ef4444;
-  border-color: #ef4444;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+.attendance-status {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.attendance-status--attended {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.attendance-status--attended:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.attendance-status--absent {
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+}
+
+.attendance-status--absent:hover {
+  background: rgba(239, 68, 68, 0.18);
 }
 
 .slot-attendance-summary {
