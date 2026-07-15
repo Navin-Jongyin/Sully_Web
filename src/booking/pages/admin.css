@@ -150,6 +150,7 @@ input[type='text'],
 input[type='password'],
 input[type='time'],
 input[type='email'],
+input[type='search'],
 select {
   padding: 12px 14px;
   font-size: 0.9375rem;

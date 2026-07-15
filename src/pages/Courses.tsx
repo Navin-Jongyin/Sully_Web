@@ -2,12 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Clock, X, Check } from 'lucide-react';
 import { type Course, getCourseCategories } from '../components/courses/CourseCard';
 import CategoryTab, { type CourseCategory } from '../components/courses/CategoryTab';
+import { useTranslation } from '../hooks/useTranslation';
 
 const tabs: CourseCategory[] = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
 
 const Courses: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<CourseCategory>('Student Pilot');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  const categoryLabel = (tab: string) => {
+    switch (tab) {
+      case 'Student Pilot':
+        return t.coursesPage.catStudentPilot;
+      case 'Qualified Pilot':
+        return t.coursesPage.catQualifiedPilot;
+      case 'ATC':
+        return t.coursesPage.catAtc;
+      case 'Others':
+        return t.coursesPage.catOthers;
+      default:
+        return tab;
+    }
+  };
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -23,10 +40,10 @@ const Courses: React.FC = () => {
     <main className="page-transition">
       <section className="container section" style={{ paddingTop: 'clamp(2rem, 8vw, 7.5rem)' }}>
         <div className="section-head reveal is-visible">
-          <p className="eyebrow">Curriculum</p>
-          <h2>Our Courses</h2>
+          <p className="eyebrow">{t.coursesPage.eyebrow}</p>
+          <h2>{t.coursesPage.title}</h2>
           <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '1rem auto 0' }}>
-            At Sully Academy we offer different courses across aviation fields to meet your goals.
+            {t.coursesPage.description}
           </p>
         </div>
 
@@ -37,7 +54,7 @@ const Courses: React.FC = () => {
               className={`tab-button ${activeTab === tab ? 'active' : ''}`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab}
+              {categoryLabel(tab)}
             </button>
           ))}
         </div>
@@ -50,14 +67,14 @@ const Courses: React.FC = () => {
       {selectedCourse && (
         <div className="modal-overlay" onClick={() => setSelectedCourse(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelectedCourse(null)} aria-label="Close modal">
+            <button className="modal-close" onClick={() => setSelectedCourse(null)} aria-label={t.coursesPage.closeModal}>
               <X size={20} />
             </button>
             
             <div style={{ padding: 'clamp(1.25rem, 4vw, 3rem)' }}>
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                 {getCourseCategories(selectedCourse).map((cat) => (
-                  <span key={cat} className="tag" style={{ background: selectedCourse.tagBg, color: selectedCourse.tagColor, border: 'none', whiteSpace: 'nowrap' }}>{cat}</span>
+                  <span key={cat} className="tag" style={{ background: selectedCourse.tagBg, color: selectedCourse.tagColor, border: 'none', whiteSpace: 'nowrap' }}>{categoryLabel(cat)}</span>
                 ))}
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-secondary)' }}>
                   <Clock size={16} /> {selectedCourse.duration}
@@ -70,7 +87,7 @@ const Courses: React.FC = () => {
               </p>
               
               <div style={{ background: 'var(--glass-bg)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--glass-border)', marginBottom: '2rem' }}>
-                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Program Overview</h3>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{t.coursesPage.programOverview}</h3>
                 <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem' }}>
                   {(selectedCourse.overview || []).map((point, idx) => (
                     <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -78,14 +95,14 @@ const Courses: React.FC = () => {
                     </li>
                   ))}
                   {(!selectedCourse.overview || selectedCourse.overview.length === 0) && (
-                    <li style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Program details coming soon.</li>
+                    <li style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>{t.coursesPage.detailsComingSoon}</li>
                   )}
                 </ul>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Total Tuition Fee</p>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>{t.coursesPage.totalTuitionFee}</p>
                   <span style={{ fontWeight: 700, fontSize: '2rem', color: 'var(--text-primary)' }}>{selectedCourse.price}</span>
                 </div>
                 <a
@@ -95,7 +112,7 @@ const Courses: React.FC = () => {
                   className="button button-primary"
                   style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}
                 >
-                  Enroll Now
+                  {t.coursesPage.enrollNow}
                 </a>
               </div>
             </div>

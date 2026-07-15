@@ -290,6 +290,15 @@
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.track-testimonial-fields textarea:focus,
+.track-testimonial-fields input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: var(--bg-secondary);
 }
 
 .track-testimonial-fields textarea {
@@ -431,6 +440,14 @@
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.track-add-year-inline input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: var(--bg-secondary);
 }
 
 @media (max-width: 900px) {

@@ -140,46 +140,74 @@ const Home: React.FC = () => {
 
       <FeaturedProducts />
 
-      <section id="achievements" className="container section timeline reveal is-visible">
+      <section id="achievements" className="container section track-record reveal is-visible">
         <div className="section-head">
           <p className="eyebrow">{t.home.successStoriesEyebrow}</p>
           <h2>{t.home.successStoriesTitle}</h2>
         </div>
 
-        <div className="timeline-tabs">
-          {Object.keys(trackRecord).sort().reverse().map(year => (
-            <button 
-              key={year}
-              className={`timeline-tab ${activeTab === year ? 'is-active' : ''}`} 
-              onClick={() => setActiveTab(year)}
-            >
-              {t.home.yearResults.replace('{year}', year)}
-            </button>
-          ))}
+        <div className="airline-partners">
+          <div className="airline-partners-copy">
+            <p className="eyebrow">{t.home.airlinePartnersEyebrow}</p>
+            <h3>{t.home.airlinePartnersTitle}</h3>
+            <p>{t.home.airlinePartnersDesc}</p>
+          </div>
+          <div className="airline-logo-rail" aria-label="Airline partners">
+            <div className="airline-logo-card">
+              <img src="/airlines/thai-airways.png" alt="Thai Airways" />
+            </div>
+            <div className="airline-logo-card">
+              <img src="/airlines/vietjet.png" alt="Thai VietJet Air" />
+            </div>
+            <div className="airline-logo-card">
+              <img src="/airlines/airasia.png" alt="AirAsia" />
+            </div>
+            <div className="airline-logo-card">
+              <img src="/airlines/bangkok-airways.png" alt="Bangkok Airways" />
+            </div>
+          </div>
         </div>
 
-        <div className="stats-container">
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t.home.examPerformance}</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>{t.home.successMetrics} {activeTab}</p>
+        {years.length > 0 && (
+          <div className="track-year-rail">
+            {years.sort().reverse().map((year) => (
+              <button
+                key={year}
+                type="button"
+                className={`track-year-chip${activeTab === year ? ' is-active' : ''}`}
+                onClick={() => setActiveTab(year)}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="track-panel">
+          <div className="track-panel-head">
+            <div>
+              <p className="eyebrow">{t.home.examPerformance}</p>
+              <h3>{t.home.yearResults.replace('{year}', activeTab)}</h3>
+            </div>
+            <p className="track-panel-sub">{t.home.successMetrics} {activeTab}</p>
           </div>
 
-          <div className="stats-grid">
+          <div className="track-stats-grid">
             {currentYearData.stats.map((stat, i) => (
-              <div key={i} className="stat-card reveal is-visible" style={{ "--delay": i } as React.CSSProperties}>
-                <p className="stat-card-label">{stat.label}</p>
-                <p className="stat-card-value">{stat.value}</p>
+              <div key={i} className="track-stat reveal is-visible" style={{ '--delay': i } as React.CSSProperties}>
+                <p className="track-stat-value">{stat.value}</p>
+                <p className="track-stat-label">{stat.label}</p>
               </div>
             ))}
             {currentYearData.stats.length === 0 && (
-              <div className="stats-empty">
+              <div className="track-stats-empty">
                 <p>{t.home.noDataRecorded}</p>
               </div>
             )}
           </div>
 
           {currentYearData.testimonial.quote && (
-            <blockquote className="year-testimonial reveal is-visible">
+            <blockquote className="track-quote reveal is-visible">
               <p>&ldquo;{currentYearData.testimonial.quote}&rdquo;</p>
               {currentYearData.testimonial.author && (
                 <cite>— {currentYearData.testimonial.author}</cite>

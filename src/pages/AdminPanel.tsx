@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, ShoppingBag } from 'lucide-react';
+=======
+import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, FileJson, ShoppingBag, MonitorPlay } from 'lucide-react';
+>>>>>>> 0e853f4 (Next Gen Web)
 import { Link, useNavigate } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -9,7 +13,13 @@ import type { NewsArticle, YearStats, StudentMessage } from '../context/data-con
 import { useAuth } from '../hooks/useAuth';
 import { type Course, COURSE_CATEGORIES, getCourseCategories } from '../components/courses/CourseCard';
 import { BookingAdminPanel } from '../booking/BookingAdminPanel';
+<<<<<<< HEAD
 import { StoreAdminPanel } from '../ecommerce/StoreAdminPanel';
+=======
+import { OnlineTestAdminPanel } from '../online-test/OnlineTestAdminPanel';
+import { MerchandiseAdminPanel } from '../commerce/MerchandiseAdminPanel';
+import { OnlineVideoCourseAdminPanel } from '../commerce/OnlineVideoCourseAdminPanel';
+>>>>>>> 0e853f4 (Next Gen Web)
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
 
@@ -293,7 +303,13 @@ const AdminPanel: React.FC = () => {
     { key: 'messages', icon: <MessageSquare size={18} />, label: 'Messages' },
     { key: 'track', icon: <Award size={18} />, label: 'Track Record' },
     { key: 'booking', icon: <Calendar size={18} />, label: 'Interview Booking' },
+<<<<<<< HEAD
     { key: 'store', icon: <ShoppingBag size={18} />, label: 'Store' },
+=======
+    { key: 'onlineTests', icon: <FileJson size={18} />, label: 'Online Tests' },
+    { key: 'onlineCourses', icon: <MonitorPlay size={18} />, label: 'Online Courses' },
+    { key: 'merchandise', icon: <ShoppingBag size={18} />, label: 'Merchandise' },
+>>>>>>> 0e853f4 (Next Gen Web)
     { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ] as const;
 
@@ -347,12 +363,31 @@ const AdminPanel: React.FC = () => {
                activeMenu === 'messages' ? 'Student Messages' :
                activeMenu === 'track' ? 'Track Record' :
                activeMenu === 'booking' ? 'Interview Booking' :
+<<<<<<< HEAD
                activeMenu === 'store' ? 'Store & Products' : 'Site Settings'}
+=======
+               activeMenu === 'onlineTests' ? 'Online Tests' :
+               activeMenu === 'onlineCourses' ? 'Online Video Courses' :
+               activeMenu === 'merchandise' ? 'Merchandise' : 'Site Settings'}
+>>>>>>> 0e853f4 (Next Gen Web)
             </h1>
             {activeMenu === 'track' && (
               <p style={{ color: 'var(--text-secondary)' }}>Manage yearly exam stats shown on the home page achievements section.</p>
             )}
+<<<<<<< HEAD
             {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'store' && (
+=======
+            {activeMenu === 'onlineTests' && (
+              <p style={{ color: 'var(--text-secondary)' }}>Create and manage practice tests. Each test stores its full content as JSON.</p>
+            )}
+            {activeMenu === 'onlineCourses' && (
+              <p style={{ color: 'var(--text-secondary)' }}>Sell video courses. Lesson Mux IDs are placeholders until your Mux service is live — see docs/MUX.md.</p>
+            )}
+            {activeMenu === 'merchandise' && (
+              <p style={{ color: 'var(--text-secondary)' }}>Shop products. Stripe Price IDs are optional until payments are wired — see docs/PAYMENTS.md.</p>
+            )}
+            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'onlineTests' && activeMenu !== 'onlineCourses' && activeMenu !== 'merchandise' && (
+>>>>>>> 0e853f4 (Next Gen Web)
             <p style={{ color: 'var(--text-secondary)' }}>Drag the <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}><GripVertical size={14} /></span> handle to reposition items.</p>
             )}
           </div>
@@ -440,7 +475,7 @@ const AdminPanel: React.FC = () => {
               </button>
             </div>
 
-            <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSaveCourse}>
+            <form className="contact-form contact-form-plain" onSubmit={handleSaveCourse}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
                 <label>
                   Course Title
@@ -544,7 +579,7 @@ const AdminPanel: React.FC = () => {
 
               <label style={{ marginTop: '1.5rem' }}>
                 Course Description
-                <textarea name="description" rows={4} defaultValue={editingCourse?.description || ''} placeholder="Enter course details..." style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }}></textarea>
+                <textarea name="description" rows={4} defaultValue={editingCourse?.description || ''} placeholder="Enter course details..."></textarea>
               </label>
 
               {/* Course Overview Points */}
@@ -641,7 +676,7 @@ const AdminPanel: React.FC = () => {
               </button>
             </div>
 
-            <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSaveNews}>
+            <form className="contact-form contact-form-plain" onSubmit={handleSaveNews}>
               <label>
                 Article Title
                 <input type="text" name="title" defaultValue={editingNews?.title || ''} placeholder="e.g. New Intake Announcement" required />
@@ -661,7 +696,7 @@ const AdminPanel: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <label>
                   Category Tag
-                  <select name="tag" defaultValue={editingNews?.tag || 'Student Pilot'} style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}>
+                  <select name="tag" defaultValue={editingNews?.tag || 'Student Pilot'}>
                     <option value="Student Pilot">Student Pilot</option>
                     <option value="Qualified Pilot">Qualified Pilot</option>
                     <option value="ATC">ATC</option>
@@ -713,7 +748,7 @@ const AdminPanel: React.FC = () => {
 
               <label style={{ marginTop: '1.5rem' }}>
                 Article Description (Excerpt)
-                <textarea name="description" rows={4} defaultValue={editingNews?.description || ''} placeholder="Enter article content..." style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }}></textarea>
+                <textarea name="description" rows={4} defaultValue={editingNews?.description || ''} placeholder="Enter article content..."></textarea>
               </label>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
@@ -785,7 +820,7 @@ const AdminPanel: React.FC = () => {
               </button>
             </div>
 
-            <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }} onSubmit={handleSaveMessage}>
+            <form className="contact-form contact-form-plain" onSubmit={handleSaveMessage}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
                 <label>
                   Student Name
@@ -799,7 +834,7 @@ const AdminPanel: React.FC = () => {
 
               <label style={{ marginTop: '1.5rem' }}>
                 Message
-                <textarea name="message" rows={4} defaultValue={editingMessage?.message || ''} placeholder="Enter student feedback..." style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem', resize: 'vertical' }} required></textarea>
+                <textarea name="message" rows={4} defaultValue={editingMessage?.message || ''} placeholder="Enter student feedback..." required></textarea>
               </label>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
@@ -988,8 +1023,21 @@ const AdminPanel: React.FC = () => {
           </div>
         )}
 
+<<<<<<< HEAD
         {activeMenu === 'store' && (
           <StoreAdminPanel />
+=======
+        {activeMenu === 'onlineTests' && (
+          <OnlineTestAdminPanel />
+        )}
+
+        {activeMenu === 'onlineCourses' && (
+          <OnlineVideoCourseAdminPanel />
+        )}
+
+        {activeMenu === 'merchandise' && (
+          <MerchandiseAdminPanel />
+>>>>>>> 0e853f4 (Next Gen Web)
         )}
 
         {/* Site Settings Placeholder */}

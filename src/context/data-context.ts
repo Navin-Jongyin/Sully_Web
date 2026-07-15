@@ -1,5 +1,7 @@
 import { createContext } from 'react';
 import { type Course } from '../components/courses/CourseCard';
+import { type OnlineTestRecord } from '../online-test/types';
+import { type MerchandiseProduct, type OnlineVideoCourse } from '../commerce/types';
 
 export interface NewsArticle {
   id: string;
@@ -38,6 +40,9 @@ export interface DataContextValue {
   news: NewsArticle[];
   trackRecord: TrackRecord;
   studentMessages: StudentMessage[];
+  onlineTests: OnlineTestRecord[];
+  merchandise: MerchandiseProduct[];
+  onlineVideoCourses: OnlineVideoCourse[];
   loading: boolean;
   homeLoading: boolean;
   updateCourse: (updatedCourse: Course) => Promise<void>;
@@ -54,6 +59,15 @@ export interface DataContextValue {
   addStudentMessage: (message: StudentMessage) => Promise<void>;
   deleteStudentMessage: (id: string) => Promise<void>;
   setStudentMessages: (messages: StudentMessage[]) => Promise<void>;
+  addOnlineTest: (test: OnlineTestRecord) => Promise<void>;
+  updateOnlineTest: (test: OnlineTestRecord) => Promise<void>;
+  deleteOnlineTest: (id: string) => Promise<void>;
+  addMerchandise: (item: MerchandiseProduct) => Promise<void>;
+  updateMerchandise: (item: MerchandiseProduct) => Promise<void>;
+  deleteMerchandise: (id: string) => Promise<void>;
+  addOnlineVideoCourse: (course: OnlineVideoCourse) => Promise<void>;
+  updateOnlineVideoCourse: (course: OnlineVideoCourse) => Promise<void>;
+  deleteOnlineVideoCourse: (id: string) => Promise<void>;
 }
 
 export const DataContext = createContext<DataContextValue | undefined>(undefined);

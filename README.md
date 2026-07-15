@@ -109,13 +109,41 @@ npx firebase-tools deploy --only hosting
 
 ## Routes
 
-| Path        | Access      | Notes                                   |
-| ----------- | ----------- | --------------------------------------- |
-| `/`         | Public      | Landing page                            |
-| `/courses`  | Public      | Course catalog (Student / Qualified / ATC / Others) |
-| `/auth`     | Public      | Firebase email/password login           |
-| `/admin`    | Auth gated  | Lazy-loaded admin panel (CMS)           |
-| `*`         | Public      | 404 fallback                            |
+| Path | Access | Notes |
+| ---- | ------ | ----- |
+| `/` | Public | Landing page |
+| `/courses` | Public | Marketing course catalog |
+| `/online-courses` | Public (login to buy) | Paid Mux video courses |
+| `/online-courses/:id` | Google + entitlement | Video player |
+| `/shop` | Public (login to buy) | Merchandise |
+| `/account` | Google login | Profile, purchases, owned courses |
+| `/online-test` | Public | Google login for aptitude tests |
+| `/online-test/session` | Google | Test dashboard / player |
+| `/book/*` | Public | Interview booking |
+| `/auth` | Public | Admin CMS login |
+| `/admin` | Admin session | CMS (includes Online Courses + Merchandise) |
+| `*` | Public | 404 |
+
+## Commerce (Merchandise + Online Courses + Mux)
+
+Scaffolding is in place; Stripe and Mux backends are placeholders.
+
+- Overview: [`docs/COMMERCE.md`](docs/COMMERCE.md)
+- Payments: [`docs/PAYMENTS.md`](docs/PAYMENTS.md)
+- Mux video: [`docs/MUX.md`](docs/MUX.md)
+
+```bash
+# optional until services exist
+VITE_PAYMENT_API_URL=https://your-stripe-server.onrender.com
+VITE_MUX_API_URL=https://your-mux-server.example.com
+```
+
+Deploy Firestore rules after pulling commerce collections:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
 
 ## Path aliases
 

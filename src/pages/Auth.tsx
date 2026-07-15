@@ -66,8 +66,7 @@ const Auth: React.FC = () => {
         </div>
 
         <form
-          className="contact-form"
-          style={{ padding: 0, border: 'none', background: 'transparent', backdropFilter: 'none' }}
+          className="contact-form contact-form-plain"
           onSubmit={handleSubmit}
         >
           <label>

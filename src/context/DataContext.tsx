@@ -9,6 +9,8 @@ import {
   type TrackRecord,
   type YearStats,
 } from './data-context';
+import { type OnlineTestRecord } from '../online-test/types';
+import { type MerchandiseProduct, type OnlineVideoCourse } from '../commerce/types';
 
 /** Firestore orderBy excludes docs without the field — sort client-side instead. */
 function sortByOrder<T>(items: T[]): T[] {
@@ -24,6 +26,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [news, setNewsState] = useState<NewsArticle[]>([]);
   const [trackRecord, setTrackRecordState] = useState<TrackRecord>({});
   const [studentMessages, setStudentMessagesState] = useState<StudentMessage[]>([]);
+  const [onlineTests, setOnlineTestsState] = useState<OnlineTestRecord[]>([]);
+  const [merchandise, setMerchandiseState] = useState<MerchandiseProduct[]>([]);
+  const [onlineVideoCourses, setOnlineVideoCoursesState] = useState<OnlineVideoCourse[]>([]);
 
   // Track loading per collection so we don't render empty grids prematurely.
   const [loadedFlags, setLoadedFlags] = useState({
@@ -31,6 +36,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     news: false,
     trackRecord: false,
     studentMessages: false,
+    onlineTests: false,
+    merchandise: false,
+    onlineVideoCourses: false,
   });
   const loading = !Object.values(loadedFlags).every(Boolean);
   const homeLoading = !loadedFlags.news || !loadedFlags.trackRecord || !loadedFlags.studentMessages;
@@ -101,6 +109,54 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (error) => {
         console.error('Failed to load student messages:', error);
         markLoaded('studentMessages');
+      },
+    );
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, 'onlineTests'),
+      (snapshot) => {
+        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as OnlineTestRecord)));
+        setOnlineTestsState(data);
+        markLoaded('onlineTests');
+      },
+      (error) => {
+        console.error('Failed to load online tests:', error);
+        markLoaded('onlineTests');
+      },
+    );
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, 'merchandise'),
+      (snapshot) => {
+        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as MerchandiseProduct)));
+        setMerchandiseState(data);
+        markLoaded('merchandise');
+      },
+      (error) => {
+        console.error('Failed to load merchandise:', error);
+        markLoaded('merchandise');
+      },
+    );
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      collection(db, 'onlineVideoCourses'),
+      (snapshot) => {
+        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as OnlineVideoCourse)));
+        setOnlineVideoCoursesState(data);
+        markLoaded('onlineVideoCourses');
+      },
+      (error) => {
+        console.error('Failed to load online video courses:', error);
+        markLoaded('onlineVideoCourses');
       },
     );
     return () => unsub();
@@ -180,13 +236,55 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await batch.commit();
   };
 
+  const addOnlineTest = async (test: OnlineTestRecord) => {
+    const order = onlineTests.length;
+    await setDoc(doc(db, 'onlineTests', test.id), { ...test, order });
+  };
+
+  const updateOnlineTest = async (test: OnlineTestRecord) => {
+    await setDoc(doc(db, 'onlineTests', test.id), test);
+  };
+
+  const deleteOnlineTest = async (id: string) => {
+    await deleteDoc(doc(db, 'onlineTests', id));
+  };
+
+  const addMerchandise = async (item: MerchandiseProduct) => {
+    const order = merchandise.length;
+    await setDoc(doc(db, 'merchandise', item.id), { ...item, order });
+  };
+
+  const updateMerchandise = async (item: MerchandiseProduct) => {
+    await setDoc(doc(db, 'merchandise', item.id), item);
+  };
+
+  const deleteMerchandise = async (id: string) => {
+    await deleteDoc(doc(db, 'merchandise', id));
+  };
+
+  const addOnlineVideoCourse = async (course: OnlineVideoCourse) => {
+    const order = onlineVideoCourses.length;
+    await setDoc(doc(db, 'onlineVideoCourses', course.id), { ...course, order });
+  };
+
+  const updateOnlineVideoCourse = async (course: OnlineVideoCourse) => {
+    await setDoc(doc(db, 'onlineVideoCourses', course.id), course);
+  };
+
+  const deleteOnlineVideoCourse = async (id: string) => {
+    await deleteDoc(doc(db, 'onlineVideoCourses', id));
+  };
+
   return (
     <DataContext.Provider value={{
-      courses, news, trackRecord, studentMessages, loading, homeLoading,
+      courses, news, trackRecord, studentMessages, onlineTests, merchandise, onlineVideoCourses, loading, homeLoading,
       updateCourse, addCourse, deleteCourse, setCourses,
       updateNews, addNews, deleteNews, setNews,
       updateTrackRecord, deleteTrackRecord,
       updateStudentMessage, addStudentMessage, deleteStudentMessage, setStudentMessages,
+      addOnlineTest, updateOnlineTest, deleteOnlineTest,
+      addMerchandise, updateMerchandise, deleteMerchandise,
+      addOnlineVideoCourse, updateOnlineVideoCourse, deleteOnlineVideoCourse,
     }}>
       {children}
     </DataContext.Provider>
