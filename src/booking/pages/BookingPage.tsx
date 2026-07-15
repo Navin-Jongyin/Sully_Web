@@ -3,14 +3,12 @@ import { BookingCalendar, isSelectedDateStillValid, sectionsForDate } from '../c
 import { TimeSlotList } from '../components/TimeSlotList'
 import {
   EMAIL_PATTERN,
-  MAX_SESSIONS_PER_EMAIL,
   SLOT_CATEGORIES,
 } from '../constants'
 import { useApplicants } from '../hooks/useApplicants'
 import { useCloudSync } from '../hooks/useCloudSync'
 import {
   canCancelBooking,
-  countBookingsForEmail,
   dateAvailabilityState,
   decrementBookingCount,
   formatBookingStart,
@@ -66,11 +64,6 @@ export function BookingPage() {
       setSelectedTime('')
     }
   }, [selectedDateISO, slots, bookingCounts, selectedCategory])
-
-  const sessionsLeft = useMemo(() => {
-    if (!email.trim() || validateEmail(email)) return null
-    return Math.max(0, MAX_SESSIONS_PER_EMAIL - countBookingsForEmail(email, bookings))
-  }, [email, bookings])
 
   function validateEmail(value: string) {
     if (!value?.trim()) return 'Please enter your email.'
@@ -145,13 +138,9 @@ export function BookingPage() {
     const norm = normalizeEmail(email)
     const dateVal = selectedDateISO
     if (!dateVal) return ''
-    const total = countBookingsForEmail(norm, bookings)
     const dayCount = bookings.filter(
       (rec) => normalizeEmail(rec.emailNorm || rec.email || '') === norm && rec.date === dateVal,
     ).length
-    if (total >= MAX_SESSIONS_PER_EMAIL) {
-      return `This email already has ${MAX_SESSIONS_PER_EMAIL} bookings (the maximum).`
-    }
     if (dayCount >= 1) return 'This email already has a booking on that date (limit: one session per day).'
     return ''
   }
@@ -385,11 +374,6 @@ export function BookingPage() {
               </div>
 
               <div className={`form-group form-group--quota${errors.bookingQuota ? ' has-error' : ''}`} data-field="bookingQuota">
-                {sessionsLeft !== null && (
-                  <p className={`quota-hint${sessionsLeft === 0 ? ' quota-hint--none' : ''}`}>
-                    {sessionsLeft} session{sessionsLeft === 1 ? '' : 's'} left
-                  </p>
-                )}
                 {errors.bookingQuota && (
                   <span className="error-text" role="alert">
                     {errors.bookingQuota}
