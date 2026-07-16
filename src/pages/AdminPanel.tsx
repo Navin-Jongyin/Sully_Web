@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, ShoppingBag } from 'lucide-react';
-=======
 import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, FileJson, ShoppingBag, MonitorPlay } from 'lucide-react';
->>>>>>> 0e853f4 (Next Gen Web)
 import { Link, useNavigate } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -13,13 +9,9 @@ import type { NewsArticle, YearStats, StudentMessage } from '../context/data-con
 import { useAuth } from '../hooks/useAuth';
 import { type Course, COURSE_CATEGORIES, getCourseCategories } from '../components/courses/CourseCard';
 import { BookingAdminPanel } from '../booking/BookingAdminPanel';
-<<<<<<< HEAD
-import { StoreAdminPanel } from '../ecommerce/StoreAdminPanel';
-=======
 import { OnlineTestAdminPanel } from '../online-test/OnlineTestAdminPanel';
 import { MerchandiseAdminPanel } from '../commerce/MerchandiseAdminPanel';
 import { OnlineVideoCourseAdminPanel } from '../commerce/OnlineVideoCourseAdminPanel';
->>>>>>> 0e853f4 (Next Gen Web)
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
 
@@ -303,13 +295,9 @@ const AdminPanel: React.FC = () => {
     { key: 'messages', icon: <MessageSquare size={18} />, label: 'Messages' },
     { key: 'track', icon: <Award size={18} />, label: 'Track Record' },
     { key: 'booking', icon: <Calendar size={18} />, label: 'Interview Booking' },
-<<<<<<< HEAD
-    { key: 'store', icon: <ShoppingBag size={18} />, label: 'Store' },
-=======
     { key: 'onlineTests', icon: <FileJson size={18} />, label: 'Online Tests' },
     { key: 'onlineCourses', icon: <MonitorPlay size={18} />, label: 'Online Courses' },
     { key: 'merchandise', icon: <ShoppingBag size={18} />, label: 'Merchandise' },
->>>>>>> 0e853f4 (Next Gen Web)
     { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ] as const;
 
@@ -363,20 +351,13 @@ const AdminPanel: React.FC = () => {
                activeMenu === 'messages' ? 'Student Messages' :
                activeMenu === 'track' ? 'Track Record' :
                activeMenu === 'booking' ? 'Interview Booking' :
-<<<<<<< HEAD
-               activeMenu === 'store' ? 'Store & Products' : 'Site Settings'}
-=======
                activeMenu === 'onlineTests' ? 'Online Tests' :
                activeMenu === 'onlineCourses' ? 'Online Video Courses' :
                activeMenu === 'merchandise' ? 'Merchandise' : 'Site Settings'}
->>>>>>> 0e853f4 (Next Gen Web)
             </h1>
             {activeMenu === 'track' && (
               <p style={{ color: 'var(--text-secondary)' }}>Manage yearly exam stats shown on the home page achievements section.</p>
             )}
-<<<<<<< HEAD
-            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'store' && (
-=======
             {activeMenu === 'onlineTests' && (
               <p style={{ color: 'var(--text-secondary)' }}>Create and manage practice tests. Each test stores its full content as JSON.</p>
             )}
@@ -387,7 +368,6 @@ const AdminPanel: React.FC = () => {
               <p style={{ color: 'var(--text-secondary)' }}>Shop products. Stripe Price IDs are optional until payments are wired — see docs/PAYMENTS.md.</p>
             )}
             {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'onlineTests' && activeMenu !== 'onlineCourses' && activeMenu !== 'merchandise' && (
->>>>>>> 0e853f4 (Next Gen Web)
             <p style={{ color: 'var(--text-secondary)' }}>Drag the <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}><GripVertical size={14} /></span> handle to reposition items.</p>
             )}
           </div>
@@ -1023,10 +1003,6 @@ const AdminPanel: React.FC = () => {
           </div>
         )}
 
-<<<<<<< HEAD
-        {activeMenu === 'store' && (
-          <StoreAdminPanel />
-=======
         {activeMenu === 'onlineTests' && (
           <OnlineTestAdminPanel />
         )}
@@ -1037,7 +1013,6 @@ const AdminPanel: React.FC = () => {
 
         {activeMenu === 'merchandise' && (
           <MerchandiseAdminPanel />
->>>>>>> 0e853f4 (Next Gen Web)
         )}
 
         {/* Site Settings Placeholder */}

@@ -135,13 +135,8 @@ const AppShell: React.FC = () => {
               <nav className={`main-nav${menuOpen ? ' is-open' : ''}`}>
                 <a href="/#home" onClick={() => setMenuOpen(false)}>{t.common.home}</a>
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
-<<<<<<< HEAD
-                <Link to="/shop" onClick={() => setMenuOpen(false)}>Shop</Link>
-                <CartIcon />
-                <Link to="/account" onClick={() => setMenuOpen(false)} style={{ fontSize: '0.875rem' }}>Account</Link>
-=======
                 <Link to="/shop" onClick={() => setMenuOpen(false)}>{t.common.shop}</Link>
->>>>>>> 0e853f4 (Next Gen Web)
+                <CartIcon />
                 <LanguageToggle />
                 {!authLoading && (
                   user ? (
