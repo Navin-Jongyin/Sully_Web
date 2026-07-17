@@ -16,6 +16,7 @@ interface ImportMetaEnv {
   readonly VITE_BOOKING_FIREBASE_APP_ID?: string;
   readonly VITE_BOOKING_FIREBASE_MEASUREMENT_ID?: string;
   readonly VITE_PAYMENT_API_URL?: string;
+  readonly VITE_STRIPE_CATALOG_API_URL?: string;
   readonly VITE_MUX_API_URL?: string;
 }
 

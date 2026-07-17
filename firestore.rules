@@ -1,138 +1,131 @@
 rules_version = '2';
-<<<<<<< HEAD
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsUser(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function hasCourse(courseId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/userEntitlements/$(request.auth.uid)/courses/$(courseId));
+    }
+
+    function profileIsAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Existing CMS writes remain public until the separate admin-auth migration.
+    match /courses/{docId} {
+      allow read, write: if true;
+    }
+    match /news/{docId} {
+      allow read, write: if true;
+    }
+    match /trackRecord/{docId} {
+      allow read, write: if true;
+    }
+    match /studentMessages/{docId} {
+      allow read, write: if true;
+    }
+    match /onlineTests/{docId} {
+      allow read, write: if true;
+    }
+    match /merchandise/{docId} {
+      allow read, write: if true;
+    }
+
+    match /onlineVideoCourses/{courseId} {
+      allow read, write: if true;
+
+      match /lessons/{lessonId} {
+        allow read: if hasCourse(courseId);
+        // Intentional temporary exception for the legacy session-only admin UI.
+        allow write: if true;
+      }
+    }
+
+    match /purchases/{purchaseId} {
+      allow read: if signedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /userEntitlements/{userId} {
+      allow read: if ownsUser(userId);
+      allow write: if false;
+
+      match /courses/{courseId} {
+        allow read: if ownsUser(userId);
+        allow write: if false;
+      }
+    }
+
+    match /stripeWebhookEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /admin/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
 
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if ownsUser(userId);
+      allow create: if ownsUser(userId)
+        && request.resource.data.role == 'customer';
+      allow update: if ownsUser(userId)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.stripeCustomerId == resource.data.stripeCustomerId;
+      allow delete: if false;
 
       match /cart/{itemId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if ownsUser(userId);
       }
       match /orders/{orderId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        // TODO: Orders should be written only by Cloud Functions in production
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if ownsUser(userId);
       }
       match /enrollments/{courseId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        // TODO: Enrollments should be written only by Cloud Functions in production
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if ownsUser(userId);
       }
       match /wishlist/{productId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if ownsUser(userId);
+      }
+      match /courseProgress/{courseId} {
+        allow read, write: if ownsUser(userId) && hasCourse(courseId);
+
+        match /lessons/{lessonId} {
+          allow read, write: if ownsUser(userId) && hasCourse(courseId);
+        }
       }
     }
 
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow write: if profileIsAdmin();
     }
 
     match /coupons/{code} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow read: if signedIn();
+      allow write: if profileIsAdmin();
     }
 
-    // Existing CMS collections — adjust to match your deployment
-    match /admin/{document=**} {
-      allow read: if true;
-      allow write: if false;
-    }
-    match /courses/{id} {
-      allow read: if true;
-      allow write: if false;
-    }
-    match /news/{id} {
-      allow read: if true;
-      allow write: if false;
-    }
-    match /studentMessages/{id} {
-      allow read: if true;
-      allow write: if false;
-    }
-    match /trackRecord/{id} {
-      allow read: if true;
-      allow write: if false;
-=======
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Public site content (CMS — admin panel uses client writes; tighten when admin uses Firebase Auth)
-    match /courses/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /news/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /trackRecord/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /studentMessages/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /onlineTests/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Commerce catalogs (CMS client writes — tighten when admin uses Firebase Auth)
-    match /merchandise/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    match /onlineVideoCourses/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Purchases: users read own; writes should come from payment webhook (Admin SDK).
-    // Temporary: authenticated users may read own purchases only.
-    match /purchases/{purchaseId} {
-      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow write: if false;
-    }
-
-    // Course entitlements: users read own; only backend should write.
-    match /userEntitlements/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if false;
-
-      match /courses/{courseId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if false;
-      }
-    }
-
-    match /admin/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // Google sign-in user profile
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // One attempt per email per test
     match /onlineTestAttempts/{attemptId} {
-      allow read: if request.auth != null
+      allow read: if signedIn()
         && resource.data.email == request.auth.token.email;
-
-      allow create: if request.auth != null
+      allow create: if signedIn()
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.testId is string
         && !exists(/databases/$(database)/documents/onlineTestAttempts/$(attemptId));
-
-      allow update: if request.auth != null
-        && resource.data.email == request.auth.token.email;
->>>>>>> 0e853f4 (Next Gen Web)
+      allow update: if signedIn()
+        && resource.data.email == request.auth.token.email
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.testId == resource.data.testId;
+      allow delete: if false;
     }
   }
 }

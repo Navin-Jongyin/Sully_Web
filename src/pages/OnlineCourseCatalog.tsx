@@ -1,44 +1,64 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, Lock, Play, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
 import { createCheckoutSession, formatThb } from '../lib/payments';
 import { subscribeCourseEntitlements } from '../lib/purchases';
+import {
+  formatStripeAmount,
+  getStripeProductById,
+  type StripeCatalogProduct,
+} from '../lib/stripe-catalog';
 import '../commerce/commerce.css';
 
 const OnlineCoursesPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { onlineVideoCourses } = useData();
+  const [searchParams] = useSearchParams();
   const [owned, setOwned] = useState<string[]>([]);
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stripeProducts, setStripeProducts] = useState<Record<string, StripeCatalogProduct | null>>({});
 
   useEffect(() => {
-    if (!user) {
-      setOwned([]);
-      return;
-    }
+    if (!user) return;
     return subscribeCourseEntitlements(user.uid, setOwned);
   }, [user]);
 
   const published = onlineVideoCourses.filter((c) => c.published);
+  const visibleOwned = user ? owned : [];
+
+  useEffect(() => {
+    let active = true;
+    void Promise.all(
+      onlineVideoCourses.filter((course) => course.published).map(async (course) => [
+        course.id,
+        await getStripeProductById(course.stripeProductId),
+      ] as const),
+    )
+      .then((entries) => {
+        if (active) setStripeProducts(Object.fromEntries(entries));
+      })
+      .catch(() => {
+        if (active) setError('Stripe product details are temporarily unavailable.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [onlineVideoCourses]);
 
   const handleBuy = async (courseId: string) => {
-    if (!user?.email) return;
+    if (!user) return;
     setError(null);
     setBuyingId(courseId);
     try {
       const { url } = await createCheckoutSession({
-        items: [{ productType: 'course', productId: courseId }],
-        uid: user.uid,
-        email: user.email,
-        successUrl: `${window.location.origin}/dashboard?purchase=success`,
-        cancelUrl: `${window.location.origin}/online-courses?purchase=cancelled`,
+        courseId,
       });
-      window.location.href = url;
+      window.location.assign(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.commerce.purchaseError);
     } finally {
@@ -66,6 +86,11 @@ const OnlineCoursesPage: React.FC = () => {
         )}
 
         {error && <p role="alert" className="commerce-error">{error}</p>}
+        {searchParams.get('purchase') === 'cancelled' && (
+          <p role="status" className="commerce-notice">
+            Checkout was cancelled. You have not been charged.
+          </p>
+        )}
 
         {published.length === 0 ? (
           <div className="commerce-empty">
@@ -75,7 +100,9 @@ const OnlineCoursesPage: React.FC = () => {
         ) : (
           <div className="commerce-grid">
             {published.map((course) => {
-              const isOwned = owned.includes(course.id);
+              const isOwned = visibleOwned.includes(course.id);
+              const stripeProduct = stripeProducts[course.id];
+              const paymentConfigured = Boolean(stripeProduct);
               return (
                 <article key={course.id} className="commerce-card">
                   <div className="commerce-card-image">
@@ -97,10 +124,15 @@ const OnlineCoursesPage: React.FC = () => {
                     <h3>{course.title}</h3>
                     <p>{course.description}</p>
                     <p className="commerce-meta">
-                      {course.lessons.length} {t.commerce.lessons}
+                      {course.lessonCount ?? course.lessons.length} {t.commerce.lessons}
+                      {course.instructor ? ` · ${course.instructor}` : ''}
                     </p>
                     <div className="commerce-card-footer">
-                      <strong>{formatThb(course.priceThb)}</strong>
+                      <strong>
+                        {stripeProduct
+                          ? formatStripeAmount(stripeProduct.amount, stripeProduct.currency)
+                          : formatThb(course.priceThb)}
+                      </strong>
                       {isOwned ? (
                         <Link to={`/online-courses/${course.id}`} className="button button-primary">
                           <Play size={16} /> {t.commerce.watch}
@@ -109,10 +141,14 @@ const OnlineCoursesPage: React.FC = () => {
                         <button
                           type="button"
                           className="button button-primary"
-                          disabled={!user || buyingId === course.id}
+                          disabled={!user || buyingId === course.id || !paymentConfigured}
                           onClick={() => handleBuy(course.id)}
                         >
-                          {buyingId === course.id ? t.commerce.processing : t.commerce.buyNow}
+                          {buyingId === course.id
+                            ? t.commerce.processing
+                            : paymentConfigured
+                              ? t.commerce.buyNow
+                              : 'Not configured'}
                         </button>
                       )}
                     </div>

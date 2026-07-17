@@ -11,6 +11,11 @@ import {
 } from './data-context';
 import { type OnlineTestRecord } from '../online-test/types';
 import { type MerchandiseProduct, type OnlineVideoCourse } from '../commerce/types';
+import {
+  deleteCourseLessons,
+  persistCourseLessons,
+  publicLessonMetadata,
+} from '../lib/course-lessons';
 
 /** Firestore orderBy excludes docs without the field — sort client-side instead. */
 function sortByOrder<T>(items: T[]): T[] {
@@ -264,14 +269,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addOnlineVideoCourse = async (course: OnlineVideoCourse) => {
     const order = onlineVideoCourses.length;
-    await setDoc(doc(db, 'onlineVideoCourses', course.id), { ...course, order });
+    await setDoc(doc(db, 'onlineVideoCourses', course.id), {
+      ...course,
+      lessons: publicLessonMetadata(course.lessons),
+      lessonCount: course.lessons.length,
+      order,
+    });
+    await persistCourseLessons(course.id, course.lessons);
   };
 
   const updateOnlineVideoCourse = async (course: OnlineVideoCourse) => {
-    await setDoc(doc(db, 'onlineVideoCourses', course.id), course);
+    const previousLessonIds = onlineVideoCourses
+      .find((existing) => existing.id === course.id)
+      ?.lessons.map((lesson) => lesson.id) ?? [];
+    await setDoc(doc(db, 'onlineVideoCourses', course.id), {
+      ...course,
+      lessons: publicLessonMetadata(course.lessons),
+      lessonCount: course.lessons.length,
+    });
+    await persistCourseLessons(course.id, course.lessons, previousLessonIds);
   };
 
   const deleteOnlineVideoCourse = async (id: string) => {
+    const lessonIds = onlineVideoCourses
+      .find((course) => course.id === id)
+      ?.lessons.map((lesson) => lesson.id) ?? [];
+    await deleteCourseLessons(id, lessonIds);
     await deleteDoc(doc(db, 'onlineVideoCourses', id));
   };
 

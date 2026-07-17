@@ -26,7 +26,7 @@ const Shop: React.FC = () => {
         successUrl: `${window.location.origin}/dashboard?purchase=success`,
         cancelUrl: `${window.location.origin}/shop?purchase=cancelled`,
       });
-      window.location.href = url;
+      window.location.assign(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.commerce.purchaseError);
     } finally {

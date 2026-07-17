@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isImage() {
+      return request.resource != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    function profileIsAdmin() {
+      return request.auth != null
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /online-course-thumbnails/{courseId}/{fileName} {
+      allow read: if true;
+      // Temporary legacy-admin exception; file type and size remain constrained.
+      allow create, update: if isImage();
+      allow delete: if false;
+    }
+
+    match /uploads/{fileName} {
+      allow read: if true;
+      // Existing CMS uploader uses the deferred session-only admin flow.
+      allow create, update: if isImage();
+      allow delete: if false;
+    }
+
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow create, update: if profileIsAdmin() && isImage();
+      allow delete: if profileIsAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

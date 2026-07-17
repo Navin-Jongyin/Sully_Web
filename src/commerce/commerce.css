@@ -34,6 +34,16 @@
   font-size: 0.9rem;
 }
 
+.commerce-notice {
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--radius-sm);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--accent-blue);
+}
+
 .commerce-empty {
   text-align: center;
   padding: 3rem 1.5rem;
@@ -436,4 +446,87 @@
 .commerce-locked p {
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
+}
+
+.commerce-video-frame,
+.commerce-native-video,
+.commerce-video-unavailable {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.commerce-video-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.commerce-video-unavailable {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.commerce-course-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.commerce-course-progress > div {
+  width: min(260px, 45vw);
+  height: 7px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--surface-muted);
+}
+
+.commerce-course-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-blue);
+}
+
+.commerce-lesson-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.commerce-player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.commerce-player-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 0.9rem;
+}
+
+.commerce-lesson-list button span {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.commerce-lesson-list button small {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
 }

@@ -1,82 +1,103 @@
-# Payments integration (Stripe) — placeholder
+# Stripe course payments
 
-The frontend calls a backend payment API. **No Stripe secret keys belong in the Vite app.**
+Course purchases use Stripe-hosted Checkout and the Firebase Functions in
+`functions-commerce`. The browser sends only a Firebase ID token and `courseId`;
+identity, price, amount, ownership, and redirect URLs are resolved on the server.
+Never place a Stripe restricted/secret key or webhook secret in the Vite app.
 
-## Env
+## Course configuration
+
+Each `onlineVideoCourses/{courseId}` document has:
+
+```text
+stripeProductId: STRIPE_PRODUCT_ID_PLACEHOLDER
+stripePriceId: STRIPE_PRICE_ID_PLACEHOLDER
+```
+
+Replace the Product ID per course with its `prod_...` ID, then use **Load** in
+the admin editor. Product details and the active `price_...` ID are resolved
+from `https://stripe-server-3dqx.onrender.com/products`; the server repeats this
+lookup during Checkout and never trusts the browser-provided price. Unresolved
+placeholders return a safe “payment not configured” response.
+
+Override the catalog server only when needed:
+
+```text
+VITE_STRIPE_CATALOG_API_URL=https://stripe-server-3dqx.onrender.com
+STRIPE_CATALOG_API_URL=https://stripe-server-3dqx.onrender.com
+```
+
+## Secrets and deployment
+
+Use a Stripe restricted key with only the permissions required to create and
+read Checkout Sessions. Configure separate test and live projects/keys.
 
 ```bash
-# Production payment server (example Render URL)
-VITE_PAYMENT_API_URL=https://your-stripe-server.onrender.com
-
-# Local: set to "local" and add a Vite proxy to localhost:4242 (optional)
-# VITE_PAYMENT_API_URL=local
+firebase functions:secrets:set STRIPE_RESTRICTED_KEY --project default
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project default
+firebase deploy --only functions:commerce --project default
 ```
 
-Client helper: `src/lib/payments.ts` → `createCheckoutSession()`.
+Set the `APP_ORIGIN` function parameter to the exact public web origin when
+prompted (for example `https://sullyacademy.example`). The deployed endpoints
+are:
 
-## Expected API contract
-
-### `POST /create-checkout-session`
-
-**Request body**
-
-```json
-{
-  "items": [
-    { "productType": "course", "productId": "ovc-123", "quantity": 1 },
-    { "productType": "merchandise", "productId": "merch-456", "quantity": 2 }
-  ],
-  "uid": "firebase-uid",
-  "email": "user@gmail.com",
-  "successUrl": "https://yoursite.com/account?purchase=success",
-  "cancelUrl": "https://yoursite.com/shop?purchase=cancelled"
-}
+```text
+POST https://asia-southeast1-PROJECT_ID.cloudfunctions.net/createCheckoutSession
+POST https://asia-southeast1-PROJECT_ID.cloudfunctions.net/stripeWebhook
 ```
 
-**Response**
+Register the second URL in Stripe Workbench for:
 
-```json
-{
-  "url": "https://checkout.stripe.com/c/pay/cs_...",
-  "sessionId": "cs_..."
-}
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+
+The webhook verifies the Stripe signature and records processed event IDs, so
+retries cannot grant duplicate access.
+
+## Local test-mode flow
+
+Install dependencies in both roots, run the Functions emulator, and forward
+Stripe test events:
+
+```bash
+npm install
+npm --prefix functions-commerce install
+npm --prefix functions-commerce run serve
+stripe listen --forward-to http://127.0.0.1:5001/sullyweb-5f6cc/asia-southeast1/stripeWebhook
 ```
 
-The browser redirects to `url`.
+Copy the signing secret printed by `stripe listen` into the emulator secret
+configuration. Set `VITE_PAYMENT_API_URL=local` and run `npm run dev`.
 
-### Server responsibilities
+## Data and failure behavior
 
-1. Look up product prices from Firestore (`onlineVideoCourses` / `merchandise`) or Stripe Price IDs.
-2. Create a Stripe Checkout Session with `metadata`: `uid`, `productType`, `productId`(s).
-3. On `checkout.session.completed` webhook:
-   - Create/update `purchases/{id}` with `status: "paid"`.
-   - For `productType: "course"`, create  
-     `userEntitlements/{uid}/courses/{courseId}` with `unlockedAt`, `purchaseId`.
-4. Never trust the client to write entitlements.
+- `purchases/{uid}_{courseId}` is the duplicate-purchase lock and audit record.
+- Only a paid, signed Stripe event writes `status: paid` and grants
+  `userEntitlements/{uid}/courses/{courseId}`.
+- Failed, expired, and cancelled sessions do not grant access.
+- Checkout success query parameters are informational; the dashboard waits for
+  the webhook-created entitlement.
+- Payment Intent ID, Session ID, customer ID, amount in minor units, THB amount,
+  currency, UID, course ID, and server timestamps are retained.
 
-## Local development tips
+## Rollout and rollback
 
-1. Run your Stripe server (e.g. Express on port `4242`).
-2. Optional Vite proxy in `vite.config.ts`:
+1. Deploy Firestore/Storage rules and indexes.
+2. Use “Migrate lessons” in the online-course admin panel.
+3. Deploy `functions:commerce`, configure the webhook, then deploy the frontend.
+4. Complete a Stripe test-mode purchase through dashboard playback.
 
-```ts
-server: {
-  proxy: {
-    '/api/payments': {
-      target: 'http://localhost:4242',
-      changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/api\/payments/, ''),
-    },
-  },
-},
-```
+To roll back the UI, deploy the previous frontend. Do not delete purchase,
+webhook-event, or entitlement documents. Disable the Stripe webhook endpoint
+before deleting payment Functions.
 
-3. Set `VITE_PAYMENT_API_URL=local` so the client uses `/api/payments`.
+## Known admin-auth exception
 
-## Checklist before go-live
-
-- [ ] Stripe products/prices created; IDs stored on Firestore docs
-- [ ] Webhook endpoint verified (`stripe listen` in dev)
-- [ ] Firestore rules: clients cannot create `userEntitlements` (server Admin SDK only)
-- [ ] Success/cancel URLs use production domain
-- [ ] Test Google-authenticated purchase end-to-end
+The current admin screen still trusts a browser session flag at the owner's
+request. Course/lesson CMS writes therefore retain temporary rule exceptions.
+Stripe, purchase, entitlement, student lesson reads, and progress authorization
+do not trust that flag. Migrating admin access to Firebase custom claims remains
+required before calling the CMS authorization production-secure.

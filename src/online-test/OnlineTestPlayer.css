@@ -4,7 +4,7 @@
   min-height: 100vh;
   overflow: hidden;
   background: var(--bg-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   color: var(--text-primary);
 }
 
@@ -46,7 +46,7 @@
 .ot-sidebar-head h2 {
   font-size: 1.125rem;
   font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   margin: 0;
 }
 
@@ -206,7 +206,7 @@
 .ot-player-title-box h1 {
   font-size: 1.125rem;
   font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -419,7 +419,7 @@
 .ot-score-percent {
   font-size: 2.25rem;
   font-weight: 800;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   line-height: 1;
 }
 
@@ -433,7 +433,7 @@
 .ot-scorecard h2 {
   font-size: 1.75rem;
   font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   margin: 0 0 0.5rem 0;
 }
 
@@ -448,7 +448,7 @@
 .ot-review-heading {
   font-size: 1.25rem;
   font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   margin: 3rem 0 1.5rem 0;
   text-align: left;
 }
@@ -639,7 +639,7 @@
 .ot-modal-content h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   margin: 0 0 0.75rem 0;
   color: var(--text-primary);
 }

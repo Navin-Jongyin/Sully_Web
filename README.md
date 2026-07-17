@@ -1,6 +1,6 @@
 # Sully Academy
 
-Marketing site + content-management portal for Sully Academy, a ground-school program for student pilots in Thailand. Built with **React 19**, **TypeScript**, **Vite**, **Firebase** (Firestore + Auth + Storage), and **Framer Motion**.
+Marketing site, paid course LMS, and content-management portal for Sully Academy. Built with **React 19**, **TypeScript**, **Vite**, **Firebase** (Firestore + Auth + Storage + Functions), **Stripe Checkout**, and **Framer Motion**.
 
 ## Tech stack
 
@@ -47,6 +47,8 @@ src/
 
 ```bash
 npm install
+npm --prefix functions install
+npm --prefix functions-commerce install
 ```
 
 ### 2. Configure Firebase
@@ -68,32 +70,28 @@ VITE_FIREBASE_APP_ID=...
 VITE_FIREBASE_MEASUREMENT_ID=...    # optional
 ```
 
-### 3. Create an admin user
+### 3. Configure course payments
 
-In the Firebase console: `Authentication → Users → Add user`. Use an email/password you'll log in with at `/auth`.
+Follow [`docs/PAYMENTS.md`](docs/PAYMENTS.md) to replace per-course Stripe
+placeholders, configure Firebase secrets, and register the signed webhook.
 
-### 4. Lock down Firestore + Storage rules
+### 4. Deploy Firestore + Storage rules
 
-The client allows any authenticated user to write to all collections. Make sure your **Firestore Rules** require auth (and ideally a custom admin claim):
-
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-      // Or stricter: allow write: if request.auth.token.admin == true;
-    }
-  }
-}
+```bash
+firebase deploy --only firestore:rules,firestore:indexes,storage --project default
 ```
+
+Purchase and entitlement writes are backend-only. The legacy admin CMS still
+has an explicitly deferred session-only authorization flow; see the warning in
+the payment documentation before production rollout.
 
 ### 5. Run
 
 ```bash
 npm run dev      # dev server with HMR
 npm run lint     # eslint
+npm run test     # unit tests
+npm run test:rules # Firestore emulator authorization tests
 npm run build    # tsc -b && vite build → dist/
 npm run preview  # preview the production build
 ```
@@ -113,10 +111,10 @@ npx firebase-tools deploy --only hosting
 | ---- | ------ | ----- |
 | `/` | Public | Landing page |
 | `/courses` | Public | Marketing course catalog |
-| `/online-courses` | Public (login to buy) | Paid Mux video courses |
-| `/online-courses/:id` | Google + entitlement | Video player |
+| `/online-courses` | Public (login to buy) | Stripe-powered video courses |
+| `/online-courses/:id` | Firebase user + entitlement | Multi-provider course player |
 | `/shop` | Public (login to buy) | Merchandise |
-| `/account` | Google login | Profile, purchases, owned courses |
+| `/dashboard` | Firebase login | Purchases, owned courses, progress |
 | `/online-test` | Public | Google login for aptitude tests |
 | `/online-test/session` | Google | Test dashboard / player |
 | `/book/*` | Public | Interview booking |
@@ -124,25 +122,19 @@ npx firebase-tools deploy --only hosting
 | `/admin` | Admin session | CMS (includes Online Courses + Merchandise) |
 | `*` | Public | 404 |
 
-## Commerce (Merchandise + Online Courses + Mux)
+## Commerce and course LMS
 
-Scaffolding is in place; Stripe and Mux backends are placeholders.
+Online courses support Stripe Checkout, webhook-granted entitlements, lesson
+progress, resume playback, and YouTube, Vimeo, Bunny, Cloudflare, Mux/HLS,
+direct MP4, or generic HTTPS embeds.
 
 - Overview: [`docs/COMMERCE.md`](docs/COMMERCE.md)
 - Payments: [`docs/PAYMENTS.md`](docs/PAYMENTS.md)
 - Mux video: [`docs/MUX.md`](docs/MUX.md)
 
-```bash
-# optional until services exist
-VITE_PAYMENT_API_URL=https://your-stripe-server.onrender.com
-VITE_MUX_API_URL=https://your-mux-server.example.com
-```
-
-Deploy Firestore rules after pulling commerce collections:
-
-```bash
-firebase deploy --only firestore:rules
-```
+The booking and commerce Functions are separate Firebase codebases:
+`functions:booking` deploys to the booking project and `functions:commerce`
+deploys to the main project.
 
 
 ## Path aliases
@@ -159,5 +151,5 @@ import CourseCard from '@/components/courses/CourseCard';
 - Split `AdminPanel.tsx` (~830 lines) into per-section sub-components
 - Replace `alert()` / `window.confirm()` with toast + dialog primitives
 - Compress images in `public/` (the favicon is currently 1.5 MB)
-- Add tests (Vitest + React Testing Library)
 - Add Prettier + a CI workflow
+- Replace the legacy session-only admin login with Firebase custom claims

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
-import { Plane } from 'lucide-react';
+import { ArrowLeft, Plane } from 'lucide-react';
 import LoginCard from '../components/LoginCard';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
@@ -52,6 +52,10 @@ const Login: React.FC = () => {
       </section>
 
       <section className="login-form-side">
+        <Link to="/" className="login-back-btn">
+          <ArrowLeft size={18} />
+          <span>{t.common.backToHome}</span>
+        </Link>
         <div className="login-lang-toggle" role="group" aria-label="Language">
           <button
             type="button"

@@ -28,7 +28,7 @@
   font-size: 1.25rem;
   color: var(--text-primary);
   margin: 0;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
 }
 
 .admin-sidebar-brand h2 span {

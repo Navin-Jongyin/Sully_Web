@@ -14,12 +14,25 @@ export interface MerchandiseProduct {
   updatedAt?: string;
 }
 
-/** Video lesson powered by Mux (placeholder until Mux service exists). */
+export type VideoProvider =
+  | 'auto'
+  | 'youtube'
+  | 'vimeo'
+  | 'bunny'
+  | 'cloudflare'
+  | 'mux'
+  | 'direct'
+  | 'iframe';
+
+/** Provider-neutral course lesson. Legacy Mux fields remain migration-compatible. */
 export interface OnlineCourseLesson {
   id: string;
+  courseId?: string;
   title: string;
   description?: string;
   durationSeconds?: number;
+  videoUrl?: string;
+  videoProvider?: VideoProvider;
   /** Mux Playback ID — placeholder until Mux upload pipeline is ready */
   muxPlaybackId?: string;
   /** Mux Asset ID — set after upload to Mux */
@@ -27,7 +40,7 @@ export interface OnlineCourseLesson {
   order: number;
 }
 
-/** Purchasable online course with Mux-backed lessons. */
+/** Purchasable online course. */
 export interface OnlineVideoCourse {
   id: string;
   title: string;
@@ -35,8 +48,11 @@ export interface OnlineVideoCourse {
   category: 'Student Pilot' | 'Qualified Pilot' | 'ATC' | 'Other';
   priceThb: number;
   thumbnailUrl: string;
+  instructor?: string;
   lessons: OnlineCourseLesson[];
+  lessonCount?: number;
   published: boolean;
+  stripeProductId?: string;
   stripePriceId?: string;
   order?: number;
   createdAt?: string;
@@ -45,7 +61,7 @@ export interface OnlineVideoCourse {
 
 export type PurchaseProductType = 'course' | 'merchandise';
 
-export type PurchaseStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+export type PurchaseStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
 
 /** Order / purchase record written by payment webhook (placeholder client writes for now). */
 export interface PurchaseRecord {
@@ -54,13 +70,21 @@ export interface PurchaseRecord {
   email: string;
   productType: PurchaseProductType;
   productId: string;
+  courseId?: string;
   productTitle: string;
   amountThb: number;
+  amountPaidMinor?: number;
+  currency?: string;
   status: PurchaseStatus;
   /** Stripe Checkout Session ID when payment service is live */
   stripeSessionId?: string;
-  createdAt: string;
-  paidAt?: string;
+  stripePaymentIntentId?: string;
+  stripeCustomerId?: string;
+  stripePriceId?: string;
+  stripeProductId?: string;
+  createdAt: unknown;
+  paidAt?: unknown;
+  purchaseDate?: unknown;
 }
 
 /** Entitlement unlock after successful course payment. */
@@ -68,5 +92,27 @@ export interface CourseEntitlement {
   courseId: string;
   uid: string;
   purchaseId: string;
-  unlockedAt: string;
+  unlockedAt: unknown;
+}
+
+export interface LessonProgress {
+  lessonId: string;
+  courseId: string;
+  currentTimeSeconds: number;
+  durationSeconds: number;
+  completed: boolean;
+  completedAt?: unknown;
+  updatedAt?: unknown;
+}
+
+export interface CourseProgress {
+  courseId: string;
+  uid: string;
+  lastLessonId?: string;
+  completedLessonIds: string[];
+  completedLessons: number;
+  totalLessons: number;
+  completionPercentage: number;
+  lastAccessedAt?: unknown;
+  completedAt?: unknown;
 }

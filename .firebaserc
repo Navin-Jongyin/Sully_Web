@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "sullyweb-5f6cc"
+    "default": "sullyweb-5f6cc",
+    "booking": "interview-booking-64178"
   }
 }

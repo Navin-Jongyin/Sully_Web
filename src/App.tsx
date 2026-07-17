@@ -38,16 +38,6 @@ const CartPage = lazy(() =>
 const CheckoutPage = lazy(() =>
   import("./ecommerce/pages/CheckoutPage").then((m) => ({ default: m.CheckoutPage }))
 );
-const DashboardPage = lazy(() =>
-  import("./ecommerce/pages/DashboardPage").then((m) => ({ default: m.DashboardPage }))
-);
-const CoursePlayerPage = lazy(() =>
-  import("./ecommerce/pages/CoursePlayerPage").then((m) => ({ default: m.CoursePlayerPage }))
-);
-const CustomerAuthPage = lazy(() =>
-  import("./ecommerce/pages/CustomerAuthPage").then((m) => ({ default: m.CustomerAuthPage }))
-);
-
 const NotFound: React.FC = () => {
   const { t } = useTranslation();
   return (
@@ -211,23 +201,6 @@ const AppShell: React.FC = () => {
                   </RequireCustomerAuth>
                 }
               />
-              <Route
-                path="/account"
-                element={
-                  <RequireCustomerAuth>
-                    <DashboardPage />
-                  </RequireCustomerAuth>
-                }
-              />
-              <Route
-                path="/account/courses/:courseId"
-                element={
-                  <RequireCustomerAuth>
-                    <CoursePlayerPage />
-                  </RequireCustomerAuth>
-                }
-              />
-              <Route path="/login" element={<CustomerAuthPage />} />
               <Route
                 path="/admin"
                 element={

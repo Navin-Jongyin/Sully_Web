@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
   GraduationCap,
@@ -15,28 +15,43 @@ import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatThb } from '../lib/payments';
 import { subscribeCourseEntitlements, subscribeUserPurchases } from '../lib/purchases';
-import type { PurchaseRecord } from '../commerce/types';
+import { subscribeCourseProgress } from '../lib/course-progress';
+import type { CourseProgress, PurchaseRecord } from '../commerce/types';
 import './StudentDashboard.css';
 
 type DashSection = 'overview' | 'courses' | 'profile';
+
+function formatFirestoreDate(value: unknown): string {
+  if (!value) return '—';
+  const date = typeof (value as { toDate?: unknown }).toDate === 'function'
+    ? (value as { toDate: () => Date }).toDate()
+    : new Date(value as string | number);
+  return Number.isNaN(date.getTime())
+    ? '—'
+    : new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(date);
+}
 
 const StudentDashboard: React.FC = () => {
   const { t, language, setLanguage } = useTranslation();
   const { user, loading, signOutGoogle } = useAuth();
   const { onlineVideoCourses, merchandise } = useData();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [section, setSection] = useState<DashSection>('overview');
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
   const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
+  const [courseProgress, setCourseProgress] = useState<Record<string, CourseProgress>>({});
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const unsubPurchases = subscribeUserPurchases(user.uid, setPurchases);
     const unsubEntitlements = subscribeCourseEntitlements(user.uid, setOwnedCourseIds);
+    const unsubProgress = subscribeCourseProgress(user.uid, setCourseProgress);
     return () => {
       unsubPurchases();
       unsubEntitlements();
+      unsubProgress();
     };
   }, [user]);
 
@@ -153,6 +168,11 @@ const StudentDashboard: React.FC = () => {
         </header>
 
         <div className="sd-content">
+          {searchParams.get('purchase') === 'success' && (
+            <div className="sd-purchase-notice" role="status">
+              Payment is being confirmed. Your course will appear here as soon as Stripe verification completes.
+            </div>
+          )}
           {section === 'overview' && (
             <>
               <div className="sd-stats">
@@ -204,7 +224,10 @@ const StudentDashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="sd-course-grid">
-                    {ownedCourses.slice(0, 3).map((course) => (
+                    {ownedCourses.slice(0, 3).map((course) => {
+                      const progress = courseProgress[course.id];
+                      const purchase = paidOrders.find((item) => (item.courseId ?? item.productId) === course.id);
+                      return (
                       <article key={course.id} className="sd-course-card">
                         <div className="sd-course-thumb">
                           {course.thumbnailUrl ? (
@@ -216,15 +239,20 @@ const StudentDashboard: React.FC = () => {
                         <div className="sd-course-body">
                           <span>{course.category}</span>
                           <h3>{course.title}</h3>
-                          <p>
-                            {course.lessons.length} {t.commerce.lessons}
-                          </p>
+                          <p>{course.instructor || 'Sully Academy'}</p>
+                          <p>{course.lessonCount ?? course.lessons.length} {t.commerce.lessons}</p>
+                          <div className="sd-progress">
+                            <div><i style={{ width: `${progress?.completionPercentage ?? 0}%` }} /></div>
+                            <span>{progress?.completionPercentage ?? 0}%</span>
+                          </div>
+                          <small>Purchased {formatFirestoreDate(purchase?.purchaseDate ?? purchase?.paidAt)}</small>
                           <Link to={`/online-courses/${course.id}`} className="button button-primary">
-                            <Play size={14} /> {t.commerce.watch}
+                            <Play size={14} /> Continue Learning
                           </Link>
                         </div>
                       </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>
@@ -263,7 +291,10 @@ const StudentDashboard: React.FC = () => {
                 </div>
               ) : (
                 <div className="sd-course-grid">
-                  {ownedCourses.map((course) => (
+                  {ownedCourses.map((course) => {
+                    const progress = courseProgress[course.id];
+                    const purchase = paidOrders.find((item) => (item.courseId ?? item.productId) === course.id);
+                    return (
                     <article key={course.id} className="sd-course-card">
                       <div className="sd-course-thumb">
                         {course.thumbnailUrl ? (
@@ -275,15 +306,20 @@ const StudentDashboard: React.FC = () => {
                       <div className="sd-course-body">
                         <span>{course.category}</span>
                         <h3>{course.title}</h3>
-                        <p>
-                          {course.lessons.length} {t.commerce.lessons}
-                        </p>
+                        <p>{course.instructor || 'Sully Academy'}</p>
+                        <p>{course.lessonCount ?? course.lessons.length} {t.commerce.lessons}</p>
+                        <div className="sd-progress">
+                          <div><i style={{ width: `${progress?.completionPercentage ?? 0}%` }} /></div>
+                          <span>{progress?.completionPercentage ?? 0}%</span>
+                        </div>
+                        <small>Purchased {formatFirestoreDate(purchase?.purchaseDate ?? purchase?.paidAt)}</small>
                         <Link to={`/online-courses/${course.id}`} className="button button-primary">
-                          <Play size={14} /> {t.commerce.watch}
+                          <Play size={14} /> Continue Learning
                         </Link>
                       </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>

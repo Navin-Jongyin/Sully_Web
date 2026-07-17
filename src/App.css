@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
 
 :root {
   --bg-primary: #f7f9fc;
@@ -32,6 +32,14 @@
   --radius: var(--radius-sm);
 
   --transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+html.lang-th {
+  --font-body: 'Sarabun', 'Inter', system-ui, sans-serif;
+  --font-heading: 'Prompt', 'Outfit', system-ui, sans-serif;
 }
 
 * {
@@ -45,7 +53,7 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   color: var(--text-primary);
   background-color: var(--bg-primary);
   background-image:
@@ -128,7 +136,7 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6, .brand {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -136,6 +144,19 @@ h1, h2, h3, h4, h5, h6, .brand {
 h1 { font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: -0.03em; }
 h2 { font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.02em; }
 h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); letter-spacing: -0.01em; }
+
+html.lang-th body {
+  line-height: 1.75;
+}
+
+html.lang-th h1,
+html.lang-th h2,
+html.lang-th h3,
+html.lang-th h4,
+html.lang-th h5,
+html.lang-th h6 {
+  letter-spacing: 0;
+}
 
 .eyebrow {
   font-size: 0.8rem;
@@ -333,7 +354,7 @@ p {
   transition: var(--transition);
   cursor: pointer;
   border: none;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   max-width: 100%;
   text-align: center;
@@ -503,7 +524,7 @@ p {
 .stat-number {
   font-size: 2.5rem;
   font-weight: 800;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   letter-spacing: -0.02em;
   background: linear-gradient(180deg, #0b1526 30%, #33445f 100%);
   -webkit-background-clip: text;
@@ -714,7 +735,7 @@ p {
   color: var(--text-secondary);
   padding: 0.55rem 1.25rem;
   border-radius: var(--radius-full);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
@@ -798,7 +819,7 @@ p {
 
 .track-stat-value {
   margin: 0 0 0.4rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.85rem, 4vw, 2.5rem);
   font-weight: 800;
   line-height: 1.1;
@@ -871,7 +892,7 @@ p {
   color: var(--text-secondary);
   padding: 0.75rem 2rem;
   border-radius: var(--radius-full);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -993,7 +1014,7 @@ p {
 
 .selection-chart-head strong {
   font-size: 1.25rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   color: var(--text-primary);
 }
 
@@ -1106,7 +1127,7 @@ p {
 
 .price {
   font-size: 3rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 700;
   color: var(--text-primary);
   margin: 1.5rem 0;
@@ -1116,7 +1137,7 @@ p {
   font-size: 1rem;
   color: var(--text-secondary);
   font-weight: 400;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 .tag {
@@ -1175,7 +1196,7 @@ p {
   border-radius: var(--radius-sm);
   padding: 1rem;
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   transition: var(--transition);
   width: 100%;
 }
@@ -1673,7 +1694,7 @@ p {
   margin-bottom: 2.5rem;
   color: #fff;
   text-decoration: none;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 800;
   font-size: 1.15rem;
 }
@@ -1706,6 +1727,34 @@ p {
   background:
     radial-gradient(ellipse 70% 50% at 90% 0%, rgba(37, 99, 235, 0.08), transparent 55%),
     var(--bg-primary);
+}
+
+.login-back-btn {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem 0.45rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(11, 21, 38, 0.05);
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+  z-index: 2;
+}
+
+.login-back-btn:hover {
+  color: var(--text-primary);
+  border-color: #c9d4e3;
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(11, 21, 38, 0.08);
 }
 
 .login-lang-toggle {
@@ -2106,7 +2155,7 @@ p {
 }
 
 .ot-session-logo {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
   font-weight: 800;
   font-size: 1.125rem;
   color: var(--text-primary);

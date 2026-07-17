@@ -45,7 +45,7 @@
   --radius-xs: var(--radius-sm);
   --radius-pill: var(--radius-full);
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --font: var(--font-body);
   --page-max: 1200px;
 
   width: 100%;
@@ -66,7 +66,7 @@
 .booking-shell h2,
 .booking-shell h3,
 .booking-shell .cal-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-heading);
 }
 
 .booking-shell a {
