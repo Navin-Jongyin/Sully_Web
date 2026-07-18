@@ -1,6 +1,7 @@
 import React from 'react';
 import CourseCard, { type Course, getCourseCategories } from './CourseCard';
 import { useData } from '../../hooks/useData';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export type CourseCategory = 'Student Pilot' | 'Qualified Pilot' | 'ATC' | 'Others';
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const CategoryTab: React.FC<Props> = ({ category, onSelectCourse }) => {
+  const { t } = useTranslation();
   const { courses } = useData();
   const filtered = courses.filter((c) => getCourseCategories(c).includes(category));
 
@@ -26,7 +28,7 @@ const CategoryTab: React.FC<Props> = ({ category, onSelectCourse }) => {
           color: 'var(--text-secondary)',
         }}
       >
-        <p>No courses available in this category yet. Check back soon!</p>
+        <p>{t.coursesPage.noCoursesInCategory}</p>
       </div>
     );
   }

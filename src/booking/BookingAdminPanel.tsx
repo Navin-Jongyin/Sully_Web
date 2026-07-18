@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { MAX_BOOKINGS_PER_SLOT, MAX_SESSIONS_PER_EMAIL, SLOT_CATEGORIES } from './constants'
+import { MAX_BOOKINGS_PER_SLOT, SLOT_CATEGORIES } from './constants'
 import { useApplicants } from './hooks/useApplicants'
 import { useCloudSync } from './hooks/useCloudSync'
 import {
@@ -430,17 +430,7 @@ export function BookingAdminPanel() {
 
   function sessionsLeftLabel(rec: BookingRecord) {
     const used = countBookingsForEmail(rec.email, bookings)
-    const left = Math.max(0, MAX_SESSIONS_PER_EMAIL - used)
-    return (
-      used +
-      '/' +
-      MAX_SESSIONS_PER_EMAIL +
-      ' booked (lifetime) · ' +
-      left +
-      ' session' +
-      (left === 1 ? '' : 's') +
-      ' left'
-    )
+    return used + ' booking' + (used === 1 ? '' : 's') + ' total'
   }
 
   function bookingMatchesSearch(rec: BookingRecord) {

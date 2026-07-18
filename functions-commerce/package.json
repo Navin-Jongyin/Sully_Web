@@ -1,0 +1,24 @@
+{
+  "name": "sully-commerce-functions",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test lib/payment-utils.test.js",
+    "serve": "npm run build && firebase emulators:start --only functions:commerce",
+    "deploy": "npm run build && firebase deploy --only functions:commerce --project default"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.2.0",
+    "firebase-functions": "^7.3.0",
+    "stripe": "^22.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

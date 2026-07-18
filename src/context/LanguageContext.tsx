@@ -24,6 +24,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   useEffect(() => {
     localStorage.setItem('language', language);
+    document.documentElement.lang = language;
+    document.documentElement.classList.toggle('lang-th', language === 'th');
+    document.documentElement.classList.toggle('lang-en', language === 'en');
   }, [language]);
 
   const setLanguage = (lang: Language) => {

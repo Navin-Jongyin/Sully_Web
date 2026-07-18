@@ -3,6 +3,15 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-do
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
+import OnlineTest from "./pages/OnlineTest";
+import OnlineTestSession from "./pages/OnlineTestSession";
+import Shop from "./pages/Shop";
+import OnlineCourseCatalog from "./pages/OnlineCourseCatalog";
+import OnlineCoursePlayer from "./pages/OnlineCoursePlayer";
+import Account from "./pages/Account";
+import Login from "./pages/Login";
+import StudentDashboard from "./pages/StudentDashboard";
+import RequireGoogleAuth from "./components/RequireGoogleAuth";
 import { DataProvider } from "./context/DataContext";
 import { AuthProvider } from "./context/AuthContext";
 import { EcommerceAuthProvider } from "./context/EcommerceAuthContext";
@@ -13,6 +22,7 @@ import { LanguageToggle } from "./components/LanguageToggle";
 import { CartIcon } from "./ecommerce/components/CartIcon";
 import { RequireCustomerAuth } from "./ecommerce/components/RequireCustomerAuth";
 import { useTranslation } from "./hooks/useTranslation";
+import { useAuth } from "./hooks/useAuth";
 import "./App.css";
 
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
@@ -28,16 +38,6 @@ const CartPage = lazy(() =>
 const CheckoutPage = lazy(() =>
   import("./ecommerce/pages/CheckoutPage").then((m) => ({ default: m.CheckoutPage }))
 );
-const DashboardPage = lazy(() =>
-  import("./ecommerce/pages/DashboardPage").then((m) => ({ default: m.DashboardPage }))
-);
-const CoursePlayerPage = lazy(() =>
-  import("./ecommerce/pages/CoursePlayerPage").then((m) => ({ default: m.CoursePlayerPage }))
-);
-const CustomerAuthPage = lazy(() =>
-  import("./ecommerce/pages/CustomerAuthPage").then((m) => ({ default: m.CustomerAuthPage }))
-);
-
 const NotFound: React.FC = () => {
   const { t } = useTranslation();
   return (
@@ -78,8 +78,13 @@ const PageFallback: React.FC = () => {
 
 const AppShell: React.FC = () => {
   const { t } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
   const { pathname } = useLocation();
   const isAdminRoute = pathname.startsWith('/admin');
+  const isOnlineTestSession = pathname.startsWith('/online-test/session');
+  const isLoginPage = pathname === '/login';
+  const isDashboard = pathname.startsWith('/dashboard');
+  const showSiteChrome = !isAdminRoute && !isOnlineTestSession && !isLoginPage && !isDashboard;
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -99,7 +104,7 @@ const AppShell: React.FC = () => {
           </div>
           )}
 
-          {!isAdminRoute && (
+          {showSiteChrome && (
           <header className="site-header">
             <div className="container nav-shell">
               <Link className="brand" to="/" onClick={() => setMenuOpen(false)}>
@@ -119,12 +124,32 @@ const AppShell: React.FC = () => {
 
               <nav className={`main-nav${menuOpen ? ' is-open' : ''}`}>
                 <a href="/#home" onClick={() => setMenuOpen(false)}>{t.common.home}</a>
-                <Link to="/book" onClick={() => setMenuOpen(false)}>{t.home.bookInterview}</Link>
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
-                <Link to="/shop" onClick={() => setMenuOpen(false)}>Shop</Link>
+                <Link to="/shop" onClick={() => setMenuOpen(false)}>{t.common.shop}</Link>
                 <CartIcon />
-                <Link to="/account" onClick={() => setMenuOpen(false)} style={{ fontSize: '0.875rem' }}>Account</Link>
                 <LanguageToggle />
+                {!authLoading && (
+                  user ? (
+                    <Link
+                      to="/dashboard"
+                      className="nav-account-btn"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {user.photoURL ? (
+                        <img src={user.photoURL} alt="" referrerPolicy="no-referrer" className="nav-account-avatar" />
+                      ) : null}
+                      <span>{t.common.dashboard}</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="nav-login-btn"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t.common.login}
+                    </Link>
+                  )
+                )}
               </nav>
             </div>
 
@@ -142,6 +167,28 @@ const AppShell: React.FC = () => {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/online-courses" element={<OnlineCourseCatalog />} />
+              <Route
+                path="/online-courses/:courseId"
+                element={
+                  <RequireGoogleAuth>
+                    <OnlineCoursePlayer />
+                  </RequireGoogleAuth>
+                }
+              />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<StudentDashboard />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/online-test" element={<OnlineTest />} />
+              <Route
+                path="/online-test/session"
+                element={
+                  <RequireGoogleAuth>
+                    <OnlineTestSession />
+                  </RequireGoogleAuth>
+                }
+              />
               <Route path="/book/*" element={<InterviewBookingRoutes />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/shop/*" element={<ShopRoutes />} />
@@ -155,23 +202,6 @@ const AppShell: React.FC = () => {
                 }
               />
               <Route
-                path="/account"
-                element={
-                  <RequireCustomerAuth>
-                    <DashboardPage />
-                  </RequireCustomerAuth>
-                }
-              />
-              <Route
-                path="/account/courses/:courseId"
-                element={
-                  <RequireCustomerAuth>
-                    <CoursePlayerPage />
-                  </RequireCustomerAuth>
-                }
-              />
-              <Route path="/login" element={<CustomerAuthPage />} />
-              <Route
                 path="/admin"
                 element={
                   <RequireAuth>
@@ -183,7 +213,7 @@ const AppShell: React.FC = () => {
             </Routes>
           </Suspense>
 
-          {!isAdminRoute && (
+          {showSiteChrome && (
           <footer className="site-footer">
             <div className="container footer-shell">
               <p>© {new Date().getFullYear()} Sully Academy. {t.footer.copyright}</p>
