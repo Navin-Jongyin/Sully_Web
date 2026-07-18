@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Clock } from 'lucide-react';
+import { ArrowRight, Clock, Play } from 'lucide-react';
 
 export interface Course {
   id: string;
@@ -14,6 +14,7 @@ export interface Course {
   description: string;
   price: string;
   overview?: string[];
+  videoUrl?: string;
 }
 
 export const COURSE_CATEGORIES = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'] as const;
@@ -51,6 +52,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, index, onSelect }) => {
             {getCourseCategories(course).map((cat) => (
               <span key={cat} className="tag" style={{ background: course.tagBg, color: course.tagColor, border: 'none', whiteSpace: 'nowrap' }}>{categoryChipLabel(cat)}</span>
             ))}
+            {course.videoUrl && (
+              <span className="tag" style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--accent-blue)', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}>
+                <Play size={12} /> Video
+              </span>
+            )}
           </div>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
             <Clock size={14} /> {course.duration}

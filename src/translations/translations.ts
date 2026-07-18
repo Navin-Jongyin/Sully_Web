@@ -8,6 +8,8 @@ export interface Translations {
     news: string;
     contact: string;
     courses: string;
+    shop: string;
+    account: string;
     admin: string;
     terms: string;
     privacy: string;
@@ -66,6 +68,8 @@ export const translations: Record<Language, Translations> = {
       news: 'News',
       contact: 'Contact',
       courses: 'Courses',
+      shop: 'Shop',
+      account: 'Account',
       admin: 'Admin',
       terms: 'Terms',
       privacy: 'Privacy',
@@ -122,6 +126,8 @@ export const translations: Record<Language, Translations> = {
       news: 'ข่าวสาร',
       contact: 'ติดต่อเรา',
       courses: 'หลักสูตร',
+      shop: 'ร้านค้า',
+      account: 'บัญชีผู้ใช้',
       admin: 'แอดมิน',
       terms: 'ข้อกำหนด',
       privacy: 'นโยบายความเป็นส่วนตัว',
