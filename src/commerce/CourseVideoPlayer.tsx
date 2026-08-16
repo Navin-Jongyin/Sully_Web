@@ -43,10 +43,9 @@ export const CourseVideoPlayer: React.FC<CourseVideoPlayerProps> = ({
         <iframe
           src={source.url}
           title={lesson.title}
-          allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           allowFullScreen
           referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
         />
       </div>
     );

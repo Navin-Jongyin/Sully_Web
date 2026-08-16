@@ -5,7 +5,7 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useData } from '../hooks/useData';
 import { storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
-import { migrateEmbeddedLessons } from '../lib/course-lessons';
+import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
 import { getStripeProductById } from '../lib/stripe-catalog';
 
 const PRODUCT_PLACEHOLDER = 'STRIPE_PRODUCT_ID_PLACEHOLDER';
@@ -50,25 +50,33 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
     setCreating(true);
   };
 
-  const openEdit = (course: OnlineVideoCourse) => {
+  const openEdit = async (course: OnlineVideoCourse) => {
     setCreating(false);
     setEditing(course);
-    setForm({
-      title: course.title,
-      description: course.description,
-      category: course.category,
-      priceThb: course.priceThb,
-      thumbnailUrl: course.thumbnailUrl,
-      instructor: course.instructor ?? '',
-      lessons: course.lessons.length ? course.lessons : [emptyLesson(0)],
-      published: course.published,
-      stripeProductId: course.stripeProductId ?? PRODUCT_PLACEHOLDER,
-      stripePriceId: course.stripePriceId ?? PRICE_PLACEHOLDER,
-      lessonCount: course.lessonCount,
-      order: course.order,
-      createdAt: course.createdAt,
-      updatedAt: course.updatedAt,
-    });
+    setMessage(null);
+    try {
+      const lessons = await fetchCourseLessons(course);
+      setForm({
+        title: course.title,
+        description: course.description,
+        category: course.category,
+        priceThb: course.priceThb,
+        thumbnailUrl: course.thumbnailUrl,
+        instructor: course.instructor ?? '',
+        lessons: lessons.length ? lessons : [emptyLesson(0)],
+        published: course.published,
+        stripeProductId: course.stripeProductId ?? PRODUCT_PLACEHOLDER,
+        stripePriceId: course.stripePriceId ?? PRICE_PLACEHOLDER,
+        lessonCount: course.lessonCount,
+        order: course.order,
+        createdAt: course.createdAt,
+        updatedAt: course.updatedAt,
+      });
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Failed to load course lessons.');
+      // Fallback to lightweight metadata so admin can still edit core course fields
+      setForm((f) => ({ ...f, lessons: course.lessons.length ? course.lessons : [emptyLesson(0)] }));
+    }
   };
 
   const reset = () => {
