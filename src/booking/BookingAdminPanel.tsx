@@ -22,6 +22,7 @@ import {
   purgePastDateDataMessage,
   slotCategoryFromSlot,
   slotEndResolved,
+  slotIdentityKey,
   slotRangeLabel,
   slotStartKey,
   updatePublishedSlot,
@@ -335,14 +336,17 @@ export function BookingAdminPanel() {
     setMsg('Saved. It appears on the booking page now.', 'ok')
   }
 
-  function startEditPublishedSlot(startKey: string) {
+  function startEditPublishedSlot(identityKey: string) {
     const row = publishedRow
     if (!row?.slots) return
-    const slotIndex = row.slots.findIndex((s) => slotStartKey(s) === startKey)
+    const slotIndex = row.slots.findIndex((s) => {
+      const identity = slotIdentityKey(s)
+      return identity === identityKey || slotStartKey(s) === identityKey
+    })
     if (slotIndex === -1) return
     const o = normalizeSlotEntry(row.slots[slotIndex])
     const endTime = o.end || slotEndResolved(row.slots, slotIndex)
-    setEditingSlotStartKey(startKey)
+    setEditingSlotStartKey(slotIdentityKey(row.slots[slotIndex]))
     setEditTimeStart(o.start)
     setEditTimeEnd(endTime)
     setEditSlotCategory(o.category || '')
@@ -369,10 +373,11 @@ export function BookingAdminPanel() {
       bookings,
       bookingCounts,
       res.sectionId,
-      editingSlotStartKey,
+      res.oldStartKey,
       res.newStartKey,
       editSlotCategory,
       updatedRow?.slots || [],
+      res.oldCategory,
     )
 
     saveSlots(res.list)
@@ -388,8 +393,8 @@ export function BookingAdminPanel() {
     if (ri === -1) return
     const row = slots[ri]
     if (!row.slots || slotIndex < 0 || slotIndex >= row.slots.length) return
-    const removedStart = slotStartKey(row.slots[slotIndex])
-    if (editingSlotStartKey === removedStart) cancelEditPublishedSlot()
+    const removedIdentity = slotIdentityKey(row.slots[slotIndex])
+    if (editingSlotStartKey === removedIdentity) cancelEditPublishedSlot()
 
     const next = slots.slice()
     const copy = { ...row, slots: row.slots.slice() }
@@ -486,13 +491,18 @@ export function BookingAdminPanel() {
     }))
     const next = withKeys.filter((b) => b.__adminKey !== targetKey).map(({ __adminKey, ...rest }) => rest)
     saveBookings(next)
-    saveCounts(decrementBookingCount(bookingCounts, rec.sectionId, normalizeTimeStr(rec.startTime || '')))
+    saveCounts(decrementBookingCount(
+      bookingCounts,
+      rec.sectionId,
+      normalizeTimeStr(rec.startTime || ''),
+      String(rec.category || '').trim(),
+    ))
     setMsg('Deleted that booking.', 'ok')
   }
 
-  function removeCountOnlyBooking(sectionId: string, startKey: string) {
+  function removeCountOnlyBooking(sectionId: string, startKey: string, category = '') {
     if (!confirm('Remove one booking count for this slot?')) return
-    saveCounts(decrementBookingCount(bookingCounts, sectionId, startKey))
+    saveCounts(decrementBookingCount(bookingCounts, sectionId, startKey, category))
     setMsg('Removed one count-only booking.', 'ok')
   }
 
@@ -582,18 +592,25 @@ export function BookingAdminPanel() {
               const label = slotRangeLabel(row.slots, idx)
               const slotCat = slotCategoryFromSlot(slot)
               const people = allDetails.filter(
-                (b) => b.sectionId === row.id && normalizeTimeStr(String(b.startTime || '')) === startKey,
+                (b) =>
+                  b.sectionId === row.id
+                  && normalizeTimeStr(String(b.startTime || '')) === startKey
+                  && (
+                    !slotCat
+                    || !String(b.category || '').trim()
+                    || String(b.category || '').trim() === slotCat
+                  ),
               )
               people.forEach((b) => {
                 matchedIds[b.__adminKey!] = true
               })
-              const countFromMap = getBookingCount(bookingCounts, row.id, startKey)
+              const countFromMap = getBookingCount(bookingCounts, row.id, startKey, slotCat)
               const booked = Math.max(countFromMap, people.length)
               const missingDetails = Math.max(0, booked - people.length)
               const att = attendanceSummary(people)
 
               return (
-                <div key={startKey} className="slot-booking-block">
+                <div key={slotIdentityKey(slot)} className="slot-booking-block">
                   <div className="slot-booking-head">
                     <span className="slot-booking-time">{label}</span>
                     <span className="slot-category-badge">{slotCat || 'Uncategorized'}</span>
@@ -616,7 +633,7 @@ export function BookingAdminPanel() {
                         <button
                           type="button"
                           className="booking-delete-btn booking-missing-action"
-                          onClick={() => removeCountOnlyBooking(row.id, startKey)}
+                          onClick={() => removeCountOnlyBooking(row.id, startKey, slotCat)}
                         >
                           Remove one count-only booking
                         </button>
@@ -652,7 +669,7 @@ export function BookingAdminPanel() {
                           <button
                             type="button"
                             className="booking-delete-btn booking-missing-action"
-                            onClick={() => removeCountOnlyBooking(row.id, startKey)}
+                            onClick={() => removeCountOnlyBooking(row.id, startKey, slotCat)}
                           >
                             Remove one count-only booking
                           </button>
@@ -704,9 +721,17 @@ export function BookingAdminPanel() {
     )
   }
 
-  const editBookingCount = editingSlotStartKey && publishedRow
-    ? getBookingCount(bookingCounts, publishedRow.id, editingSlotStartKey)
-    : 0
+  const editBookingCount = (() => {
+    if (!editingSlotStartKey || !publishedRow) return 0
+    const slot = publishedRow.slots?.find((s) => slotIdentityKey(s) === editingSlotStartKey)
+    if (!slot) return 0
+    return getBookingCount(
+      bookingCounts,
+      publishedRow.id,
+      slotStartKey(slot),
+      slotCategoryFromSlot(slot),
+    )
+  })()
 
   return (
     <div className="wrap admin-page">
@@ -759,28 +784,35 @@ export function BookingAdminPanel() {
               <div className="row">
                 <label id="published-day-label">Published for this day</label>
                 <p className="hint" style={{ marginTop: 0, marginBottom: 8 }}>
-                  Sessions saved for the selected date. Edit to change time or category, remove with ×, or clear the whole day below.
+                  Sessions saved for the selected date. You can publish the same clock time for different categories.
+                  Edit to change time or category, remove with ×, or clear the whole day below.
                 </p>
                 <div className="published-slots-strip" aria-labelledby="published-day-label">
                   {publishedRow?.slots?.map((slot, idx) => {
                     const o = normalizeSlotEntry(slot)
                     const startKey = slotStartKey(slot)
+                    const identityKey = slotIdentityKey(slot)
                     const endTime = o.end || slotEndResolved(publishedRow.slots, idx)
                     let label = o.start + '–' + endTime
                     if (o.category) label += ' · ' + o.category
-                    const bookingCount = getBookingCount(bookingCounts, publishedRow.id, startKey)
+                    const bookingCount = getBookingCount(
+                      bookingCounts,
+                      publishedRow.id,
+                      startKey,
+                      o.category || '',
+                    )
                     if (bookingCount > 0) label += ` (${bookingCount}/${MAX_BOOKINGS_PER_SLOT})`
                     return (
                       <span
-                        key={idx}
-                        className={'published-chip' + (editingSlotStartKey === startKey ? ' is-editing' : '')}
+                        key={identityKey}
+                        className={'published-chip' + (editingSlotStartKey === identityKey ? ' is-editing' : '')}
                       >
                         {label}{' '}
                         <button
                           type="button"
                           className="published-chip-edit"
                           aria-label={'Edit published session ' + label}
-                          onClick={() => startEditPublishedSlot(startKey)}
+                          onClick={() => startEditPublishedSlot(identityKey)}
                         >
                           Edit
                         </button>

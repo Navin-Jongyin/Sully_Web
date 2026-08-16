@@ -1,7 +1,7 @@
 import { BOOKINGS_DETAIL_KEY, BOOKINGS_KEY, CANCEL_DEADLINE_MS, MAX_BOOKINGS_PER_SLOT } from '../constants'
 import type { AdminSection, AttendanceStatus, BookingRecord, StoredSlot } from '../types'
 import { normalizeEmail, normalizeTimeStr } from './dates'
-import { categoryForSectionSlot, slotMatchesCategoryFilter, slotRangeLabel, slotStartKey } from './slots'
+import { categoryForSectionSlot, slotCategoryFromSlot, slotMatchesCategoryFilter, slotRangeLabel, slotStartKey } from './slots'
 import { syncBookingCountsToCloud, syncBookingsToCloud } from '../firebase'
 
 export function bookingMapKey(sectionId: string, timeSlot: string, category = '') {
@@ -181,7 +181,8 @@ export function sectionHasAvailableSlot(
   if (!sec?.slots?.length) return false
   return sec.slots.some((t) => {
     if (categoryFilter && !slotMatchesCategoryFilter(t, categoryFilter)) return false
-    return getBookingCount(bookingMap, sec.id, slotStartKey(t)) < MAX_BOOKINGS_PER_SLOT
+    const category = slotCategoryFromSlot(t)
+    return getBookingCount(bookingMap, sec.id, slotStartKey(t), category) < MAX_BOOKINGS_PER_SLOT
   })
 }
 
@@ -201,7 +202,7 @@ export function dateAvailabilityState(
     for (const slot of sec.slots) {
       if (!slotMatchesCategoryFilter(slot, categoryFilter)) continue
       hasMatching = true
-      if (getBookingCount(bookingMap, sec.id, slotStartKey(slot)) < MAX_BOOKINGS_PER_SLOT) {
+      if (getBookingCount(bookingMap, sec.id, slotStartKey(slot), categoryFilter) < MAX_BOOKINGS_PER_SLOT) {
         hasAvailable = true
       }
     }
@@ -225,23 +226,34 @@ export function migrateSlotBookings(
   newStartKey: string,
   newCategory: string,
   slotList: StoredSlot[],
+  oldCategory = '',
 ) {
-  const oldK = bookingMapKey(sectionId, oldStartKey)
-  const newK = bookingMapKey(sectionId, newStartKey)
+  const oldK = bookingMapKey(sectionId, oldStartKey, oldCategory)
+  const legacyOldK = bookingMapKey(sectionId, oldStartKey)
+  const newK = bookingMapKey(sectionId, newStartKey, newCategory)
   let nextCounts = { ...bookingCounts }
-  if (oldK !== newK) {
-    if (typeof nextCounts[oldK] === 'number') {
+  const moving = typeof nextCounts[oldK] === 'number'
+    ? nextCounts[oldK]
+    : typeof nextCounts[legacyOldK] === 'number'
+      ? nextCounts[legacyOldK]
+      : 0
+  if (oldK !== newK || legacyOldK !== newK) {
+    if (moving > 0) {
       nextCounts = {
         ...nextCounts,
-        [newK]: (typeof nextCounts[newK] === 'number' ? nextCounts[newK] : 0) + nextCounts[oldK],
+        [newK]: (typeof nextCounts[newK] === 'number' ? nextCounts[newK] : 0) + moving,
       }
-      delete nextCounts[oldK]
     }
+    delete nextCounts[oldK]
+    delete nextCounts[legacyOldK]
   }
 
   let timeLabel = newStartKey
   for (let i = 0; i < slotList.length; i++) {
-    if (slotStartKey(slotList[i]) === newStartKey) {
+    if (
+      slotStartKey(slotList[i]) === newStartKey
+      && (!newCategory || slotCategoryFromSlot(slotList[i]) === newCategory)
+    ) {
       timeLabel = slotRangeLabel(slotList, i)
       break
     }
@@ -250,6 +262,8 @@ export function migrateSlotBookings(
   const nextBookings = bookings.map((b) => {
     if (b.sectionId !== sectionId) return b
     if (normalizeTimeStr(b.startTime || '') !== oldStartKey) return b
+    const bookingCategory = String(b.category || '').trim()
+    if (oldCategory && bookingCategory && bookingCategory !== oldCategory) return b
     return {
       ...b,
       startTime: newStartKey,
@@ -265,10 +279,21 @@ export function rangeLabelForStoredTime(
   sections: AdminSection[],
   sectionId: string,
   timeVal: string,
+  preferredCategory = '',
 ) {
   if (!sectionId || !timeVal) return ''
   const sec = sections.find((s) => s.id === sectionId)
   if (!sec?.slots) return timeVal
+  if (preferredCategory) {
+    for (let i = 0; i < sec.slots.length; i++) {
+      if (
+        slotStartKey(sec.slots[i]) === timeVal
+        && slotCategoryFromSlot(sec.slots[i]) === preferredCategory
+      ) {
+        return slotRangeLabel(sec.slots, i)
+      }
+    }
+  }
   for (let i = 0; i < sec.slots.length; i++) {
     if (slotStartKey(sec.slots[i]) === timeVal) {
       return slotRangeLabel(sec.slots, i)

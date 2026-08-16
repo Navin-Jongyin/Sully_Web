@@ -114,7 +114,7 @@ export function BookingPage() {
     if (!sec) return 'Please select a valid time slot.'
     const hasSlot = sec.slots?.some((t) => {
       if (!slotMatchesCategoryFilter(t, selectedCategory)) return false
-      return getBookingCount(bookingCounts, sec.id, slotStartKey(t)) < 5
+      return getBookingCount(bookingCounts, sec.id, slotStartKey(t), selectedCategory) < 5
     })
     if (!hasSlot) return 'That time slot is fully booked.'
     return ''
@@ -125,9 +125,12 @@ export function BookingPage() {
     const sec = slots.find((s) => s.id === selectedSectionId)
     if (!sec) return 'Choose a time slot first.'
     if (!selectedTime) return 'No open time could be set. Pick a different slot.'
-    const ok = sec.slots?.some((s) => slotStartKey(s) === selectedTime)
+    const ok = sec.slots?.some((s) => {
+      if (slotStartKey(s) !== selectedTime) return false
+      return !selectedCategory || slotMatchesCategoryFilter(s, selectedCategory)
+    })
     if (!ok) return 'That time slot is no longer available. Choose another slot.'
-    if (getBookingCount(bookingCounts, sec.id, selectedTime) >= 5) {
+    if (getBookingCount(bookingCounts, sec.id, selectedTime, selectedCategory) >= 5) {
       return 'That time slot is full (5 bookings). Choose another time.'
     }
     return ''
@@ -193,7 +196,7 @@ export function BookingPage() {
       sec.slots?.forEach((slot) => {
         if (selectedCategory && !slotMatchesCategoryFilter(slot, selectedCategory)) return
         const startKey = slotStartKey(slot)
-        const count = getBookingCount(bookingCounts, sec.id, startKey)
+        const count = getBookingCount(bookingCounts, sec.id, startKey, selectedCategory)
         if (count < 5) available.push({ sectionId: sec.id, time: startKey })
       })
     })
@@ -222,9 +225,14 @@ export function BookingPage() {
 
     const emailTrim = email.trim()
     const applicant = applicantsByEmail[normalizeEmail(emailTrim)]
-    const timeRangeLabel = rangeLabelForStoredTime(slots, selectedSectionId, selectedTime)
+    const timeRangeLabel = rangeLabelForStoredTime(slots, selectedSectionId, selectedTime, selectedCategory)
 
-    const nextCounts = incrementBookingCount(bookingCounts, selectedSectionId, selectedTime)
+    const nextCounts = incrementBookingCount(
+      bookingCounts,
+      selectedSectionId,
+      selectedTime,
+      selectedCategory,
+    )
     saveCounts(nextCounts)
 
     const newRecord: BookingRecord = {
@@ -238,7 +246,7 @@ export function BookingPage() {
       sectionId: selectedSectionId,
       startTime: selectedTime,
       timeLabel: timeRangeLabel || selectedTime,
-      category: categoryForSectionSlot(slots, selectedSectionId, selectedTime),
+      category: selectedCategory || categoryForSectionSlot(slots, selectedSectionId, selectedTime),
       createdAt: new Date().toISOString(),
     }
     saveBookings([...bookings, newRecord])
@@ -305,7 +313,12 @@ export function BookingPage() {
     }
 
     saveBookings(nextBookings)
-    const nextCounts = decrementBookingCount(bookingCounts, rec.sectionId, rec.startTime || '')
+    const nextCounts = decrementBookingCount(
+      bookingCounts,
+      rec.sectionId,
+      rec.startTime || '',
+      String(rec.category || '').trim(),
+    )
     saveCounts(nextCounts)
 
     const remaining = lookupBookings(cancelEmail, cancelPhone, nextBookings)

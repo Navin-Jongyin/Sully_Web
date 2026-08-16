@@ -69,7 +69,11 @@ function bookingDocId(rec: BookingRecord, index: number) {
 
 function splitBookingKey(key: string) {
   const parts = String(key).split('\t');
-  return { sectionId: parts[0] || '', startTime: parts[1] || '' };
+  return {
+    sectionId: parts[0] || '',
+    startTime: parts[1] || '',
+    category: parts[2] || '',
+  };
 }
 
 function stripPrivateFields(obj: Record<string, unknown>) {
@@ -211,7 +215,13 @@ export function syncBookingCountsToCloud(map: Record<string, number>) {
         const split = splitBookingKey(key);
         return {
           id: countDocId(key),
-          data: { key, sectionId: split.sectionId, startTime: split.startTime, count: map[key] },
+          data: {
+            key,
+            sectionId: split.sectionId,
+            startTime: split.startTime,
+            category: split.category || null,
+            count: map[key],
+          },
         };
       }),
   );

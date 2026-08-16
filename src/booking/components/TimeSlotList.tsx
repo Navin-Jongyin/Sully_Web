@@ -42,13 +42,14 @@ export function TimeSlotList({
       sec.slots.forEach((slot, slotIdx) => {
         if (categoryFilter && !slotMatchesCategoryFilter(slot, categoryFilter)) return
         const startKey = slotStartKey(slot)
-        const count = getBookingCount(bookingMap, sec.id, startKey)
+        const category = slotCategoryFromSlot(slot)
+        const count = getBookingCount(bookingMap, sec.id, startKey, category)
         const full = count >= MAX_BOOKINGS_PER_SLOT
         list.push({
           sectionId: sec.id,
           time: startKey,
           rangeLabel: slotRangeLabel(sec.slots, slotIdx),
-          category: slotCategoryFromSlot(slot),
+          category,
           count,
           full,
         })
@@ -76,7 +77,7 @@ export function TimeSlotList({
         {!showEmpty && (
           <div className="section-list" role="radiogroup">
             {options.map((opt) => {
-              const value = opt.sectionId + '\t' + opt.time
+              const value = `${opt.sectionId}\t${opt.time}\t${opt.category}`
               const checked = opt.sectionId === selectedSectionId && opt.time === selectedTime
               return (
                 <label
