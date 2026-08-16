@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, X, Check } from 'lucide-react';
-import { type Course, getCourseCategories } from '../components/courses/CourseCard';
-import CategoryTab, { type CourseCategory } from '../components/courses/CategoryTab';
+import { Clock, X, Check, Play } from 'lucide-react';
+import { Course, getCourseCategories } from '../components/courses/CourseCard';
+import CategoryTab, { CourseCategory } from '../components/courses/CategoryTab';
 import { useTranslation } from '../hooks/useTranslation';
 
 const tabs: CourseCategory[] = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
+
+// Helper function to extract YouTube video ID
+const getYouTubeId = (url: string): string => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : '';
+};
+
+// Helper function to extract Vimeo video ID
+const getVimeoId = (url: string): string => {
+  const regExp = /vimeo\.com\/(\d+)/;
+  const match = url.match(regExp);
+  return match ? match[1] : '';
+};
 
 const Courses: React.FC = () => {
   const { t } = useTranslation();
@@ -85,7 +99,42 @@ const Courses: React.FC = () => {
               <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '2rem' }}>
                 {selectedCourse.description}
               </p>
-              
+
+              {selectedCourse.videoUrl && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}>
+                    {selectedCourse.videoUrl.includes('youtube.com') || selectedCourse.videoUrl.includes('youtu.be') ? (
+                      <iframe
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                        src={`https://www.youtube.com/embed/${getYouTubeId(selectedCourse.videoUrl)}`}
+                        title="Course Video"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : selectedCourse.videoUrl.includes('vimeo.com') ? (
+                      <iframe
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                        src={`https://player.vimeo.com/video/${getVimeoId(selectedCourse.videoUrl)}`}
+                        title="Course Video"
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                        controls
+                        preload="metadata"
+                      >
+                        <source src={selectedCourse.videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div style={{ background: 'var(--glass-bg)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--glass-border)', marginBottom: '2rem' }}>
                 <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{t.coursesPage.programOverview}</h3>
                 <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem' }}>

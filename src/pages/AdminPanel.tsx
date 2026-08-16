@@ -112,7 +112,8 @@ const AdminPanel: React.FC = () => {
       tag: selectedCategories.join(' · '),
       tagColor: 'var(--text-primary)',
       tagBg: 'rgba(150, 0, 251, 0.2)',
-      overview: localOverview
+      overview: localOverview,
+      videoUrl: formData.get('videoUrl') as string || undefined,
     };
     
     if (isCreating) {
@@ -505,18 +506,34 @@ const AdminPanel: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
                 <label>
                   Price
-                  <input 
-                    type="text" 
-                    name="price" 
-                    value={formattedPrice} 
+                  <input
+                    type="text"
+                    name="price"
+                    value={formattedPrice}
                     onChange={handlePriceChange}
-                    placeholder="฿0,000" 
-                    required 
+                    placeholder="฿0,000"
+                    required
                   />
                 </label>
                 <label>
                   Duration
                   <input type="text" name="duration" defaultValue={editingCourse?.duration || ''} placeholder="e.g. 12 Weeks" required />
+                </label>
+              </div>
+
+              <div style={{ marginTop: '1.5rem' }}>
+                <label>
+                  Video URL (YouTube/Vimeo)
+                  <input
+                    type="url"
+                    name="videoUrl"
+                    defaultValue={editingCourse?.videoUrl || ''}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    style={{ width: '100%', padding: '1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '1rem', marginTop: '0.5rem' }}
+                  />
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Optional: Add a video URL to showcase the course
+                  </span>
                 </label>
               </div>
 
