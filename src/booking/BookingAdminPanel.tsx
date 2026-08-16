@@ -299,7 +299,7 @@ export function BookingAdminPanel() {
       return
     }
     if (!isValidSlotCategory(slotCategory)) {
-      setMsg('Select a category: Student Pilot or ATC.', 'error')
+      setMsg('Select a category: Student Pilot, Qualified Pilot, or ATC.', 'error')
       return
     }
     if (timeToMinutes(normE) <= timeToMinutes(normS)) {

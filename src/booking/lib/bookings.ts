@@ -4,8 +4,10 @@ import { normalizeEmail, normalizeTimeStr } from './dates'
 import { categoryForSectionSlot, slotMatchesCategoryFilter, slotRangeLabel, slotStartKey } from './slots'
 import { syncBookingCountsToCloud, syncBookingsToCloud } from '../firebase'
 
-export function bookingMapKey(sectionId: string, timeSlot: string) {
-  return String(sectionId) + '\t' + String(timeSlot)
+export function bookingMapKey(sectionId: string, timeSlot: string, category = '') {
+  const base = String(sectionId) + '\t' + String(timeSlot)
+  const cat = String(category || '').trim()
+  return cat ? `${base}\t${cat}` : base
 }
 
 export function loadBookingMap(): Record<string, number> {
@@ -26,28 +28,57 @@ export function saveBookingMap(map: Record<string, number>) {
   })
 }
 
-export function getBookingCount(map: Record<string, number>, sectionId: string, timeSlot: string) {
-  const c = map[bookingMapKey(sectionId, timeSlot)]
-  return typeof c === 'number' && c >= 0 ? c : 0
+export function getBookingCount(
+  map: Record<string, number>,
+  sectionId: string,
+  timeSlot: string,
+  category = '',
+) {
+  const keyed = map[bookingMapKey(sectionId, timeSlot, category)]
+  if (typeof keyed === 'number' && keyed >= 0) return keyed
+  // Legacy counts were stored without category.
+  if (category) {
+    const legacy = map[bookingMapKey(sectionId, timeSlot)]
+    if (typeof legacy === 'number' && legacy >= 0) return legacy
+  }
+  return 0
 }
 
-export function incrementBookingCount(map: Record<string, number>, sectionId: string, timeSlot: string) {
-  const k = bookingMapKey(sectionId, timeSlot)
-  const next = { ...map, [k]: (map[k] || 0) + 1 }
+export function incrementBookingCount(
+  map: Record<string, number>,
+  sectionId: string,
+  timeSlot: string,
+  category = '',
+) {
+  const k = bookingMapKey(sectionId, timeSlot, category)
+  const next = { ...map, [k]: getBookingCount(map, sectionId, timeSlot, category) + 1 }
+  // Drop legacy shared key once this category has its own counter.
+  if (category) delete next[bookingMapKey(sectionId, timeSlot)]
   saveBookingMap(next)
   return next
 }
 
-export function decrementBookingCount(map: Record<string, number>, sectionId: string, timeSlot: string) {
+export function decrementBookingCount(
+  map: Record<string, number>,
+  sectionId: string,
+  timeSlot: string,
+  category = '',
+) {
   if (!sectionId || !timeSlot) return map
-  const k = bookingMapKey(sectionId, timeSlot)
-  const current = typeof map[k] === 'number' ? map[k] : 0
+  const k = bookingMapKey(sectionId, timeSlot, category)
+  const legacyK = bookingMapKey(sectionId, timeSlot)
+  const current = typeof map[k] === 'number'
+    ? map[k]
+    : category && typeof map[legacyK] === 'number'
+      ? map[legacyK]
+      : 0
   const next = { ...map }
   if (current > 1) {
     next[k] = current - 1
   } else {
     delete next[k]
   }
+  if (category) delete next[legacyK]
   saveBookingMap(next)
   return next
 }

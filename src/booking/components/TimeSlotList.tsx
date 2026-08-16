@@ -63,7 +63,7 @@ export function TimeSlotList({
   if (!sections.length) {
     emptyMsg = 'No interview sessions are open yet. Use the Admin panel to publish dates and times.'
   } else if (!categoryFilter) {
-    emptyMsg = 'Select Student Pilot or ATC first before choosing a time slot.'
+    emptyMsg = 'Select Student Pilot, Qualified Pilot, or ATC first before choosing a time slot.'
   } else if (dateISO) {
     emptyMsg = `No open ${categoryFilter} sessions for this date.`
   }

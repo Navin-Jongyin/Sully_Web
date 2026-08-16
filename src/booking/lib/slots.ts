@@ -17,6 +17,19 @@ export function slotStartKey(slot: StoredSlot): string {
   return normalizeTimeStr(slot)
 }
 
+/** Unique identity for a published session: same clock time may exist per category. */
+export function slotIdentityKey(slot: StoredSlot): string {
+  const start = slotStartKey(slot)
+  const category = slotCategoryFromSlot(slot)
+  return category ? `${start}\t${category}` : start
+}
+
+export function makeSlotIdentityKey(start: string, category: string): string {
+  const normStart = normalizeTimeStr(start)
+  const normCategory = normalizeCategory(category)
+  return normCategory ? `${normStart}\t${normCategory}` : normStart
+}
+
 export function slotHasExplicitEnd(slot: StoredSlot) {
   return Boolean(slot && typeof slot === 'object' && slot.end)
 }
@@ -58,9 +71,22 @@ export function slotCategoryFromSlot(slot: StoredSlot): string {
   return normalizeSlotEntry(slot).category || ''
 }
 
-export function categoryForSectionSlot(sections: AdminSection[], sectionId: string, startKey: string) {
+export function categoryForSectionSlot(
+  sections: AdminSection[],
+  sectionId: string,
+  startKey: string,
+  preferredCategory = '',
+) {
   const sec = sections.find((s) => s.id === sectionId)
   if (!sec?.slots) return ''
+  const preferred = normalizeCategory(preferredCategory)
+  if (preferred) {
+    for (const slot of sec.slots) {
+      if (slotStartKey(slot) === startKey && slotCategoryFromSlot(slot) === preferred) {
+        return preferred
+      }
+    }
+  }
   for (const slot of sec.slots) {
     if (slotStartKey(slot) === startKey) return slotCategoryFromSlot(slot)
   }
@@ -90,7 +116,8 @@ export function sortSlotEntries(arr: SlotEntry[]) {
     if (as !== bs) return as - bs
     const ae = a.end ? timeToMinutes(a.end) : -1
     const be = b.end ? timeToMinutes(b.end) : -1
-    return ae - be
+    if (ae !== be) return ae - be
+    return String(a.category || '').localeCompare(String(b.category || ''))
   })
 }
 
@@ -131,18 +158,15 @@ export function mergeOrAppendSlots(
       if (keepId === null) keepId = row.id
       ;(row.slots || []).forEach((s) => {
         const o = normalizeSlotEntry(s)
-        if (o.start) {
-          if (combined[o.start] && !o.category) o.category = combined[o.start].category || ''
-          combined[o.start] = o
-        }
+        if (o.start) combined[makeSlotIdentityKey(o.start, o.category || '')] = o
       })
     }
   }
   mergedNew.forEach((o) => {
-    combined[o.start] = o
+    combined[makeSlotIdentityKey(o.start, o.category || '')] = o
   })
 
-  const finalSlots = sortSlotEntries(Object.keys(combined).map((k) => combined[k]))
+  const finalSlots = sortSlotEntries(Object.values(combined))
     .map(serializeSlot)
     .filter(Boolean) as StoredSlot[]
 
@@ -160,29 +184,45 @@ export function mergeOrAppendSlots(
 export function updatePublishedSlot(
   list: AdminSection[],
   date: string,
-  oldStartKey: string,
+  oldIdentityKey: string,
   newEntry: { start: string; end: string; category: string },
-): { ok: true; list: AdminSection[]; sectionId: string; newStartKey: string } | { ok: false; reason: string } {
+): {
+  ok: true
+  list: AdminSection[]
+  sectionId: string
+  newStartKey: string
+  oldStartKey: string
+  oldCategory: string
+  newCategory: string
+} | { ok: false; reason: string } {
   const ri = list.findIndex((r) => r.date === date)
   if (ri === -1) return { ok: false, reason: 'No sessions for this day.' }
 
   const row = list[ri]
-  const slotIndex = (row.slots || []).findIndex((s) => slotStartKey(s) === oldStartKey)
+  const slotIndex = (row.slots || []).findIndex((s) => {
+    const identity = slotIdentityKey(s)
+    return identity === oldIdentityKey || slotStartKey(s) === oldIdentityKey
+  })
   if (slotIndex === -1) return { ok: false, reason: 'Session not found.' }
 
+  const previous = normalizeSlotEntry(row.slots![slotIndex])
   const norm = normalizeSlotEntry({ start: newEntry.start, end: newEntry.end, category: newEntry.category })
   if (!norm.start || !norm.end) return { ok: false, reason: 'Pick both start and end times.' }
   if (!isValidSlotCategory(norm.category || '')) {
-    return { ok: false, reason: 'Select a category: Student Pilot or ATC.' }
+    return { ok: false, reason: 'Select a category: Student Pilot, Qualified Pilot, or ATC.' }
   }
   if (timeToMinutes(norm.end) <= timeToMinutes(norm.start)) {
     return { ok: false, reason: 'End time must be after start time.' }
   }
 
+  const nextIdentity = makeSlotIdentityKey(norm.start, norm.category || '')
   for (let k = 0; k < (row.slots || []).length; k++) {
     if (k === slotIndex) continue
-    if (slotStartKey(row.slots![k]) === norm.start) {
-      return { ok: false, reason: 'Another session already starts at ' + norm.start + '.' }
+    if (slotIdentityKey(row.slots![k]) === nextIdentity) {
+      return {
+        ok: false,
+        reason: `Another ${norm.category} session already starts at ${norm.start}.`,
+      }
     }
   }
 
@@ -194,7 +234,15 @@ export function updatePublishedSlot(
     .filter(Boolean) as StoredSlot[]
   next[ri] = copy
 
-  return { ok: true, list: next, sectionId: row.id, newStartKey: norm.start }
+  return {
+    ok: true,
+    list: next,
+    sectionId: row.id,
+    newStartKey: norm.start,
+    oldStartKey: previous.start,
+    oldCategory: previous.category || '',
+    newCategory: norm.category || '',
+  }
 }
 
 export function purgePastDateData(

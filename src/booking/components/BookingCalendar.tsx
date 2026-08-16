@@ -70,7 +70,7 @@ export function BookingCalendar({
 
     if (!selectedCategory) {
       onCategoryRequired?.()
-      onDateError('Please select Student Pilot or ATC first.')
+      onDateError('Please select Student Pilot, Qualified Pilot, or ATC first.')
       return
     }
 

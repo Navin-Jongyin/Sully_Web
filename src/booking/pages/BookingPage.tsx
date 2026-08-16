@@ -89,7 +89,7 @@ export function BookingPage() {
   }
 
   function validateCategory() {
-    if (!selectedCategory) return 'Please select Student Pilot or ATC.'
+    if (!selectedCategory) return 'Please select Student Pilot, Qualified Pilot, or ATC.'
     return ''
   }
 
@@ -410,7 +410,7 @@ export function BookingPage() {
                 <p className="hint" id="category-hint">
                   {selectedCategory
                     ? `Selected: ${selectedCategory}.`
-                    : 'Select Student Pilot or ATC to see available dates.'}
+                    : 'Select Student Pilot, Qualified Pilot, or ATC to see available dates.'}
                 </p>
                 <div className="category-filter" role="group" aria-label="Select category">
                   {SLOT_CATEGORIES.map((cat) => (
@@ -448,7 +448,7 @@ export function BookingPage() {
                   selectedCategory={selectedCategory}
                   sections={slots}
                   bookingMap={bookingCounts}
-                  onCategoryRequired={() => setErrors((e) => ({ ...e, category: 'Please select Student Pilot or ATC first.' }))}
+                  onCategoryRequired={() => setErrors((e) => ({ ...e, category: 'Please select Student Pilot, Qualified Pilot, or ATC first.' }))}
                   onPrevMonth={() => {
                     setViewMonth((m) => {
                       if (m <= 0) {
