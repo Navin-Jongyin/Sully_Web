@@ -8,17 +8,12 @@ export interface Translations {
     news: string;
     contact: string;
     courses: string;
-<<<<<<< HEAD
-    shop: string;
-    account: string;
-=======
     onlineCourses: string;
     shop: string;
     onlineTest: string;
     account: string;
     login: string;
     dashboard: string;
->>>>>>> 3485eea95e766b38bc87527ef3517cb8568b05fe
     admin: string;
     terms: string;
     privacy: string;
@@ -204,17 +199,12 @@ export const translations: Record<Language, Translations> = {
       news: 'News',
       contact: 'Contact',
       courses: 'Courses',
-<<<<<<< HEAD
-      shop: 'Shop',
-      account: 'Account',
-=======
       onlineCourses: 'Online Courses',
       shop: 'Shop',
       onlineTest: 'Online Test',
       account: 'Account',
       login: 'Login',
       dashboard: 'Dashboard',
->>>>>>> 3485eea95e766b38bc87527ef3517cb8568b05fe
       admin: 'Admin',
       terms: 'Terms',
       privacy: 'Privacy',
@@ -398,17 +388,12 @@ export const translations: Record<Language, Translations> = {
       news: 'ข่าวสาร',
       contact: 'ติดต่อเรา',
       courses: 'หลักสูตร',
-<<<<<<< HEAD
-      shop: 'ร้านค้า',
-      account: 'บัญชีผู้ใช้',
-=======
       onlineCourses: 'คอร์สออนไลน์',
       shop: 'ร้านค้า',
       onlineTest: 'แบบทดสอบออนไลน์',
       account: 'บัญชี',
       login: 'เข้าสู่ระบบ',
       dashboard: 'แดชบอร์ด',
->>>>>>> 3485eea95e766b38bc87527ef3517cb8568b05fe
       admin: 'แอดมิน',
       terms: 'ข้อกำหนด',
       privacy: 'นโยบายความเป็นส่วนตัว',

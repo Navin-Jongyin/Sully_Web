@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, X, Check, Play } from 'lucide-react';
-import { Course, getCourseCategories } from '../components/courses/CourseCard';
-import CategoryTab, { CourseCategory } from '../components/courses/CategoryTab';
+import { Clock, X, Check } from 'lucide-react';
+import { getCourseCategories } from '../components/courses/CourseCard';
+import type { Course } from '../components/courses/CourseCard';
+import CategoryTab from '../components/courses/CategoryTab';
+import type { CourseCategory } from '../components/courses/CategoryTab';
 import { useTranslation } from '../hooks/useTranslation';
 
 const tabs: CourseCategory[] = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
