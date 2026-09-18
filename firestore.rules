@@ -52,21 +52,21 @@ service cloud.firestore {
 
     match /purchases/{purchaseId} {
       allow read: if signedIn() && resource.data.uid == request.auth.uid;
-      allow write: if false;
+      allow write: if false; // Admin SDK / Cloud Functions only
     }
 
     match /userEntitlements/{userId} {
       allow read: if ownsUser(userId);
-      allow write: if false;
+      allow write: if false; // Admin SDK / Cloud Functions only
 
       match /courses/{courseId} {
         allow read: if ownsUser(userId);
-        allow write: if false;
+        allow write: if false; // Admin SDK / Cloud Functions only
       }
     }
 
     match /stripeWebhookEvents/{eventId} {
-      allow read, write: if false;
+      allow read, write: if false; // Admin SDK / Cloud Functions only
     }
 
     match /admin/{document=**} {
@@ -76,11 +76,19 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if profileIsAdmin() || ownsUser(userId);
+
       allow create: if ownsUser(userId)
         && request.resource.data.role == 'customer';
+
+      // FIX: use get(field, default) instead of a bare field comparison.
+      // The old version threw when stripeCustomerId didn't yet exist on the
+      // document, and Firestore treats a rule evaluation error as a denial —
+      // which surfaces client-side as "Missing or insufficient permissions."
       allow update: if (profileIsAdmin() || ownsUser(userId))
         && request.resource.data.role == resource.data.role
-        && request.resource.data.stripeCustomerId == resource.data.stripeCustomerId;
+        && request.resource.data.get('stripeCustomerId', null)
+             == resource.data.get('stripeCustomerId', null);
+
       allow delete: if false;
 
       match /cart/{itemId} {
@@ -117,14 +125,17 @@ service cloud.firestore {
     match /onlineTestAttempts/{attemptId} {
       allow read: if signedIn()
         && resource.data.email == request.auth.token.email;
+
       allow create: if signedIn()
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.testId is string
         && !exists(/databases/$(database)/documents/onlineTestAttempts/$(attemptId));
+
       allow update: if signedIn()
         && resource.data.email == request.auth.token.email
         && request.resource.data.email == resource.data.email
         && request.resource.data.testId == resource.data.testId;
+
       allow delete: if false;
     }
   }
