@@ -75,10 +75,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if ownsUser(userId);
+      allow read: if profileIsAdmin() || ownsUser(userId);
       allow create: if ownsUser(userId)
         && request.resource.data.role == 'customer';
-      allow update: if ownsUser(userId)
+      allow update: if (profileIsAdmin() || ownsUser(userId))
         && request.resource.data.role == resource.data.role
         && request.resource.data.stripeCustomerId == resource.data.stripeCustomerId;
       allow delete: if false;
@@ -90,7 +90,7 @@ service cloud.firestore {
         allow read, write: if ownsUser(userId);
       }
       match /enrollments/{courseId} {
-        allow read, write: if ownsUser(userId);
+        allow read, write: if profileIsAdmin() || ownsUser(userId);
       }
       match /wishlist/{productId} {
         allow read, write: if ownsUser(userId);

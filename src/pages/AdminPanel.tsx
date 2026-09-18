@@ -12,6 +12,7 @@ import { BookingAdminPanel } from '../booking/BookingAdminPanel';
 import { OnlineTestAdminPanel } from '../online-test/OnlineTestAdminPanel';
 import { MerchandiseAdminPanel } from '../commerce/MerchandiseAdminPanel';
 import { OnlineVideoCourseAdminPanel } from '../commerce/OnlineVideoCourseAdminPanel';
+import AssignCourseAdminPanel from '../commerce/AssignCourseAdminPanel';
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
 
@@ -298,6 +299,7 @@ const AdminPanel: React.FC = () => {
     { key: 'booking', icon: <Calendar size={18} />, label: 'Interview Booking' },
     { key: 'onlineTests', icon: <FileJson size={18} />, label: 'Online Tests' },
     { key: 'onlineCourses', icon: <MonitorPlay size={18} />, label: 'Online Courses' },
+    { key: 'assign', icon: <MonitorPlay size={18} />, label: 'Assign Courses' },
     { key: 'merchandise', icon: <ShoppingBag size={18} />, label: 'Merchandise' },
     { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ] as const;
@@ -1026,6 +1028,10 @@ const AdminPanel: React.FC = () => {
 
         {activeMenu === 'onlineCourses' && (
           <OnlineVideoCourseAdminPanel />
+        )}
+
+        {activeMenu === 'assign' && (
+          <AssignCourseAdminPanel />
         )}
 
         {activeMenu === 'merchandise' && (
