@@ -16,6 +16,7 @@ import { DataProvider } from "./context/DataContext";
 import { AuthProvider } from "./context/AuthContext";
 import { EcommerceAuthProvider } from "./context/EcommerceAuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import { AppDialogProvider } from "./context/AppDialogContext";
 import RequireAuth from "./components/RequireAuth";
 import AdminShortcut from "./components/AdminShortcut";
 import { LanguageToggle } from "./components/LanguageToggle";
@@ -241,7 +242,9 @@ const App: React.FC = () => (
   <LanguageProvider>
     <AuthProvider>
       <DataProvider>
-        <AppRouter />
+        <AppDialogProvider>
+          <AppRouter />
+        </AppDialogProvider>
       </DataProvider>
     </AuthProvider>
   </LanguageProvider>
