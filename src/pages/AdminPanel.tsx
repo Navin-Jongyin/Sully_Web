@@ -365,7 +365,7 @@ const AdminPanel: React.FC = () => {
               <p style={{ color: 'var(--text-secondary)' }}>Create and manage practice tests. Each test stores its full content as JSON.</p>
             )}
             {activeMenu === 'onlineCourses' && (
-              <p style={{ color: 'var(--text-secondary)' }}>Sell video courses. Lesson Mux IDs are placeholders until your Mux service is live — see docs/MUX.md.</p>
+              <p style={{ color: 'var(--text-secondary)' }}>Create lessons, publish the course, then assign it to students from Assign Courses.</p>
             )}
             {activeMenu === 'merchandise' && (
               <p style={{ color: 'var(--text-secondary)' }}>Shop products. Stripe Price IDs are optional until payments are wired — see docs/PAYMENTS.md.</p>

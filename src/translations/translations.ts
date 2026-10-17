@@ -176,6 +176,13 @@ export interface Translations {
     owned: string;
     assigned: string;
     assignedOnly: string;
+    yourCourses: string;
+    otherCourses: string;
+    previousLesson: string;
+    nextLesson: string;
+    markComplete: string;
+    percentComplete: string;
+    noLessonsYet: string;
     lessons: string;
     watch: string;
     accountEyebrow: string;
@@ -398,6 +405,13 @@ export const translations: Record<Language, Translations> = {
       owned: 'Owned',
       assigned: 'Assigned',
       assignedOnly: 'Assigned by admin',
+      yourCourses: 'Your courses',
+      otherCourses: 'Other courses',
+      previousLesson: 'Previous',
+      nextLesson: 'Next',
+      markComplete: 'Mark complete',
+      percentComplete: '{percent}% complete',
+      noLessonsYet: 'No lessons have been published yet.',
       lessons: 'lessons',
       watch: 'Watch',
       accountEyebrow: 'My account',
@@ -618,6 +632,13 @@ export const translations: Record<Language, Translations> = {
       owned: 'ซื้อแล้ว',
       assigned: 'ได้รับมอบหมาย',
       assignedOnly: 'มอบหมายโดยแอดมิน',
+      yourCourses: 'คอร์สของคุณ',
+      otherCourses: 'คอร์สอื่น',
+      previousLesson: 'ก่อนหน้า',
+      nextLesson: 'ถัดไป',
+      markComplete: 'ทำเครื่องหมายว่าเรียนจบ',
+      percentComplete: 'เรียนแล้ว {percent}%',
+      noLessonsYet: 'ยังไม่มีบทเรียนที่เผยแพร่',
       lessons: 'บทเรียน',
       watch: 'ดู',
       accountEyebrow: 'บัญชีของฉัน',

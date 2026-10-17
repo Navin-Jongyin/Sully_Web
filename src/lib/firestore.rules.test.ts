@@ -88,7 +88,7 @@ describe.skipIf(!emulatorAvailable)('course commerce Firestore rules', () => {
     await assertFails(getDoc(doc(bob, 'users/alice/enrollments/course-1')));
   });
 
-  it('allows an entitled student to save only their progress', async () => {
+  it('allows a student to save only their own course progress', async () => {
     const alice = environment.authenticatedContext('alice').firestore();
     const bob = environment.authenticatedContext('bob').firestore();
     await assertSucceeds(setDoc(doc(alice, 'users/alice/courseProgress/course-1'), {

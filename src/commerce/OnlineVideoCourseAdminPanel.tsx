@@ -9,6 +9,7 @@ import { db, storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
 import { createCourseId, createLessonId } from '../lib/course-ids';
+import './commerce.css';
 
 const emptyLesson = (order: number): OnlineCourseLesson => ({
   id: createLessonId('lesson', order),
@@ -288,7 +289,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
             </div>
           ) : (
             onlineVideoCourses.map((course) => (
-              <div key={course.id} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 80px 100px', gap: '1rem', padding: '1rem 1.5rem', borderBottom: '1px solid var(--glass-border)', alignItems: 'center' }}>
+              <div key={course.id} className="course-admin-row">
                 <div>
                   <strong>{course.title}</strong>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{course.lessonCount ?? course.lessons?.length ?? 0} lessons · {course.category}</div>
@@ -312,7 +313,12 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
       {showForm && (
         <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <h2>{creating ? 'Add Online Course' : `Edit: ${editing?.title}`}</h2>
+            <div>
+              <h2>{creating ? 'Add Online Course' : `Edit: ${editing?.title}`}</h2>
+              <p style={{ margin: '0.35rem 0 0', color: 'var(--text-secondary)' }}>
+                Publish the course, then open Assign to give students access. Only assigned students can watch it.
+              </p>
+            </div>
             <button type="button" onClick={reset} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={22} /></button>
           </div>
           <form className="contact-form" style={{ padding: 0, border: 'none', background: 'transparent' }} onSubmit={handleSave}>

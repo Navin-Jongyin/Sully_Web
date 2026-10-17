@@ -176,8 +176,33 @@
 }
 
 .commerce-card-footer .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.6rem 1rem;
   font-size: 0.875rem;
+}
+
+.commerce-course-section {
+  margin-top: 2.5rem;
+}
+
+.commerce-course-section > h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.commerce-course-section .commerce-grid {
+  margin-top: 1rem;
+}
+
+.commerce-locked-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* Account */
@@ -378,8 +403,37 @@
   margin-top: 1rem;
 }
 
+.commerce-lesson-detail > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .commerce-lesson-detail h2 {
   margin: 0 0 0.5rem;
+}
+
+.course-admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  align-items: center;
+}
+
+.assign-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 720px) {
+  .course-admin-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }
 
 .commerce-lesson-detail p {

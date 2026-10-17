@@ -3,6 +3,8 @@ import { collection, doc, onSnapshot, setDoc, Timestamp } from 'firebase/firesto
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
+import { useAppDialog } from '../hooks/useAppDialog';
+import './commerce.css';
 
 interface UserRecord {
   id: string;
@@ -24,6 +26,7 @@ interface UserCourseAccess {
 const AssignCourseAdminPanel: React.FC = () => {
   const { user } = useAuth();
   const { onlineVideoCourses } = useData();
+  const { confirm } = useAppDialog();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
@@ -155,7 +158,7 @@ const AssignCourseAdminPanel: React.FC = () => {
   };
 
   const revokeAssignment = async (userId: string, courseId: string) => {
-    const confirmed = window.confirm(`Remove access for this course from this user?`);
+    const confirmed = await confirm('Remove access for this course from this user?');
     if (!confirmed) return;
 
     try {
@@ -172,6 +175,9 @@ const AssignCourseAdminPanel: React.FC = () => {
     <div style={{ display: 'grid', gap: '1.5rem' }}>
       <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
         <h3 style={{ marginTop: 0 }}>Assign Course Access</h3>
+        <p style={{ marginTop: 0, color: 'var(--text-secondary)' }}>
+          Choose one or more students and courses. Access is saved on the student account and opens the course player.
+        </p>
 
         {message && (
           <p
@@ -189,7 +195,7 @@ const AssignCourseAdminPanel: React.FC = () => {
           </p>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '1rem' }}>
+        <div className="assign-picker">
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Users</label>
             <input

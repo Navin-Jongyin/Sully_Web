@@ -153,7 +153,7 @@ const OnlineCoursePlayerPage: React.FC = () => {
         <div>
           <h1>{course.title}</h1>
           <div className="commerce-course-progress">
-            <span>{percentage}% complete</span>
+            <span>{t.commerce.percentComplete.replace('{percent}', String(percentage))}</span>
             <div><i style={{ width: `${percentage}%` }} /></div>
           </div>
         </div>
@@ -198,7 +198,7 @@ const OnlineCoursePlayerPage: React.FC = () => {
                     disabled={activeIndex <= 0}
                     onClick={() => setActiveLessonId(lessons[activeIndex - 1]?.id)}
                   >
-                    <ChevronLeft size={16} /> Previous
+                    <ChevronLeft size={16} /> {t.commerce.previousLesson}
                   </button>
                   <button
                     type="button"
@@ -210,7 +210,7 @@ const OnlineCoursePlayerPage: React.FC = () => {
                       true,
                     )}
                   >
-                    <CheckCircle size={16} /> Mark complete
+                    <CheckCircle size={16} /> {t.commerce.markComplete}
                   </button>
                   <button
                     type="button"
@@ -218,13 +218,13 @@ const OnlineCoursePlayerPage: React.FC = () => {
                     disabled={activeIndex < 0 || activeIndex >= lessons.length - 1}
                     onClick={() => setActiveLessonId(lessons[activeIndex + 1]?.id)}
                   >
-                    Next <ChevronRight size={16} />
+                    {t.commerce.nextLesson} <ChevronRight size={16} />
                   </button>
                 </div>
               </div>
             </>
           )}
-          {!active && <div className="commerce-video-unavailable">No lessons have been published yet.</div>}
+          {!active && <div className="commerce-video-unavailable">{t.commerce.noLessonsYet}</div>}
         </section>
 
         <aside className="commerce-lesson-list">

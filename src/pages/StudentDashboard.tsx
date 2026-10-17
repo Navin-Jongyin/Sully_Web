@@ -234,7 +234,7 @@ const StudentDashboard: React.FC = () => {
                             <span>{progress?.completionPercentage ?? 0}%</span>
                           </div>
                           <Link to={`/online-courses/${course.id}`} className="button button-primary">
-                            <Play size={14} /> Continue Learning
+                            <Play size={14} /> {t.dashboard.continueLearning}
                           </Link>
                         </div>
                       </article>
@@ -299,7 +299,7 @@ const StudentDashboard: React.FC = () => {
                           <span>{progress?.completionPercentage ?? 0}%</span>
                         </div>
                         <Link to={`/online-courses/${course.id}`} className="button button-primary">
-                          <Play size={14} /> Continue Learning
+                          <Play size={14} /> {t.dashboard.continueLearning}
                         </Link>
                       </div>
                     </article>

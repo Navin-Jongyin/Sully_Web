@@ -110,10 +110,10 @@ service cloud.firestore {
         allow read, write: if ownsUser(userId);
       }
       match /courseProgress/{courseId} {
-        allow read, write: if ownsUser(userId) && hasCourse(courseId);
+        allow read, write: if ownsUser(userId);
 
         match /lessons/{lessonId} {
-          allow read, write: if ownsUser(userId) && hasCourse(courseId);
+          allow read, write: if ownsUser(userId);
         }
       }
     }

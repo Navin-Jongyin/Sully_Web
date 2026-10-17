@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAssignedCourses } from '../hooks/useAssignedCourses';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
-import { formatThb } from '../lib/payments';
+import type { OnlineVideoCourse } from '../commerce/types';
 import '../commerce/commerce.css';
 
 const OnlineCoursesPage: React.FC = () => {
@@ -14,7 +14,8 @@ const OnlineCoursesPage: React.FC = () => {
   const { onlineVideoCourses } = useData();
   const { assignedCourseIds } = useAssignedCourses(user?.uid ?? null);
 
-  const published = onlineVideoCourses.filter((c) => c.published);
+  const assigned = onlineVideoCourses.filter((course) => assignedCourseIds.includes(course.id));
+  const others = onlineVideoCourses.filter((course) => course.published && !assignedCourseIds.includes(course.id));
 
   return (
     <main className="page-transition commerce-page">
@@ -35,60 +36,102 @@ const OnlineCoursesPage: React.FC = () => {
           </div>
         )}
 
-        {published.length === 0 ? (
+        {assigned.length === 0 && others.length === 0 ? (
           <div className="commerce-empty">
             <BookOpen size={40} />
-            <p>{t.commerce.noOnlineCourses}</p>
+            <p>{user ? t.commerce.noOwnedCourses : t.commerce.noOnlineCourses}</p>
           </div>
         ) : (
-          <div className="commerce-grid">
-            {published.map((course) => {
-              const isAssigned = assignedCourseIds.includes(course.id);
-              return (
-                <article key={course.id} className="commerce-card">
-                  <div className="commerce-card-image">
-                    {course.thumbnailUrl ? (
-                      <img src={course.thumbnailUrl} alt={course.title} loading="lazy" />
-                    ) : (
-                      <div className="commerce-card-image-placeholder">
-                        <BookOpen size={32} />
-                      </div>
-                    )}
-                    {isAssigned && (
-                      <span className="commerce-owned-badge">
-                        <CheckCircle size={14} /> {t.commerce.assigned}
-                      </span>
-                    )}
-                  </div>
-                  <div className="commerce-card-body">
-                    <span className="commerce-card-tag">{course.category}</span>
-                    <h3>{course.title}</h3>
-                    <p>{course.description}</p>
-                    <p className="commerce-meta">
-                      {course.lessonCount ?? course.lessons?.length ?? 0} {t.commerce.lessons}
-                      {course.instructor ? ` · ${course.instructor}` : ''}
-                    </p>
-                    <div className="commerce-card-footer">
-                      <strong>{formatThb(Number(course.priceThb) || 0)}</strong>
-                      {isAssigned ? (
-                        <Link to={`/online-courses/${course.id}`} className="button button-primary">
-                          <Play size={16} /> {t.commerce.watch}
-                        </Link>
-                      ) : (
-                        <button type="button" className="button button-primary" disabled>
-                          {t.commerce.assignedOnly}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          <>
+            {user && (
+              <CourseSection
+                title={t.commerce.yourCourses}
+                courses={assigned}
+                empty={t.commerce.noOwnedCourses}
+                assigned
+                watchLabel={t.commerce.watch}
+                lessonsLabel={t.commerce.lessons}
+                assignedLabel={t.commerce.assigned}
+              />
+            )}
+            {others.length > 0 && (
+              <CourseSection
+                title={user ? t.commerce.otherCourses : t.commerce.onlineCoursesTitle}
+                courses={others}
+                assigned={false}
+                watchLabel={t.commerce.watch}
+                lessonsLabel={t.commerce.lessons}
+                assignedLabel={t.commerce.assigned}
+                lockedLabel={t.commerce.assignedOnly}
+              />
+            )}
+          </>
         )}
       </section>
     </main>
   );
 };
+
+const CourseSection: React.FC<{
+  title: string;
+  courses: OnlineVideoCourse[];
+  empty?: string;
+  assigned: boolean;
+  watchLabel: string;
+  lessonsLabel: string;
+  assignedLabel: string;
+  lockedLabel?: string;
+}> = ({ title, courses, empty, assigned, watchLabel, lessonsLabel, assignedLabel, lockedLabel }) => (
+  <div className="commerce-course-section">
+    <h3>{title}</h3>
+    {courses.length === 0 ? (
+      <div className="commerce-empty">
+        <BookOpen size={32} />
+        <p>{empty}</p>
+      </div>
+    ) : (
+      <div className="commerce-grid">
+        {courses.map((course) => (
+          <article key={course.id} className="commerce-card">
+            <div className="commerce-card-image">
+              {course.thumbnailUrl ? (
+                <img src={course.thumbnailUrl} alt={course.title} loading="lazy" />
+              ) : (
+                <div className="commerce-card-image-placeholder">
+                  <BookOpen size={32} />
+                </div>
+              )}
+              {assigned && (
+                <span className="commerce-owned-badge">
+                  <CheckCircle size={14} /> {assignedLabel}
+                </span>
+              )}
+            </div>
+            <div className="commerce-card-body">
+              <span className="commerce-card-tag">{course.category}</span>
+              <h3>{course.title}</h3>
+              <p>{course.description}</p>
+              <p className="commerce-meta">
+                {course.lessonCount ?? course.lessons?.length ?? 0} {lessonsLabel}
+                {course.instructor ? ` · ${course.instructor}` : ''}
+              </p>
+              <div className="commerce-card-footer">
+                {assigned ? (
+                  <Link to={`/online-courses/${course.id}`} className="button button-primary">
+                    <Play size={16} /> {watchLabel}
+                  </Link>
+                ) : (
+                  <span className="commerce-locked-note">
+                    <Lock size={14} /> {lockedLabel}
+                  </span>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </div>
+);
 
 export default OnlineCoursesPage;

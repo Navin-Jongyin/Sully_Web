@@ -35,7 +35,11 @@ export function resolveVideoSource(lesson?: OnlineCourseLesson): ResolvedVideoSo
       ? path.split('/').filter(Boolean)[0]
       : parsed.searchParams.get('v') ?? path.match(/\/(?:embed|shorts)\/([^/]+)/)?.[1];
     return id
-      ? { kind: 'iframe', provider: 'youtube', url: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}` }
+      ? {
+          kind: 'iframe',
+          provider: 'youtube',
+          url: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1`,
+        }
       : { kind: 'none', provider: 'youtube' };
   }
 
