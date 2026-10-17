@@ -16,6 +16,7 @@ import {
   persistCourseLessons,
   publicLessonMetadata,
 } from '../lib/course-lessons';
+import { createCourseId } from '../lib/course-ids';
 
 /** Firestore orderBy excludes docs without the field — sort client-side instead. */
 function sortByOrder<T>(items: T[]): T[] {
@@ -268,14 +269,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addOnlineVideoCourse = async (course: OnlineVideoCourse) => {
+    const safeId = course.id || createCourseId(course.title || 'online-course');
     const order = onlineVideoCourses.length;
-    await setDoc(doc(db, 'onlineVideoCourses', course.id), {
+    await setDoc(doc(db, 'onlineVideoCourses', safeId), {
       ...course,
+      id: safeId,
       lessons: publicLessonMetadata(course.lessons),
       lessonCount: course.lessons.length,
       order,
     });
-    await persistCourseLessons(course.id, course.lessons);
+    await persistCourseLessons(safeId, course.lessons);
   };
 
   const updateOnlineVideoCourse = async (course: OnlineVideoCourse) => {
@@ -291,9 +294,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteOnlineVideoCourse = async (id: string) => {
-    const lessonIds = onlineVideoCourses
-      .find((course) => course.id === id)
-      ?.lessons.map((lesson) => lesson.id) ?? [];
+    const targetCourse = onlineVideoCourses.find((course) => course.id === id);
+    const lessonIds = targetCourse?.lessons.map((lesson) => lesson.id) ?? [];
+
+    if (!targetCourse) {
+      throw new Error('Course not found.');
+    }
+
     await deleteCourseLessons(id, lessonIds);
     await deleteDoc(doc(db, 'onlineVideoCourses', id));
   };

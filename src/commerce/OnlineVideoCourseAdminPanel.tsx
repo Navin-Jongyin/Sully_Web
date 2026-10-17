@@ -6,13 +6,14 @@ import { useData } from '../hooks/useData';
 import { storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
+import { createCourseId, createLessonId } from '../lib/course-ids';
 import { getStripeProductById } from '../lib/stripe-catalog';
 
 const PRODUCT_PLACEHOLDER = 'STRIPE_PRODUCT_ID_PLACEHOLDER';
 const PRICE_PLACEHOLDER = 'STRIPE_PRICE_ID_PLACEHOLDER';
 
 const emptyLesson = (order: number): OnlineCourseLesson => ({
-  id: `lesson-${Date.now()}-${order}`,
+  id: createLessonId('lesson', order),
   title: '',
   description: '',
   videoUrl: '',
@@ -112,7 +113,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
     try {
       const now = new Date().toISOString();
       const payload: OnlineVideoCourse = {
-        id: editing?.id ?? `ovc-${Date.now()}`,
+        id: editing?.id ?? createCourseId(form.title || 'online-course'),
         title: form.title.trim(),
         description: form.description.trim(),
         category: form.category,
@@ -156,7 +157,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
     setUploading(true);
     setMessage(null);
     try {
-      const courseId = editing?.id ?? `draft-${Date.now()}`;
+      const courseId = editing?.id ?? createCourseId('draft-course');
       const storageRef = ref(
         storage,
         `online-course-thumbnails/${courseId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
