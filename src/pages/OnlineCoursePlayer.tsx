@@ -24,7 +24,6 @@ import {
   saveLessonProgress,
 } from '../lib/course-progress';
 import { CourseVideoPlayer } from '../commerce/CourseVideoPlayer';
-import { resolveVideoSource } from '../lib/video-source';
 import type { OnlineCourseLesson } from '../commerce/types';
 import '../commerce/commerce.css';
 
@@ -195,75 +194,69 @@ const OnlineCoursePlayerPage: React.FC = () => {
 
       <div className="commerce-player-layout">
         <section className="commerce-player-stage">
-          {active && (() => {
-            const activeSource = resolveVideoSource(active);
-            const isYouTube = activeSource.provider === 'youtube';
-            return (
-              <>
-                <CourseVideoPlayer
-                  lesson={active}
-                  startAtSeconds={startAtSeconds}
-                  onProgress={(currentTime, duration) => {
-                    const now = Date.now();
-                    const nearlyFinished = duration > 0
-                      && currentTime / duration >= 0.9
-                      && !completedLessonIds.includes(active.id);
-                    if (nearlyFinished || now - lastSavedAt.current >= 10_000) {
-                      lastSavedAt.current = now;
-                      void persistProgress(currentTime, duration, nearlyFinished);
-                    }
-                  }}
-                  onEnded={() => void persistProgress(
-                    active.durationSeconds ?? 0,
-                    active.durationSeconds ?? 0,
-                    true,
-                  )}
-                />
-                {!isYouTube && (
-                  <div className="commerce-lesson-detail">
-                    <div>
-                      <h2>{active.title}</h2>
-                      <span className="commerce-lesson-duration">
-                        <Clock size={14} /> {formatDuration(active.durationSeconds)}
-                      </span>
-                    </div>
-                    {active.description && <p>{active.description}</p>}
-                    {progressError && <p className="commerce-error" role="alert">{progressError}</p>}
-                    <div className="commerce-player-actions">
-                      <button
-                        type="button"
-                        className="button button-secondary"
-                        disabled={activeIndex <= 0}
-                        onClick={() => setActiveLessonId(lessons[activeIndex - 1]?.id)}
-                      >
-                        <ChevronLeft size={16} /> Previous
-                      </button>
-                      <button
-                        type="button"
-                        className="button button-secondary"
-                        disabled={completedLessonIds.includes(active.id)}
-                        onClick={() => void persistProgress(
-                          active.durationSeconds ?? 0,
-                          active.durationSeconds ?? 0,
-                          true,
-                        )}
-                      >
-                        <CheckCircle size={16} /> Mark complete
-                      </button>
-                      <button
-                        type="button"
-                        className="button button-primary"
-                        disabled={activeIndex < 0 || activeIndex >= lessons.length - 1}
-                        onClick={() => setActiveLessonId(lessons[activeIndex + 1]?.id)}
-                      >
-                        Next <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
+          {active && (
+            <>
+              <CourseVideoPlayer
+                lesson={active}
+                startAtSeconds={startAtSeconds}
+                onProgress={(currentTime, duration) => {
+                  const now = Date.now();
+                  const nearlyFinished = duration > 0
+                    && currentTime / duration >= 0.9
+                    && !completedLessonIds.includes(active.id);
+                  if (nearlyFinished || now - lastSavedAt.current >= 10_000) {
+                    lastSavedAt.current = now;
+                    void persistProgress(currentTime, duration, nearlyFinished);
+                  }
+                }}
+                onEnded={() => void persistProgress(
+                  active.durationSeconds ?? 0,
+                  active.durationSeconds ?? 0,
+                  true,
                 )}
-              </>
-            );
-          })()}
+              />
+              <div className="commerce-lesson-detail">
+                <div>
+                  <h2>{active.title}</h2>
+                  <span className="commerce-lesson-duration">
+                    <Clock size={14} /> {formatDuration(active.durationSeconds)}
+                  </span>
+                </div>
+                {active.description && <p>{active.description}</p>}
+                {progressError && <p className="commerce-error" role="alert">{progressError}</p>}
+                <div className="commerce-player-actions">
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    disabled={activeIndex <= 0}
+                    onClick={() => setActiveLessonId(lessons[activeIndex - 1]?.id)}
+                  >
+                    <ChevronLeft size={16} /> Previous
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    disabled={completedLessonIds.includes(active.id)}
+                    onClick={() => void persistProgress(
+                      active.durationSeconds ?? 0,
+                      active.durationSeconds ?? 0,
+                      true,
+                    )}
+                  >
+                    <CheckCircle size={16} /> Mark complete
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-primary"
+                    disabled={activeIndex < 0 || activeIndex >= lessons.length - 1}
+                    onClick={() => setActiveLessonId(lessons[activeIndex + 1]?.id)}
+                  >
+                    Next <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
           {!active && <div className="commerce-video-unavailable">No lessons have been published yet.</div>}
         </section>
 

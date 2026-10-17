@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Edit2, Plus, Save, Trash2, X, BookOpen, GripVertical, RefreshCw, Upload } from 'lucide-react';
-import { Reorder } from 'framer-motion';
+import { Reorder, useDragControls } from 'framer-motion';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useData } from '../hooks/useData';
+import { useAppDialog } from '../hooks/useAppDialog';
 import { storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
@@ -35,8 +36,66 @@ const emptyForm = (): Omit<OnlineVideoCourse, 'id'> => ({
   stripePriceId: PRICE_PLACEHOLDER,
 });
 
+const LessonEditor: React.FC<{
+  lesson: OnlineCourseLesson;
+  index: number;
+  canRemove: boolean;
+  onChange: (patch: Partial<OnlineCourseLesson>) => void;
+  onRemove: () => void;
+}> = ({ lesson, index, canRemove, onChange, onRemove }) => {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={lesson}
+      dragListener={false}
+      dragControls={dragControls}
+      style={{ display: 'grid', gap: '0.65rem', marginBottom: '1rem', padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'var(--glass-bg)' }}
+    >
+      <div
+        onPointerDown={(event) => dragControls.start(event)}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', cursor: 'grab', touchAction: 'none' }}
+      >
+        <GripVertical size={18} /> Lesson {index + 1}
+      </div>
+      <input placeholder="Lesson title" required value={lesson.title} onChange={(e) => onChange({ title: e.target.value })} />
+      <textarea
+        placeholder="Lesson description"
+        rows={2}
+        value={lesson.description ?? ''}
+        onChange={(e) => onChange({ description: e.target.value })}
+        style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit' }}
+      />
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(130px, .4fr) 1fr', gap: '0.75rem' }}>
+        <select
+          value={lesson.videoProvider ?? 'auto'}
+          onChange={(e) => onChange({ videoProvider: e.target.value as OnlineCourseLesson['videoProvider'] })}
+          aria-label="Video provider"
+        >
+          <option value="auto">Auto detect</option>
+          <option value="youtube">YouTube</option>
+          <option value="vimeo">Vimeo</option>
+          <option value="bunny">Bunny Stream</option>
+          <option value="cloudflare">Cloudflare Stream</option>
+          <option value="mux">Mux / HLS</option>
+          <option value="direct">Direct MP4/HLS</option>
+          <option value="iframe">Other embed</option>
+        </select>
+        <input placeholder="HTTPS video/embed URL (blank keeps existing URL)" value={lesson.videoUrl ?? ''} onChange={(e) => onChange({ videoUrl: e.target.value })} />
+      </div>
+      <label>Duration (seconds)<input type="number" min={0} value={lesson.durationSeconds ?? 0} onChange={(e) => onChange({ durationSeconds: Number(e.target.value) })} /></label>
+      {canRemove && (
+        <button type="button" onClick={onRemove} style={{ justifySelf: 'start', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
+          Remove lesson
+        </button>
+      )}
+    </Reorder.Item>
+  );
+};
+
 export const OnlineVideoCourseAdminPanel: React.FC = () => {
   const { onlineVideoCourses, addOnlineVideoCourse, updateOnlineVideoCourse, deleteOnlineVideoCourse } = useData();
+  const { confirm } = useAppDialog();
   const [editing, setEditing] = useState<OnlineVideoCourse | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyForm());
@@ -44,6 +103,17 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [resolvingStripe, setResolvingStripe] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const handleDelete = async (course: OnlineVideoCourse) => {
+    if (!(await confirm(`Delete ${course.title}?`))) return;
+    setMessage(null);
+    try {
+      await deleteOnlineVideoCourse(course.id);
+      setMessage(`Deleted ${course.title}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not delete this course.');
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -219,7 +289,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
           </button>
         </div>
       )}
-      {message && <p className={message.includes('saved') || message.includes('Migrated') || message.includes('already') || message.includes('Loaded') ? 'commerce-notice' : 'commerce-error'}>{message}</p>}
+      {message && <p className={message.includes('saved') || message.includes('Deleted') || message.includes('Migrated') || message.includes('already') || message.includes('Loaded') ? 'commerce-notice' : 'commerce-error'}>{message}</p>}
 
       {!showForm && (
         <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
@@ -241,7 +311,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
                   <button type="button" onClick={() => openEdit(course)} style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', cursor: 'pointer' }}>
                     <Edit2 size={16} />
                   </button>
-                  <button type="button" onClick={() => window.confirm(`Delete ${course.title}?`) && deleteOnlineVideoCourse(course.id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
+                  <button type="button" onClick={() => { void handleDelete(course); }} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius)', padding: '0.5rem', color: '#ef4444', cursor: 'pointer' }}>
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -312,46 +382,14 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
                 style={{ listStyle: 'none', margin: 0, padding: 0 }}
               >
                 {form.lessons.map((lesson, i) => (
-                  <Reorder.Item
+                  <LessonEditor
                     key={lesson.id}
-                    value={lesson}
-                    style={{ display: 'grid', gap: '0.65rem', marginBottom: '1rem', padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'var(--glass-bg)' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', cursor: 'grab' }}>
-                      <GripVertical size={18} /> Lesson {i + 1}
-                    </div>
-                    <input placeholder="Lesson title" required value={lesson.title} onChange={(e) => updateLesson(i, { title: e.target.value })} />
-                    <textarea
-                      placeholder="Lesson description"
-                      rows={2}
-                      value={lesson.description ?? ''}
-                      onChange={(e) => updateLesson(i, { description: e.target.value })}
-                      style={{ width: '100%', padding: '0.85rem 1rem', background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', color: 'var(--text-primary)', fontFamily: 'inherit' }}
-                    />
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(130px, .4fr) 1fr', gap: '0.75rem' }}>
-                      <select
-                        value={lesson.videoProvider ?? 'auto'}
-                        onChange={(e) => updateLesson(i, { videoProvider: e.target.value as OnlineCourseLesson['videoProvider'] })}
-                        aria-label="Video provider"
-                      >
-                        <option value="auto">Auto detect</option>
-                        <option value="youtube">YouTube</option>
-                        <option value="vimeo">Vimeo</option>
-                        <option value="bunny">Bunny Stream</option>
-                        <option value="cloudflare">Cloudflare Stream</option>
-                        <option value="mux">Mux / HLS</option>
-                        <option value="direct">Direct MP4/HLS</option>
-                        <option value="iframe">Other embed</option>
-                      </select>
-                      <input placeholder="HTTPS video/embed URL (blank keeps existing URL)" value={lesson.videoUrl ?? ''} onChange={(e) => updateLesson(i, { videoUrl: e.target.value })} />
-                    </div>
-                    <label>Duration (seconds)<input type="number" min={0} value={lesson.durationSeconds ?? 0} onChange={(e) => updateLesson(i, { durationSeconds: Number(e.target.value) })} /></label>
-                    {form.lessons.length > 1 && (
-                      <button type="button" onClick={() => setForm({ ...form, lessons: form.lessons.filter((_, idx) => idx !== i) })} style={{ justifySelf: 'start', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
-                        Remove lesson
-                      </button>
-                    )}
-                  </Reorder.Item>
+                    lesson={lesson}
+                    index={i}
+                    canRemove={form.lessons.length > 1}
+                    onChange={(patch) => updateLesson(i, patch)}
+                    onRemove={() => setForm({ ...form, lessons: form.lessons.filter((_, idx) => idx !== i) })}
+                  />
                 ))}
               </Reorder.Group>
             </div>

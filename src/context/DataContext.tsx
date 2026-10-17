@@ -295,11 +295,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteOnlineVideoCourse = async (id: string) => {
     const targetCourse = onlineVideoCourses.find((course) => course.id === id);
-    const lessonIds = targetCourse?.lessons.map((lesson) => lesson.id) ?? [];
-
-    if (!targetCourse) {
-      throw new Error('Course not found.');
-    }
+    const lessonIds = (targetCourse?.lessons ?? [])
+      .map((lesson) => lesson.id)
+      .filter((lessonId): lessonId is string => Boolean(lessonId?.trim()));
 
     await deleteCourseLessons(id, lessonIds);
     await deleteDoc(doc(db, 'onlineVideoCourses', id));

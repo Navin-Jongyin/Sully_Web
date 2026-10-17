@@ -11,6 +11,25 @@ import {
 import { db } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 
+function mergeStoredLessons(
+  course: OnlineVideoCourse,
+  stored: OnlineCourseLesson[],
+): OnlineCourseLesson[] {
+  const embedded = new Map((course.lessons ?? []).map((lesson) => [lesson.id, lesson]));
+  return stored.map((lesson) => {
+    const fallback = embedded.get(lesson.id);
+    return {
+      ...fallback,
+      ...lesson,
+      title: lesson.title?.trim() || fallback?.title || '',
+      description: lesson.description?.trim() || fallback?.description || '',
+      durationSeconds: lesson.durationSeconds || fallback?.durationSeconds || 0,
+      videoUrl: lesson.videoUrl?.trim() || fallback?.videoUrl,
+      videoProvider: lesson.videoProvider ?? fallback?.videoProvider ?? 'auto',
+    };
+  });
+}
+
 function normalizeLessons(
   courseId: string,
   lessons: OnlineCourseLesson[],
@@ -42,10 +61,13 @@ export async function fetchCourseLessons(
   if (snapshot.empty) return normalizeLessons(course.id, course.lessons ?? []);
   return normalizeLessons(
     course.id,
-    snapshot.docs.map((lesson) => ({
-      id: lesson.id,
-      ...lesson.data(),
-    } as OnlineCourseLesson)),
+    mergeStoredLessons(
+      course,
+      snapshot.docs.map((lesson) => ({
+        id: lesson.id,
+        ...lesson.data(),
+      } as OnlineCourseLesson)),
+    ),
   );
 }
 
@@ -59,10 +81,13 @@ export function subscribeCourseLessons(
     (snapshot) => {
       const lessons = snapshot.empty
         ? course.lessons ?? []
-        : snapshot.docs.map((lesson) => ({
-          id: lesson.id,
-          ...lesson.data(),
-        } as OnlineCourseLesson));
+        : mergeStoredLessons(
+          course,
+          snapshot.docs.map((lesson) => ({
+            id: lesson.id,
+            ...lesson.data(),
+          } as OnlineCourseLesson)),
+        );
       onData(normalizeLessons(course.id, lessons));
     },
     (error) => {
@@ -121,9 +146,15 @@ export async function migrateEmbeddedLessons(
 
 export async function deleteCourseLessons(
   courseId: string,
-  lessonIds: string[],
+  lessonIds: string[] = [],
 ): Promise<void> {
+  const snapshot = await getDocs(collection(db, 'onlineVideoCourses', courseId, 'lessons'));
+  const ids = new Set<string>([
+    ...lessonIds.filter((lessonId) => lessonId.trim()),
+    ...snapshot.docs.map((lesson) => lesson.id),
+  ]);
+
   await Promise.all(
-    lessonIds.map((lessonId) => deleteDoc(doc(db, 'onlineVideoCourses', courseId, 'lessons', lessonId))),
+    [...ids].map((lessonId) => deleteDoc(doc(db, 'onlineVideoCourses', courseId, 'lessons', lessonId))),
   );
 }
