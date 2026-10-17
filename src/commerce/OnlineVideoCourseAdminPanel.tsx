@@ -1,17 +1,14 @@
-import React, { useState } from 'react';
-import { Edit2, Plus, Save, Trash2, X, BookOpen, GripVertical, RefreshCw, Upload } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Edit2, Plus, Save, Trash2, X, BookOpen, GripVertical, Upload } from 'lucide-react';
 import { Reorder, useDragControls } from 'framer-motion';
+import { deleteField, doc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useData } from '../hooks/useData';
 import { useAppDialog } from '../hooks/useAppDialog';
-import { storage } from '../firebase';
+import { db, storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
 import { createCourseId, createLessonId } from '../lib/course-ids';
-import { getStripeProductById } from '../lib/stripe-catalog';
-
-const PRODUCT_PLACEHOLDER = 'STRIPE_PRODUCT_ID_PLACEHOLDER';
-const PRICE_PLACEHOLDER = 'STRIPE_PRICE_ID_PLACEHOLDER';
 
 const emptyLesson = (order: number): OnlineCourseLesson => ({
   id: createLessonId('lesson', order),
@@ -32,8 +29,6 @@ const emptyForm = (): Omit<OnlineVideoCourse, 'id'> => ({
   instructor: '',
   lessons: [emptyLesson(0)],
   published: false,
-  stripeProductId: PRODUCT_PLACEHOLDER,
-  stripePriceId: PRICE_PLACEHOLDER,
 });
 
 const LessonEditor: React.FC<{
@@ -101,8 +96,26 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [resolvingStripe, setResolvingStripe] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stale = onlineVideoCourses.filter((course) => {
+      const stored = course as OnlineVideoCourse & {
+        stripeProductId?: string;
+        stripePriceId?: string;
+        stripeSyncError?: string;
+      };
+      return Boolean(stored.stripeProductId || stored.stripePriceId || stored.stripeSyncError);
+    });
+    if (stale.length === 0) return;
+    void Promise.all(stale.map((course) => updateDoc(doc(db, 'onlineVideoCourses', course.id), {
+      stripeProductId: deleteField(),
+      stripePriceId: deleteField(),
+      stripeSyncError: deleteField(),
+    }))).catch((error: unknown) => {
+      setMessage(error instanceof Error ? error.message : 'Could not remove stored Stripe fields.');
+    });
+  }, [onlineVideoCourses]);
 
   const handleDelete = async (course: OnlineVideoCourse) => {
     if (!(await confirm(`Delete ${course.title}?`))) return;
@@ -136,8 +149,6 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
         instructor: course.instructor ?? '',
         lessons: lessons.length ? lessons : [emptyLesson(0)],
         published: course.published,
-        stripeProductId: course.stripeProductId ?? PRODUCT_PLACEHOLDER,
-        stripePriceId: course.stripePriceId ?? PRICE_PLACEHOLDER,
         lessonCount: course.lessonCount,
         order: course.order,
         createdAt: course.createdAt,
@@ -201,8 +212,6 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
         })),
         lessonCount: form.lessons.length,
         published: form.published,
-        stripeProductId: form.stripeProductId?.trim() || PRODUCT_PLACEHOLDER,
-        stripePriceId: form.stripePriceId?.trim() || PRICE_PLACEHOLDER,
         order: editing?.order,
         createdAt: editing?.createdAt ?? now,
         updatedAt: now,
@@ -239,27 +248,6 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
       setMessage(error instanceof Error ? error.message : 'Thumbnail upload failed.');
     } finally {
       setUploading(false);
-    }
-  };
-
-  const resolveStripeProduct = async () => {
-    setResolvingStripe(true);
-    setMessage(null);
-    try {
-      const product = await getStripeProductById(form.stripeProductId);
-      if (!product) throw new Error('Stripe product ID was not found on the configured server.');
-      setForm((current) => ({
-        ...current,
-        stripePriceId: product.priceId,
-        priceThb: product.currency.toLowerCase() === 'thb'
-          ? product.amount / 100
-          : current.priceThb,
-      }));
-      setMessage(`Loaded Stripe product: ${product.name}`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Stripe product lookup failed.');
-    } finally {
-      setResolvingStripe(false);
     }
   };
 
@@ -351,18 +339,6 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
               </span>
             </label>
             <label>Instructor<input value={form.instructor ?? ''} onChange={(e) => setForm({ ...form, instructor: e.target.value })} /></label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <label>
-                Stripe Product ID
-                <span style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input value={form.stripeProductId ?? ''} onChange={(e) => setForm({ ...form, stripeProductId: e.target.value })} placeholder={PRODUCT_PLACEHOLDER} />
-                  <button type="button" className="button button-secondary" disabled={resolvingStripe} onClick={() => void resolveStripeProduct()}>
-                    <RefreshCw size={15} /> {resolvingStripe ? 'Loading…' : 'Load'}
-                  </button>
-                </span>
-              </label>
-              <label>Stripe Price ID (resolved automatically)<input readOnly value={form.stripePriceId ?? ''} placeholder={PRICE_PLACEHOLDER} /></label>
-            </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
               Published

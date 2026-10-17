@@ -53,7 +53,7 @@ export interface OnlineCourseLesson {
   order: number;
 }
 
-/** Purchasable online course. */
+/** Online course. Access is granted from the admin Assign tab. */
 export interface OnlineVideoCourse {
   id: string;
   title: string;
@@ -65,8 +65,6 @@ export interface OnlineVideoCourse {
   lessons: OnlineCourseLesson[];
   lessonCount?: number;
   published: boolean;
-  stripeProductId?: string;
-  stripePriceId?: string;
   order?: number;
   createdAt?: string;
   updatedAt?: string;

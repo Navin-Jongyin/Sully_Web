@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { collection, doc, onSnapshot, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, doc, onSnapshot, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
@@ -129,7 +129,7 @@ const AssignCourseAdminPanel: React.FC = () => {
           const entry: UserCourseAccess = {
             courseId,
             assignedBy: adminId,
-            assignedAt: serverTimestamp(),
+            assignedAt: Timestamp.now(),
             status: 'active',
             expiresAt: null,
           };

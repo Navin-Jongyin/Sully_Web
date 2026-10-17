@@ -2,7 +2,6 @@ import { initializeApp } from 'firebase-admin/app';
 import {
   FieldValue,
   getFirestore,
-  Timestamp,
 } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { logger } from 'firebase-functions';
@@ -11,8 +10,6 @@ import { onRequest } from 'firebase-functions/v2/https';
 import Stripe from 'stripe';
 import {
   checkoutEventStatus,
-  isConfiguredStripeProduct,
-  isConfiguredStripePrice,
   normalizeOrigin,
   paymentIntentId,
   purchaseDocumentId,
@@ -26,10 +23,6 @@ const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 const appOrigin = defineString('APP_ORIGIN', {
   default: 'http://localhost:5173',
   description: 'Public Sully Academy web origin',
-});
-const stripeCatalogUrl = defineString('STRIPE_CATALOG_API_URL', {
-  default: 'https://stripe-server-3dqx.onrender.com',
-  description: 'Server that exposes the Stripe product catalog',
 });
 const region = 'asia-southeast1';
 
@@ -53,22 +46,6 @@ interface ResponseLike {
 
 function stripeClient(): Stripe {
   return new Stripe(stripeKey.value());
-}
-
-interface StripeCatalogProduct {
-  productId: string;
-  priceId: string;
-}
-
-async function getStripeProductById(productId: string): Promise<StripeCatalogProduct | null> {
-  const baseUrl = stripeCatalogUrl.value().replace(/\/$/, '');
-  const response = await fetch(
-    `${baseUrl}/products?productId=${encodeURIComponent(productId)}`,
-    { signal: AbortSignal.timeout(10_000) },
-  );
-  if (!response.ok) throw new Error(`Stripe catalog returned ${response.status}.`);
-  const payload = await response.json() as { products?: StripeCatalogProduct[] };
-  return payload.products?.find((product) => product.productId === productId) ?? null;
 }
 
 function setCors(req: RequestLike, res: ResponseLike): boolean {
@@ -121,9 +98,8 @@ export const createCheckoutSession = onRequest(
       return;
     }
 
-    let user: AuthenticatedUser;
     try {
-      user = await authenticate(req);
+      await authenticate(req);
     } catch {
       sendError(res, 401, 'authentication-required', 'Sign in before purchasing a course.');
       return;
@@ -138,128 +114,12 @@ export const createCheckoutSession = onRequest(
       return;
     }
 
-    try {
-      const courseRef = db.doc(`onlineVideoCourses/${courseId}`);
-      const entitlementRef = db.doc(`userEntitlements/${user.uid}/courses/${courseId}`);
-      const purchaseId = purchaseDocumentId(user.uid, courseId);
-      const purchaseRef = db.doc(`purchases/${purchaseId}`);
-      const [courseSnap, entitlementSnap] = await Promise.all([
-        courseRef.get(),
-        entitlementRef.get(),
-      ]);
-
-      if (!courseSnap.exists || courseSnap.get('published') !== true) {
-        sendError(res, 404, 'course-not-found', 'This course is not available.');
-        return;
-      }
-      if (entitlementSnap.exists) {
-        sendError(res, 409, 'already-purchased', 'You already own this course.');
-        return;
-      }
-
-      const stripeProductId = courseSnap.get('stripeProductId');
-      if (!isConfiguredStripeProduct(stripeProductId)) {
-        sendError(res, 503, 'payment-not-configured', 'Payment is not configured for this course yet.');
-        return;
-      }
-      const stripeProduct = await getStripeProductById(stripeProductId);
-      if (!stripeProduct || !isConfiguredStripePrice(stripeProduct.priceId)) {
-        sendError(res, 503, 'payment-not-configured', 'The Stripe product or active price was not found.');
-        return;
-      }
-      const stripePriceId = stripeProduct.priceId;
-
-      const now = Date.now();
-      const nonce = crypto.randomUUID();
-      const reservation = await db.runTransaction(async (transaction) => {
-        const [purchaseSnap, latestEntitlement] = await Promise.all([
-          transaction.get(purchaseRef),
-          transaction.get(entitlementRef),
-        ]);
-        if (latestEntitlement.exists || purchaseSnap.get('status') === 'paid') {
-          return { kind: 'owned' as const };
-        }
-        const existingStartedAt = Number(purchaseSnap.get('checkoutStartedAtMillis') ?? 0);
-        const existingUrl = purchaseSnap.get('checkoutUrl');
-        if (
-          purchaseSnap.get('status') === 'pending'
-          && now - existingStartedAt < 15 * 60 * 1000
-        ) {
-          return typeof existingUrl === 'string'
-            ? { kind: 'existing' as const, url: existingUrl, sessionId: String(purchaseSnap.get('stripeSessionId') ?? '') }
-            : { kind: 'busy' as const };
-        }
-        transaction.set(purchaseRef, {
-          uid: user.uid,
-          email: user.email,
-          courseId,
-          productId: courseId,
-          productType: 'course',
-          productTitle: String(courseSnap.get('title') ?? ''),
-          status: 'pending',
-          stripeProductId,
-          stripePriceId,
-          checkoutNonce: nonce,
-          checkoutStartedAtMillis: now,
-          createdAt: purchaseSnap.exists
-            ? purchaseSnap.get('createdAt') ?? FieldValue.serverTimestamp()
-            : FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-        }, { merge: true });
-        return { kind: 'create' as const };
-      });
-
-      if (reservation.kind === 'owned') {
-        sendError(res, 409, 'already-purchased', 'You already own this course.');
-        return;
-      }
-      if (reservation.kind === 'existing') {
-        res.json({ url: reservation.url, sessionId: reservation.sessionId });
-        return;
-      }
-      if (reservation.kind === 'busy') {
-        sendError(res, 409, 'checkout-in-progress', 'Checkout is already being prepared. Please try again shortly.');
-        return;
-      }
-
-      const origin = normalizeOrigin(appOrigin.value());
-      const session = await stripeClient().checkout.sessions.create({
-        mode: 'payment',
-        line_items: [{ price: stripePriceId, quantity: 1 }],
-        success_url: `${origin}/dashboard?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/online-courses?purchase=cancelled`,
-        client_reference_id: purchaseId,
-        customer_email: user.email || undefined,
-        metadata: {
-          uid: user.uid,
-          courseId,
-          purchaseId,
-        },
-      }, {
-        idempotencyKey: `${purchaseId}:${nonce}`,
-      });
-
-      if (!session.url) throw new Error('Stripe did not return a Checkout URL.');
-
-      await db.runTransaction(async (transaction) => {
-        const current = await transaction.get(purchaseRef);
-        if (current.get('checkoutNonce') !== nonce) return;
-        transaction.update(purchaseRef, {
-          stripeSessionId: session.id,
-          checkoutUrl: session.url,
-          expiresAt: Timestamp.fromMillis(session.expires_at * 1000),
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-      });
-
-      res.json({ url: session.url, sessionId: session.id });
-    } catch (error) {
-      logger.error('Checkout session creation failed', {
-        uid: user.uid,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      sendError(res, 500, 'checkout-failed', 'Unable to start checkout. Please try again.');
-    }
+    sendError(
+      res,
+      403,
+      'assignment-only',
+      'Online course access is granted from the admin Assign tab.',
+    );
   },
 );
 
@@ -320,7 +180,6 @@ export const stripeWebhook = onRequest(
 
       const eventRef = db.doc(`stripeWebhookEvents/${event.id}`);
       const purchaseRef = db.doc(`purchases/${purchaseId}`);
-      const entitlementRef = db.doc(`userEntitlements/${uid}/courses/${courseId}`);
 
       await db.runTransaction(async (transaction) => {
         const [eventSnap, purchaseSnap] = await Promise.all([
@@ -354,16 +213,6 @@ export const stripeWebhook = onRequest(
           update.purchaseDate = FieldValue.serverTimestamp();
         }
         transaction.set(purchaseRef, update, { merge: true });
-
-        if (status === 'paid') {
-          transaction.set(entitlementRef, {
-            uid,
-            courseId,
-            purchaseId,
-            stripeSessionId: session.id,
-            unlockedAt: FieldValue.serverTimestamp(),
-          }, { merge: true });
-        }
       });
 
       res.status(200).json({ received: true });

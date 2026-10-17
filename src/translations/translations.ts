@@ -165,6 +165,7 @@ export interface Translations {
     onlineCoursesTitle: string;
     onlineCoursesDesc: string;
     loginToBuy: string;
+    loginToViewAssigned: string;
     goToAccount: string;
     buyNow: string;
     processing: string;
@@ -173,6 +174,8 @@ export interface Translations {
     noOnlineCourses: string;
     purchaseError: string;
     owned: string;
+    assigned: string;
+    assignedOnly: string;
     lessons: string;
     watch: string;
     accountEyebrow: string;
@@ -382,8 +385,9 @@ export const translations: Record<Language, Translations> = {
       shopDesc: 'Official Sully Academy merchandise. Sign in to purchase.',
       onlineCoursesEyebrow: 'Learn online',
       onlineCoursesTitle: 'Online Courses',
-      onlineCoursesDesc: 'Purchase a course to unlock its video lessons. Videos stream via Mux once your service is connected.',
+      onlineCoursesDesc: 'Courses are opened from the admin Assign tab. Sign in to watch the courses assigned to you.',
       loginToBuy: 'Sign in to purchase courses and merchandise.',
+      loginToViewAssigned: 'Sign in to watch the online courses assigned to your account.',
       goToAccount: 'Sign in',
       buyNow: 'Buy now',
       processing: 'Processing…',
@@ -392,6 +396,8 @@ export const translations: Record<Language, Translations> = {
       noOnlineCourses: 'No online courses published yet.',
       purchaseError: 'Could not start checkout. Payment service may not be configured yet.',
       owned: 'Owned',
+      assigned: 'Assigned',
+      assignedOnly: 'Assigned by admin',
       lessons: 'lessons',
       watch: 'Watch',
       accountEyebrow: 'My account',
@@ -399,14 +405,14 @@ export const translations: Record<Language, Translations> = {
       accountLoginTitle: 'Sign in to your account',
       accountLoginDesc: 'Sign in with any email to manage purchases, courses, and orders.',
       myCourses: 'My courses',
-      noOwnedCourses: 'You have not purchased any online courses yet.',
+      noOwnedCourses: 'No online courses have been assigned to this account yet.',
       browseCourses: 'Browse online courses',
       orderHistory: 'Order history',
       noOrders: 'No orders yet. Purchases will appear here after Stripe checkout is live.',
       courseNotFound: 'Course not found.',
       backToCourses: 'Back to courses',
       accessLocked: 'Course locked',
-      accessLockedDesc: 'Purchase this course to unlock the video lessons.',
+      accessLockedDesc: 'This course is available after an admin assigns it to your account.',
       muxPlaceholder: 'Mux player placeholder — replace with Mux Player when the API service is ready.',
       muxHint: 'See docs/MUX.md for integration steps.',
       videoPending: 'Video not uploaded yet (Mux playback ID is still a placeholder).',
@@ -599,8 +605,9 @@ export const translations: Record<Language, Translations> = {
       shopDesc: 'สินค้าอย่างเป็นทางการของ Sully Academy เข้าสู่ระบบเพื่อสั่งซื้อ',
       onlineCoursesEyebrow: 'เรียนออนไลน์',
       onlineCoursesTitle: 'คอร์สออนไลน์',
-      onlineCoursesDesc: 'ซื้อคอร์สเพื่อปลดล็อกวิดีโอบทเรียน สตรีมผ่าน Mux เมื่อเชื่อมต่อบริการแล้ว',
+      onlineCoursesDesc: 'คอร์สจะเปิดจากแท็บมอบหมายในแอดมิน เข้าสู่ระบบเพื่อดูคอร์สที่ได้รับมอบหมาย',
       loginToBuy: 'เข้าสู่ระบบเพื่อซื้อคอร์สและสินค้า',
+      loginToViewAssigned: 'เข้าสู่ระบบเพื่อดูคอร์สออนไลน์ที่มอบหมายให้บัญชีนี้',
       goToAccount: 'เข้าสู่ระบบ',
       buyNow: 'ซื้อเลย',
       processing: 'กำลังดำเนินการ…',
@@ -609,6 +616,8 @@ export const translations: Record<Language, Translations> = {
       noOnlineCourses: 'ยังไม่มีคอร์สออนไลน์',
       purchaseError: 'ไม่สามารถเริ่มชำระเงินได้ อาจยังไม่ได้ตั้งค่าบริการชำระเงิน',
       owned: 'ซื้อแล้ว',
+      assigned: 'ได้รับมอบหมาย',
+      assignedOnly: 'มอบหมายโดยแอดมิน',
       lessons: 'บทเรียน',
       watch: 'ดู',
       accountEyebrow: 'บัญชีของฉัน',
@@ -616,14 +625,14 @@ export const translations: Record<Language, Translations> = {
       accountLoginTitle: 'เข้าสู่ระบบบัญชีของคุณ',
       accountLoginDesc: 'เข้าสู่ระบบด้วยอีเมลเพื่อจัดการการซื้อ คอร์ส และคำสั่งซื้อ',
       myCourses: 'คอร์สของฉัน',
-      noOwnedCourses: 'คุณยังไม่ได้ซื้อคอร์สออนไลน์',
+      noOwnedCourses: 'ยังไม่มีคอร์สออนไลน์ที่มอบหมายให้บัญชีนี้',
       browseCourses: 'ดูคอร์สออนไลน์',
       orderHistory: 'ประวัติคำสั่งซื้อ',
       noOrders: 'ยังไม่มีคำสั่งซื้อ จะแสดงที่นี่เมื่อเชื่อมต่อ Stripe แล้ว',
       courseNotFound: 'ไม่พบคอร์ส',
       backToCourses: 'กลับไปคอร์ส',
       accessLocked: 'คอร์สถูกล็อก',
-      accessLockedDesc: 'ซื้อคอร์สนี้เพื่อปลดล็อกวิดีโอบทเรียน',
+      accessLockedDesc: 'คอร์สนี้จะเปิดได้เมื่อแอดมินมอบหมายให้บัญชีของคุณ',
       muxPlaceholder: 'ตัวเล่น Mux ชั่วคราว — เปลี่ยนเป็น Mux Player เมื่อ API พร้อม',
       muxHint: 'ดู docs/MUX.md สำหรับขั้นตอนการเชื่อมต่อ',
       videoPending: 'ยังไม่อัปโหลดวิดีโอ (Mux Playback ID ยังเป็น placeholder)',

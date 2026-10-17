@@ -1,17 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { BookOpen, Lock, Play, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAssignedCourses } from '../hooks/useAssignedCourses';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
-import { createCheckoutSession, formatThb } from '../lib/payments';
-import { subscribeCourseEntitlements } from '../lib/purchases';
-import {
-  formatStripeAmount,
-  getStripeProductById,
-  type StripeCatalogProduct,
-} from '../lib/stripe-catalog';
+import { formatThb } from '../lib/payments';
 import '../commerce/commerce.css';
 
 const OnlineCoursesPage: React.FC = () => {
@@ -19,54 +13,8 @@ const OnlineCoursesPage: React.FC = () => {
   const { user } = useAuth();
   const { onlineVideoCourses } = useData();
   const { assignedCourseIds } = useAssignedCourses(user?.uid ?? null);
-  const [searchParams] = useSearchParams();
-  const [owned, setOwned] = useState<string[]>([]);
-  const [buyingId, setBuyingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [stripeProducts, setStripeProducts] = useState<Record<string, StripeCatalogProduct | null>>({});
-
-  useEffect(() => {
-    if (!user) return;
-    return subscribeCourseEntitlements(user.uid, setOwned);
-  }, [user]);
 
   const published = onlineVideoCourses.filter((c) => c.published);
-  const visibleOwned = user ? [...new Set([...owned, ...assignedCourseIds])] : assignedCourseIds;
-
-  useEffect(() => {
-    let active = true;
-    void Promise.all(
-      onlineVideoCourses.filter((course) => course.published).map(async (course) => [
-        course.id,
-        await getStripeProductById(course.stripeProductId),
-      ] as const),
-    )
-      .then((entries) => {
-        if (active) setStripeProducts(Object.fromEntries(entries));
-      })
-      .catch(() => {
-        if (active) setError('Stripe product details are temporarily unavailable.');
-      });
-    return () => {
-      active = false;
-    };
-  }, [onlineVideoCourses]);
-
-  const handleBuy = async (courseId: string) => {
-    if (!user) return;
-    setError(null);
-    setBuyingId(courseId);
-    try {
-      const { url } = await createCheckoutSession({
-        courseId,
-      });
-      window.location.assign(url);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t.commerce.purchaseError);
-    } finally {
-      setBuyingId(null);
-    }
-  };
 
   return (
     <main className="page-transition commerce-page">
@@ -82,16 +30,9 @@ const OnlineCoursesPage: React.FC = () => {
         {!user && (
           <div className="commerce-login-hint">
             <Lock size={18} />
-            <p>{t.commerce.loginToBuy}</p>
+            <p>{t.commerce.loginToViewAssigned}</p>
             <Link to="/login" className="button button-primary">{t.commerce.goToAccount}</Link>
           </div>
-        )}
-
-        {error && <p role="alert" className="commerce-error">{error}</p>}
-        {searchParams.get('purchase') === 'cancelled' && (
-          <p role="status" className="commerce-notice">
-            Checkout was cancelled. You have not been charged.
-          </p>
         )}
 
         {published.length === 0 ? (
@@ -102,9 +43,7 @@ const OnlineCoursesPage: React.FC = () => {
         ) : (
           <div className="commerce-grid">
             {published.map((course) => {
-              const isOwned = visibleOwned.includes(course.id);
-              const stripeProduct = stripeProducts[course.id];
-              const paymentConfigured = Boolean(stripeProduct);
+              const isAssigned = assignedCourseIds.includes(course.id);
               return (
                 <article key={course.id} className="commerce-card">
                   <div className="commerce-card-image">
@@ -115,9 +54,9 @@ const OnlineCoursesPage: React.FC = () => {
                         <BookOpen size={32} />
                       </div>
                     )}
-                    {isOwned && (
+                    {isAssigned && (
                       <span className="commerce-owned-badge">
-                        <CheckCircle size={14} /> {t.commerce.owned}
+                        <CheckCircle size={14} /> {t.commerce.assigned}
                       </span>
                     )}
                   </div>
@@ -130,27 +69,14 @@ const OnlineCoursesPage: React.FC = () => {
                       {course.instructor ? ` · ${course.instructor}` : ''}
                     </p>
                     <div className="commerce-card-footer">
-                      <strong>
-                        {stripeProduct
-                          ? formatStripeAmount(stripeProduct.amount, stripeProduct.currency)
-                          : formatThb(Number(course.priceThb) || 0)}
-                      </strong>
-                      {isOwned ? (
+                      <strong>{formatThb(Number(course.priceThb) || 0)}</strong>
+                      {isAssigned ? (
                         <Link to={`/online-courses/${course.id}`} className="button button-primary">
                           <Play size={16} /> {t.commerce.watch}
                         </Link>
                       ) : (
-                        <button
-                          type="button"
-                          className="button button-primary"
-                          disabled={!user || buyingId === course.id || !paymentConfigured}
-                          onClick={() => handleBuy(course.id)}
-                        >
-                          {buyingId === course.id
-                            ? t.commerce.processing
-                            : paymentConfigured
-                              ? t.commerce.buyNow
-                              : 'Not configured'}
+                        <button type="button" className="button button-primary" disabled>
+                          {t.commerce.assignedOnly}
                         </button>
                       )}
                     </div>

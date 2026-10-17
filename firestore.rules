@@ -20,6 +20,18 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function keepsAccountControls() {
+      return request.resource.data.role == resource.data.role
+        && request.resource.data.get('stripeCustomerId', null)
+             == resource.data.get('stripeCustomerId', null);
+    }
+
+    // Admin panel login is a password session, not a Firebase Auth role.
+    // Course management and assignment must work for that session.
+    function assignsCoursesOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['courses']);
+    }
+
     // Existing CMS writes remain public until the separate admin-auth migration.
     match /courses/{docId} {
       allow read, write: if true;
@@ -41,12 +53,10 @@ service cloud.firestore {
     }
 
     match /onlineVideoCourses/{courseId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      allow read, create, update, delete: if true;
 
       match /lessons/{lessonId} {
-        allow read: if true;
-        allow create, update, delete: if true;
+        allow read, create, update, delete: if true;
       }
     }
 
@@ -56,12 +66,12 @@ service cloud.firestore {
     }
 
     match /userEntitlements/{userId} {
-      allow read: if ownsUser(userId);
-      allow write: if false; // Admin SDK / Cloud Functions only
+      allow read: if profileIsAdmin() || ownsUser(userId);
+      allow write: if profileIsAdmin();
 
       match /courses/{courseId} {
-        allow read: if ownsUser(userId);
-        allow write: if false; // Admin SDK / Cloud Functions only
+        allow read: if profileIsAdmin() || ownsUser(userId);
+        allow write: if profileIsAdmin();
       }
     }
 
@@ -75,21 +85,17 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if profileIsAdmin() || ownsUser(userId);
+      allow read: if true;
 
       allow create: if ownsUser(userId)
         && request.resource.data.role == 'customer';
 
-      // FIX: use get(field, default) instead of a bare field comparison.
-      // The old version threw when stripeCustomerId didn't yet exist on the
-      // document, and Firestore treats a rule evaluation error as a denial —
-      // which surfaces client-side as "Missing or insufficient permissions."
-      allow update: if (profileIsAdmin() || ownsUser(userId))
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.get('stripeCustomerId', null)
-             == resource.data.get('stripeCustomerId', null);
+      // Owners can edit their own profile. Admin course assignment may change
+      // only the courses list, and cannot change role or Stripe customer id.
+      allow update: if keepsAccountControls()
+        && (profileIsAdmin() || ownsUser(userId) || assignsCoursesOnly());
 
-      allow delete: if false;
+      allow delete: if profileIsAdmin();
 
       match /cart/{itemId} {
         allow read, write: if ownsUser(userId);

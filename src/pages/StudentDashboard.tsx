@@ -11,46 +11,35 @@ import {
   UserRound,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useAssignedCourses } from '../hooks/useAssignedCourses';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
 import { formatThb } from '../lib/payments';
-import { subscribeCourseEntitlements, subscribeUserPurchases } from '../lib/purchases';
+import { subscribeUserPurchases } from '../lib/purchases';
 import { subscribeCourseProgress } from '../lib/course-progress';
 import type { CourseProgress, PurchaseRecord } from '../commerce/types';
 import './StudentDashboard.css';
 
 type DashSection = 'overview' | 'courses' | 'profile';
 
-function formatFirestoreDate(value: unknown): string {
-  if (!value) return '—';
-  const date = typeof (value as { toDate?: unknown }).toDate === 'function'
-    ? (value as { toDate: () => Date }).toDate()
-    : new Date(value as string | number);
-  return Number.isNaN(date.getTime())
-    ? '—'
-    : new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(date);
-}
-
 const StudentDashboard: React.FC = () => {
   const { t, language, setLanguage } = useTranslation();
   const { user, loading, signOutGoogle } = useAuth();
   const { onlineVideoCourses, merchandise } = useData();
+  const { assignedCourseIds } = useAssignedCourses(user?.uid ?? null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [section, setSection] = useState<DashSection>('overview');
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
-  const [ownedCourseIds, setOwnedCourseIds] = useState<string[]>([]);
   const [courseProgress, setCourseProgress] = useState<Record<string, CourseProgress>>({});
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const unsubPurchases = subscribeUserPurchases(user.uid, setPurchases);
-    const unsubEntitlements = subscribeCourseEntitlements(user.uid, setOwnedCourseIds);
     const unsubProgress = subscribeCourseProgress(user.uid, setCourseProgress);
     return () => {
       unsubPurchases();
-      unsubEntitlements();
       unsubProgress();
     };
   }, [user]);
@@ -78,7 +67,7 @@ const StudentDashboard: React.FC = () => {
   }
 
   const firstName = (user.displayName ?? user.email ?? t.dashboard.studentFallback).split(/[\s@]/)[0];
-  const ownedCourses = onlineVideoCourses.filter((c) => ownedCourseIds.includes(c.id));
+  const ownedCourses = onlineVideoCourses.filter((c) => assignedCourseIds.includes(c.id));
   const paidOrders = purchases.filter((p) => p.status === 'paid');
   const featuredMerch = merchandise.filter((m) => m.inStock).slice(0, 3);
 
@@ -170,7 +159,7 @@ const StudentDashboard: React.FC = () => {
         <div className="sd-content">
           {searchParams.get('purchase') === 'success' && (
             <div className="sd-purchase-notice" role="status">
-              Payment is being confirmed. Your course will appear here as soon as Stripe verification completes.
+              Payment is being confirmed. Shop orders appear here after checkout completes.
             </div>
           )}
           {section === 'overview' && (
@@ -226,7 +215,6 @@ const StudentDashboard: React.FC = () => {
                   <div className="sd-course-grid">
                     {ownedCourses.slice(0, 3).map((course) => {
                       const progress = courseProgress[course.id];
-                      const purchase = paidOrders.find((item) => (item.courseId ?? item.productId) === course.id);
                       return (
                       <article key={course.id} className="sd-course-card">
                         <div className="sd-course-thumb">
@@ -245,7 +233,6 @@ const StudentDashboard: React.FC = () => {
                             <div><i style={{ width: `${progress?.completionPercentage ?? 0}%` }} /></div>
                             <span>{progress?.completionPercentage ?? 0}%</span>
                           </div>
-                          <small>Purchased {formatFirestoreDate(purchase?.purchaseDate ?? purchase?.paidAt)}</small>
                           <Link to={`/online-courses/${course.id}`} className="button button-primary">
                             <Play size={14} /> Continue Learning
                           </Link>
@@ -293,7 +280,6 @@ const StudentDashboard: React.FC = () => {
                 <div className="sd-course-grid">
                   {ownedCourses.map((course) => {
                     const progress = courseProgress[course.id];
-                    const purchase = paidOrders.find((item) => (item.courseId ?? item.productId) === course.id);
                     return (
                     <article key={course.id} className="sd-course-card">
                       <div className="sd-course-thumb">
@@ -312,7 +298,6 @@ const StudentDashboard: React.FC = () => {
                           <div><i style={{ width: `${progress?.completionPercentage ?? 0}%` }} /></div>
                           <span>{progress?.completionPercentage ?? 0}%</span>
                         </div>
-                        <small>Purchased {formatFirestoreDate(purchase?.purchaseDate ?? purchase?.paidAt)}</small>
                         <Link to={`/online-courses/${course.id}`} className="button button-primary">
                           <Play size={14} /> Continue Learning
                         </Link>

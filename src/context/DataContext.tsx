@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, deleteField } from 'firebase/firestore';
 import { db } from '../firebase';
 import { type Course } from '../components/courses/CourseCard';
 import {
@@ -285,7 +285,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       lessons: publicLessonMetadata(course.lessons),
       lessonCount: course.lessons.length,
       order,
-    });
+      stripeProductId: deleteField(),
+      stripePriceId: deleteField(),
+      stripeSyncError: deleteField(),
+    }, { merge: true });
     await persistCourseLessons(safeId, course.lessons);
   };
 
@@ -297,7 +300,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...course,
       lessons: publicLessonMetadata(course.lessons),
       lessonCount: course.lessons.length,
-    });
+      stripeProductId: deleteField(),
+      stripePriceId: deleteField(),
+      stripeSyncError: deleteField(),
+    }, { merge: true });
     await persistCourseLessons(course.id, course.lessons, previousLessonIds);
   };
 

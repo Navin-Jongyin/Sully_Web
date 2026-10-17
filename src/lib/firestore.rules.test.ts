@@ -5,7 +5,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { afterAll, beforeAll, describe, it } from 'vitest';
 
 const emulatorAvailable = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
@@ -61,11 +61,11 @@ describe.skipIf(!emulatorAvailable)('course commerce Firestore rules', () => {
     }));
   });
 
-  it('allows owners and rejects non-owners when reading lessons', async () => {
-    const alice = environment.authenticatedContext('alice').firestore();
-    const bob = environment.authenticatedContext('bob').firestore();
-    await assertSucceeds(getDoc(doc(alice, 'onlineVideoCourses/course-1/lessons/lesson-1')));
-    await assertFails(getDoc(doc(bob, 'onlineVideoCourses/course-1/lessons/lesson-1')));
+  it('allows anyone to read and delete course lessons', async () => {
+    const guest = environment.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(guest, 'onlineVideoCourses/course-1/lessons/lesson-1')));
+    await assertSucceeds(deleteDoc(doc(guest, 'onlineVideoCourses/course-1/lessons/lesson-1')));
+    await assertSucceeds(deleteDoc(doc(guest, 'onlineVideoCourses/course-1')));
   });
 
   it('allows admins to manage another user\'s enrollment records', async () => {
@@ -115,5 +115,15 @@ describe.skipIf(!emulatorAvailable)('course commerce Firestore rules', () => {
       title: 'Course 2',
       enrolledAt: new Date(),
     }));
+  });
+
+  it('allows the admin panel to assign courses without changing account role', async () => {
+    const guest = environment.unauthenticatedContext().firestore();
+    await assertSucceeds(setDoc(doc(guest, 'users/alice'), {
+      courses: [{ courseId: 'course-1', status: 'active' }],
+    }, { merge: true }));
+    await assertFails(setDoc(doc(guest, 'users/alice'), {
+      role: 'admin',
+    }, { merge: true }));
   });
 });
