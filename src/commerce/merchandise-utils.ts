@@ -122,7 +122,7 @@ export function availableStock(
     const color = resolveColorOption(product, colorOptionId);
     return color?.stockCount ?? 0;
   }
-  return product.stockCount;
+  return product.stockCount ?? 0;
 }
 
 export function isMerchandisePurchasable(

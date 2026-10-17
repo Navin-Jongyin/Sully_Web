@@ -1,4 +1,5 @@
 import { auth } from '../firebase';
+import type { MerchandiseInvoiceInfo, MerchandiseShippingAddress } from '../commerce/types';
 
 const paymentBaseUrl = (): string => {
   const raw = import.meta.env.VITE_PAYMENT_API_URL as string | undefined;
@@ -52,6 +53,45 @@ export async function createCheckoutSession(
       Authorization: `Bearer ${idToken}`,
     },
     body: JSON.stringify({ courseId }),
+  });
+
+  if (!res.ok) {
+    const payload = await res.json().catch(() => null) as { error?: { message?: string } } | null;
+    throw new Error(payload?.error?.message || `Checkout failed (${res.status}).`);
+  }
+
+  return res.json() as Promise<CreateCheckoutResponse>;
+}
+
+export interface MerchandiseCartCheckoutItem {
+  merchandiseId: string;
+  colorOptionId?: string;
+  quantity: number;
+}
+
+export async function createMerchandiseCartCheckout(
+  items: MerchandiseCartCheckoutItem[],
+  details: {
+    shippingAddress: MerchandiseShippingAddress;
+    invoiceInfo: MerchandiseInvoiceInfo;
+  },
+): Promise<CreateCheckoutResponse> {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Please sign in before checkout.');
+  if (items.length === 0) throw new Error('Your cart is empty.');
+
+  const idToken = await user.getIdToken();
+  const res = await fetch(`${paymentBaseUrl()}/createMerchandiseCartCheckout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({
+      items,
+      shippingAddress: details.shippingAddress,
+      invoiceInfo: details.invoiceInfo,
+    }),
   });
 
   if (!res.ok) {

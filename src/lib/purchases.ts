@@ -5,11 +5,13 @@ import {
   getDocs,
   onSnapshot,
   query,
+  serverTimestamp,
+  updateDoc,
   where,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { PurchaseRecord } from '../commerce/types';
+import type { PurchaseRecord, PurchaseStatus } from '../commerce/types';
 
 export async function fetchUserPurchases(uid: string): Promise<PurchaseRecord[]> {
   const snap = await getDocs(query(collection(db, 'purchases'), where('uid', '==', uid)));
@@ -47,4 +49,14 @@ export function subscribeCourseEntitlements(
 export async function userOwnsCourse(uid: string, courseId: string): Promise<boolean> {
   const docSnap = await getDoc(doc(db, 'userEntitlements', uid, 'courses', courseId));
   return docSnap.exists();
+}
+
+export async function updateMerchandiseOrderStatus(
+  orderId: string,
+  status: PurchaseStatus,
+): Promise<void> {
+  await updateDoc(doc(db, 'purchases', orderId), {
+    status,
+    statusUpdatedAt: serverTimestamp(),
+  });
 }

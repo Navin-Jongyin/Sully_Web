@@ -21,6 +21,10 @@ export interface Translations {
     pageNotFound: string;
     pageNotFoundDesc: string;
     loading: string;
+    ok: string;
+    cancel: string;
+    noticeTitle: string;
+    confirmTitle: string;
   };
   home: {
     eyebrow: string;
@@ -187,6 +191,30 @@ export interface Translations {
     muxPlaceholder: string;
     muxHint: string;
     videoPending: string;
+    checkoutDetailsTitle: string;
+    checkoutDetailsDesc: string;
+    backToShop: string;
+    shippingAddressTitle: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2: string;
+    district: string;
+    province: string;
+    postalCode: string;
+    country: string;
+    invoiceTitle: string;
+    needsInvoice: string;
+    invoiceName: string;
+    taxId: string;
+    companyName: string;
+    branch: string;
+    continueToPayment: string;
+    orderSummary: string;
+    quantity: string;
+    cartTotal: string;
+    checkoutSummaryHint: string;
   };
 }
 
@@ -212,6 +240,10 @@ export const translations: Record<Language, Translations> = {
       pageNotFound: 'Page not found',
       pageNotFoundDesc: 'The page you\'re looking for doesn\'t exist.',
       loading: 'Loading…',
+      ok: 'OK',
+      cancel: 'Cancel',
+      noticeTitle: 'Notice',
+      confirmTitle: 'Confirm',
     },
     home: {
       eyebrow: 'Student Pilot',
@@ -378,6 +410,30 @@ export const translations: Record<Language, Translations> = {
       muxPlaceholder: 'Mux player placeholder — replace with Mux Player when the API service is ready.',
       muxHint: 'See docs/MUX.md for integration steps.',
       videoPending: 'Video not uploaded yet (Mux playback ID is still a placeholder).',
+      checkoutDetailsTitle: 'Checkout details',
+      checkoutDetailsDesc: 'Add a shipping address before payment. Add invoice details if you need a tax invoice.',
+      backToShop: 'Back to shop',
+      shippingAddressTitle: 'Shipping address',
+      fullName: 'Full name',
+      email: 'Email',
+      phone: 'Phone',
+      addressLine1: 'Address line 1',
+      addressLine2: 'Address line 2',
+      district: 'District',
+      province: 'Province',
+      postalCode: 'Postal code',
+      country: 'Country',
+      invoiceTitle: 'Tax invoice',
+      needsInvoice: 'I need a tax invoice',
+      invoiceName: 'Invoice name',
+      taxId: 'Tax ID',
+      companyName: 'Company name',
+      branch: 'Branch',
+      continueToPayment: 'Continue to payment',
+      orderSummary: 'Order summary',
+      quantity: 'Qty',
+      cartTotal: 'Total',
+      checkoutSummaryHint: 'Prices are confirmed on the server before Stripe checkout opens.',
     },
   },
   th: {
@@ -401,6 +457,10 @@ export const translations: Record<Language, Translations> = {
       pageNotFound: 'ไม่พบหน้านี้',
       pageNotFoundDesc: 'ไม่พบหน้าที่คุณกำลังค้นหา',
       loading: 'กำลังโหลด…',
+      ok: 'ตกลง',
+      cancel: 'ยกเลิก',
+      noticeTitle: 'แจ้งเตือน',
+      confirmTitle: 'ยืนยัน',
     },
     home: {
       eyebrow: 'ศิษย์การบิน',
@@ -567,6 +627,30 @@ export const translations: Record<Language, Translations> = {
       muxPlaceholder: 'ตัวเล่น Mux ชั่วคราว — เปลี่ยนเป็น Mux Player เมื่อ API พร้อม',
       muxHint: 'ดู docs/MUX.md สำหรับขั้นตอนการเชื่อมต่อ',
       videoPending: 'ยังไม่อัปโหลดวิดีโอ (Mux Playback ID ยังเป็น placeholder)',
+      checkoutDetailsTitle: 'ข้อมูลก่อนชำระเงิน',
+      checkoutDetailsDesc: 'กรอกที่อยู่จัดส่งก่อนชำระเงิน และข้อมูลใบกำกับภาษีหากต้องการ',
+      backToShop: 'กลับร้านค้า',
+      shippingAddressTitle: 'ที่อยู่จัดส่ง',
+      fullName: 'ชื่อ-นามสกุล',
+      email: 'อีเมล',
+      phone: 'เบอร์โทร',
+      addressLine1: 'ที่อยู่บรรทัดที่ 1',
+      addressLine2: 'ที่อยู่บรรทัดที่ 2',
+      district: 'เขต/อำเภอ',
+      province: 'จังหวัด',
+      postalCode: 'รหัสไปรษณีย์',
+      country: 'ประเทศ',
+      invoiceTitle: 'ใบกำกับภาษี',
+      needsInvoice: 'ต้องการใบกำกับภาษี',
+      invoiceName: 'ชื่อในใบกำกับ',
+      taxId: 'เลขผู้เสียภาษี',
+      companyName: 'ชื่อบริษัท',
+      branch: 'สาขา',
+      continueToPayment: 'ไปชำระเงิน',
+      orderSummary: 'สรุปคำสั่งซื้อ',
+      quantity: 'จำนวน',
+      cartTotal: 'รวม',
+      checkoutSummaryHint: 'ราคาจะถูกยืนยันจากเซิร์ฟเวอร์ก่อนเปิดหน้าชำระเงิน Stripe',
     },
   },
 };

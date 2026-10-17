@@ -1,14 +1,27 @@
 /** Catalog item sold in the merchandise shop. */
+export interface MerchandiseColorOption {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  stockCount: number;
+  inStock?: boolean;
+}
+
 export interface MerchandiseProduct {
   id: string;
   name: string;
   description: string;
   priceThb: number;
   imageUrl: string;
+  imageUrls?: string[];
+  colors?: MerchandiseColorOption[];
+  stockCount?: number;
   category: 'apparel' | 'accessory' | 'other';
   inStock: boolean;
   /** Stripe Price ID — filled when payment service is live */
   stripePriceId?: string;
+  stripeProductId?: string;
+  stripeSyncError?: string;
   order?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -59,9 +72,41 @@ export interface OnlineVideoCourse {
   updatedAt?: string;
 }
 
-export type PurchaseProductType = 'course' | 'merchandise';
+export type PurchaseProductType = 'course' | 'merchandise' | 'merchandise_cart';
 
 export type PurchaseStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+
+export interface MerchandisePurchaseLineItem {
+  merchandiseId: string;
+  colorOptionId?: string;
+  colorName?: string;
+  quantity: number;
+  priceThb: number;
+  lineTotalThb: number;
+  title: string;
+  stripePriceId?: string;
+  stripeProductId?: string;
+}
+
+export interface MerchandiseShippingAddress {
+  fullName: string;
+  email: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  district: string;
+  province: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface MerchandiseInvoiceInfo {
+  needsInvoice: boolean;
+  invoiceName?: string;
+  taxId?: string;
+  companyName?: string;
+  branch?: string;
+}
 
 /** Order / purchase record written by payment webhook (placeholder client writes for now). */
 export interface PurchaseRecord {
@@ -71,11 +116,19 @@ export interface PurchaseRecord {
   productType: PurchaseProductType;
   productId: string;
   courseId?: string;
+  merchandiseId?: string;
+  colorOptionId?: string;
+  colorName?: string;
   productTitle: string;
   amountThb: number;
   amountPaidMinor?: number;
   currency?: string;
   status: PurchaseStatus;
+  items?: MerchandisePurchaseLineItem[];
+  isGuest?: boolean;
+  shippingAddress?: MerchandiseShippingAddress;
+  invoiceInfo?: MerchandiseInvoiceInfo;
+  statusUpdatedAt?: unknown;
   /** Stripe Checkout Session ID when payment service is live */
   stripeSessionId?: string;
   stripePaymentIntentId?: string;

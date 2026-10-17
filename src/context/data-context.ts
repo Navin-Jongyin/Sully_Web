@@ -18,7 +18,7 @@ export interface NewsArticle {
 
 export interface YearStats {
   id: string;
-  stats: { label: string; value: string }[];
+  stats: { label: string; value: string; color?: string }[];
   testimonial: { quote: string; author: string };
 }
 
