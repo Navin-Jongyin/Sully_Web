@@ -1,10 +1,12 @@
-import type { Timestamp } from 'firebase/firestore';
+export interface CourseExpiry {
+  toDate: () => Date;
+}
 
 export interface UserCourseAccessEntry {
   courseId: string;
   assignedBy?: string;
   assignedAt?: unknown;
-  expiresAt?: Timestamp | null;
+  expiresAt?: CourseExpiry | null;
   status?: 'active' | 'revoked';
 }
 
@@ -16,7 +18,7 @@ export function isCourseAccessActive(
   if (!entry) return false;
   if (entry.status === 'revoked') return false;
 
-  const expiresAt = entry.expiresAt as Timestamp | null | undefined;
+  const expiresAt = entry.expiresAt;
   if (expiresAt && typeof expiresAt.toDate === 'function') {
     const expiryMs = expiresAt.toDate().getTime();
     if (Date.now() > expiryMs) return false;

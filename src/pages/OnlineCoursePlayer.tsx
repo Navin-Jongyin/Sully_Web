@@ -15,7 +15,7 @@ import { useAssignedCourses } from '../hooks/useAssignedCourses';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
 import { db } from '../firebase';
-import { isCourseAccessActive } from '../lib/user-course-access';
+import { isCourseAccessActive, type UserCourseAccessEntry } from '../lib/user-course-access';
 import { userOwnsCourse } from '../lib/purchases';
 import { subscribeCourseLessons } from '../lib/course-lessons';
 import {
@@ -71,7 +71,7 @@ const OnlineCoursePlayerPage: React.FC = () => {
       .then(async () => {
         if (!cancelled) {
           const userSnap = await getDoc(doc(db, 'users', user.uid));
-          const courseEntries = (userSnap.data()?.courses ?? []) as Array<{ courseId: string; status?: string; expiresAt?: { toDate: () => Date } }>;
+          const courseEntries = (userSnap.data()?.courses ?? []) as UserCourseAccessEntry[];
           const hasAssignedAccess = isCourseAccessActive(courseEntries, courseId);
           setOwns(hasAssignedAccess || assignedCourseIds.includes(courseId));
         }
@@ -80,7 +80,7 @@ const OnlineCoursePlayerPage: React.FC = () => {
         if (!cancelled) {
           const userSnap = async () => {
             const snap = await getDoc(doc(db, 'users', user.uid));
-            const courseEntries = (snap.data()?.courses ?? []) as Array<{ courseId: string; status?: string; expiresAt?: { toDate: () => Date } }>;
+            const courseEntries = (snap.data()?.courses ?? []) as UserCourseAccessEntry[];
             return isCourseAccessActive(courseEntries, courseId);
           };
           void userSnap().then((hasAssignedAccess) => setOwns(hasAssignedAccess || assignedCourseIds.includes(courseId)));
