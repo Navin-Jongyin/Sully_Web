@@ -15,16 +15,12 @@ service firebase.storage {
 
     match /online-course-thumbnails/{courseId}/{fileName} {
       allow read: if true;
-      // Temporary legacy-admin exception; file type and size remain constrained.
-      allow create, update: if isImage();
-      allow delete: if false;
+      allow create, update, delete: if isImage();
     }
 
     match /uploads/{fileName} {
       allow read: if true;
-      // Existing CMS uploader uses the deferred session-only admin flow.
-      allow create, update: if isImage();
-      allow delete: if false;
+      allow create, update, delete: if isImage();
     }
 
     match /products/{productId}/{fileName} {
