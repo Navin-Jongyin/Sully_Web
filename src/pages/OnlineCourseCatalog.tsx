@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, Lock, Play, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useAssignedCourses } from '../hooks/useAssignedCourses';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
 import { createCheckoutSession, formatThb } from '../lib/payments';
@@ -17,6 +18,7 @@ const OnlineCoursesPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { onlineVideoCourses } = useData();
+  const { assignedCourseIds } = useAssignedCourses(user?.uid ?? null);
   const [searchParams] = useSearchParams();
   const [owned, setOwned] = useState<string[]>([]);
   const [buyingId, setBuyingId] = useState<string | null>(null);
@@ -29,7 +31,7 @@ const OnlineCoursesPage: React.FC = () => {
   }, [user]);
 
   const published = onlineVideoCourses.filter((c) => c.published);
-  const visibleOwned = user ? owned : [];
+  const visibleOwned = user ? [...new Set([...owned, ...assignedCourseIds])] : assignedCourseIds;
 
   useEffect(() => {
     let active = true;

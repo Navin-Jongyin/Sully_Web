@@ -9,9 +9,13 @@ import {
   Clock,
   Lock,
 } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
+import { useAssignedCourses } from '../hooks/useAssignedCourses';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
+import { db } from '../firebase';
+import { isCourseAccessActive } from '../lib/user-course-access';
 import { userOwnsCourse } from '../lib/purchases';
 import { subscribeCourseLessons } from '../lib/course-lessons';
 import {
@@ -36,7 +40,9 @@ const OnlineCoursePlayerPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { onlineVideoCourses, loading } = useData();
+  const { assignedCourseIds } = useAssignedCourses(user?.uid ?? null);
   const [owns, setOwns] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [lessons, setLessons] = useState<OnlineCourseLesson[]>([]);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
@@ -48,10 +54,43 @@ const OnlineCoursePlayerPage: React.FC = () => {
 
   useEffect(() => {
     if (!user || !courseId) return;
+
+    let cancelled = false;
+
+    const checkAdmin = async () => {
+      try {
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (!cancelled) setIsAdmin(userSnap.exists() && userSnap.data().role === 'admin');
+      } catch {
+        if (!cancelled) setIsAdmin(false);
+      }
+    };
+
+    void checkAdmin();
     userOwnsCourse(user.uid, courseId)
-      .then(setOwns)
-      .catch(() => setOwns(false));
-  }, [user, courseId]);
+      .then(async () => {
+        if (!cancelled) {
+          const userSnap = await getDoc(doc(db, 'users', user.uid));
+          const courseEntries = (userSnap.data()?.courses ?? []) as Array<{ courseId: string; status?: string; expiresAt?: { toDate: () => Date } }>;
+          const hasAssignedAccess = isCourseAccessActive(courseEntries, courseId);
+          setOwns(hasAssignedAccess || assignedCourseIds.includes(courseId));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          const userSnap = async () => {
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            const courseEntries = (snap.data()?.courses ?? []) as Array<{ courseId: string; status?: string; expiresAt?: { toDate: () => Date } }>;
+            return isCourseAccessActive(courseEntries, courseId);
+          };
+          void userSnap().then((hasAssignedAccess) => setOwns(hasAssignedAccess || assignedCourseIds.includes(courseId)));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, courseId, assignedCourseIds]);
 
   useEffect(() => {
     if (!course || !owns) return;
@@ -95,13 +134,13 @@ const OnlineCoursePlayerPage: React.FC = () => {
     );
   }
 
-  if (!owns) {
+  if (!owns && !isAdmin) {
     return (
       <main className="container section commerce-page">
         <div className="commerce-locked">
           <Lock size={40} />
-          <h2>{t.commerce.accessLocked}</h2>
-          <p>{t.commerce.accessLockedDesc}</p>
+          <h2>Access denied</h2>
+          <p>You do not have an active assignment for this course.</p>
           <Link to="/online-courses" className="button button-primary">{t.commerce.backToCourses}</Link>
         </div>
       </main>
