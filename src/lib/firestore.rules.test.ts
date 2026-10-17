@@ -42,6 +42,10 @@ describe.skipIf(!emulatorAvailable)('course commerce Firestore rules', () => {
         uid: 'alice',
         role: 'customer',
       });
+      await setDoc(doc(firestore, 'users/student-no-role'), {
+        uid: 'student-no-role',
+        email: 'student@example.com',
+      });
       await setDoc(doc(firestore, 'users/alice/enrollments/course-1'), {
         courseId: 'course-1',
         title: 'Course',
@@ -124,6 +128,9 @@ describe.skipIf(!emulatorAvailable)('course commerce Firestore rules', () => {
     }, { merge: true }));
     await assertFails(setDoc(doc(guest, 'users/alice'), {
       role: 'admin',
+    }, { merge: true }));
+    await assertSucceeds(setDoc(doc(guest, 'users/student-no-role'), {
+      courses: [{ courseId: 'course-1', status: 'active' }],
     }, { merge: true }));
   });
 });

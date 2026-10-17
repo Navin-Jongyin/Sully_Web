@@ -21,7 +21,7 @@ service cloud.firestore {
     }
 
     function keepsAccountControls() {
-      return request.resource.data.role == resource.data.role
+      return request.resource.data.get('role', null) == resource.data.get('role', null)
         && request.resource.data.get('stripeCustomerId', null)
              == resource.data.get('stripeCustomerId', null);
     }
@@ -90,10 +90,10 @@ service cloud.firestore {
       allow create: if ownsUser(userId)
         && request.resource.data.role == 'customer';
 
-      // Owners can edit their own profile. Admin course assignment may change
-      // only the courses list, and cannot change role or Stripe customer id.
-      allow update: if keepsAccountControls()
-        && (profileIsAdmin() || ownsUser(userId) || assignsCoursesOnly());
+      // The admin panel is a password session, so request.auth is null there.
+      // A courses-only update is how that session assigns access.
+      allow update: if assignsCoursesOnly()
+        || (keepsAccountControls() && (profileIsAdmin() || ownsUser(userId)));
 
       allow delete: if profileIsAdmin();
 
