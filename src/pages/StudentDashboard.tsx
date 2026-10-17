@@ -240,7 +240,7 @@ const StudentDashboard: React.FC = () => {
                           <span>{course.category}</span>
                           <h3>{course.title}</h3>
                           <p>{course.instructor || 'Sully Academy'}</p>
-                          <p>{course.lessonCount ?? course.lessons.length} {t.commerce.lessons}</p>
+                          <p>{course.lessonCount ?? course.lessons?.length ?? 0} {t.commerce.lessons}</p>
                           <div className="sd-progress">
                             <div><i style={{ width: `${progress?.completionPercentage ?? 0}%` }} /></div>
                             <span>{progress?.completionPercentage ?? 0}%</span>
@@ -307,7 +307,7 @@ const StudentDashboard: React.FC = () => {
                         <span>{course.category}</span>
                         <h3>{course.title}</h3>
                         <p>{course.instructor || 'Sully Academy'}</p>
-                        <p>{course.lessonCount ?? course.lessons.length} {t.commerce.lessons}</p>
+                        <p>{course.lessonCount ?? course.lessons?.length ?? 0} {t.commerce.lessons}</p>
                         <div className="sd-progress">
                           <div><i style={{ width: `${progress?.completionPercentage ?? 0}%` }} /></div>
                           <span>{progress?.completionPercentage ?? 0}%</span>

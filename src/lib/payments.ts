@@ -103,9 +103,10 @@ export async function createMerchandiseCartCheckout(
 }
 
 export function formatThb(amount: number): string {
+  const value = Number(amount);
   return new Intl.NumberFormat('th-TH', {
     style: 'currency',
     currency: 'THB',
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(Number.isFinite(value) ? value : 0);
 }

@@ -146,7 +146,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Failed to load course lessons.');
       // Fallback to lightweight metadata so admin can still edit core course fields
-      setForm((f) => ({ ...f, lessons: course.lessons.length ? course.lessons : [emptyLesson(0)] }));
+      setForm((f) => ({ ...f, lessons: course.lessons?.length ? course.lessons : [emptyLesson(0)] }));
     }
   };
 
@@ -303,9 +303,9 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
               <div key={course.id} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 80px 100px', gap: '1rem', padding: '1rem 1.5rem', borderBottom: '1px solid var(--glass-border)', alignItems: 'center' }}>
                 <div>
                   <strong>{course.title}</strong>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{course.lessons.length} lessons · {course.category}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{course.lessonCount ?? course.lessons?.length ?? 0} lessons · {course.category}</div>
                 </div>
-                <div>฿{course.priceThb.toLocaleString()}</div>
+                <div>฿{Number(course.priceThb || 0).toLocaleString()}</div>
                 <div>{course.published ? 'Live' : 'Draft'}</div>
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                   <button type="button" onClick={() => openEdit(course)} style={{ background: 'var(--input-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', padding: '0.5rem', cursor: 'pointer' }}>

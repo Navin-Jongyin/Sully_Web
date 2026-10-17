@@ -126,14 +126,14 @@ const OnlineCoursesPage: React.FC = () => {
                     <h3>{course.title}</h3>
                     <p>{course.description}</p>
                     <p className="commerce-meta">
-                      {course.lessonCount ?? course.lessons.length} {t.commerce.lessons}
+                      {course.lessonCount ?? course.lessons?.length ?? 0} {t.commerce.lessons}
                       {course.instructor ? ` · ${course.instructor}` : ''}
                     </p>
                     <div className="commerce-card-footer">
                       <strong>
                         {stripeProduct
                           ? formatStripeAmount(stripeProduct.amount, stripeProduct.currency)
-                          : formatThb(course.priceThb)}
+                          : formatThb(Number(course.priceThb) || 0)}
                       </strong>
                       {isOwned ? (
                         <Link to={`/online-courses/${course.id}`} className="button button-primary">

@@ -156,7 +156,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsub = onSnapshot(
       collection(db, 'onlineVideoCourses'),
       (snapshot) => {
-        const data = sortByOrder(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as OnlineVideoCourse)));
+        const data = sortByOrder(snapshot.docs.map((d) => {
+          const course = { id: d.id, ...d.data() } as OnlineVideoCourse;
+          return {
+            ...course,
+            lessons: Array.isArray(course.lessons) ? course.lessons : [],
+            priceThb: Number(course.priceThb) || 0,
+            published: course.published === true,
+          };
+        }));
         setOnlineVideoCoursesState(data);
         markLoaded('onlineVideoCourses');
       },
