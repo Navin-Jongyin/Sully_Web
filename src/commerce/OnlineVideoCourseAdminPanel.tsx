@@ -38,10 +38,11 @@ const LessonEditor: React.FC<{
   lesson: OnlineCourseLesson;
   index: number;
   canRemove: boolean;
+  uploading: boolean;
   onChange: (patch: Partial<OnlineCourseLesson>) => void;
   onRemove: () => void;
   onUploadMaterial: (file: File) => Promise<void>;
-}> = ({ lesson, index, canRemove, onChange, onRemove, onUploadMaterial }) => {
+}> = ({ lesson, index, canRemove, uploading, onChange, onRemove, onUploadMaterial }) => {
   const dragControls = useDragControls();
 
   return (
@@ -82,19 +83,13 @@ const LessonEditor: React.FC<{
         </select>
         <input placeholder="HTTPS video/embed URL (blank keeps existing URL)" value={lesson.videoUrl ?? ''} onChange={(e) => onChange({ videoUrl: e.target.value })} />
       </div>
-      <div style={{ display: 'grid', gap: '0.5rem' }}>
-        <label>Course material (optional)</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-          {lesson.materialUrl ? (
-            <a href={lesson.materialUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--link-color, #60a5fa)' }}>
-              Open {lesson.materialType === 'pdf' ? 'PDF' : 'image'}
-            </a>
-          ) : (
-            <span style={{ color: 'var(--text-secondary)' }}>No material uploaded yet</span>
-          )}
+      <label>
+        Course material (optional)
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
           <input
             type="file"
             accept="image/*,.pdf"
+            disabled={uploading}
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) {
@@ -103,8 +98,15 @@ const LessonEditor: React.FC<{
               event.target.value = '';
             }}
           />
-        </div>
-      </div>
+          <Upload size={18} />
+          {uploading ? 'Uploading…' : 'Max 10 MB'}
+        </span>
+      </label>
+      {lesson.materialUrl && (
+        <a href={lesson.materialUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--link-color, #60a5fa)', marginTop: '-0.1rem' }}>
+          Open {lesson.materialType === 'pdf' ? 'PDF' : 'image'}
+        </a>
+      )}
       <label>Duration (seconds)<input type="number" min={0} value={lesson.durationSeconds ?? 0} onChange={(e) => onChange({ durationSeconds: Number(e.target.value) })} /></label>
       {canRemove && (
         <button type="button" onClick={onRemove} style={{ justifySelf: 'start', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -429,6 +431,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
                     lesson={lesson}
                     index={i}
                     canRemove={form.lessons.length > 1}
+                    uploading={uploading}
                     onChange={(patch) => updateLesson(i, patch)}
                     onRemove={() => setForm({ ...form, lessons: form.lessons.filter((_, idx) => idx !== i) })}
                     onUploadMaterial={async (file) => { await uploadLessonMaterial(lesson.id, file); }}
