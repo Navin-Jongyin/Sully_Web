@@ -190,6 +190,18 @@ const OnlineCoursePlayerPage: React.FC = () => {
                   </span>
                 </div>
                 {active.description && <p>{active.description}</p>}
+                {active.materialUrl && (
+                  <div className="commerce-lesson-material" style={{ marginTop: '1rem', padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'var(--surface-subtle)' }}>
+                    <strong style={{ display: 'block', marginBottom: '0.5rem' }}>Course material</strong>
+                    {active.materialType === 'image' ? (
+                      <img src={active.materialUrl} alt="Course material" style={{ maxWidth: '100%', maxHeight: '260px', borderRadius: '0.75rem', objectFit: 'contain' }} />
+                    ) : (
+                      <a href={active.materialUrl} target="_blank" rel="noreferrer" className="button button-secondary">
+                        Open PDF material
+                      </a>
+                    )}
+                  </div>
+                )}
                 {progressError && <p className="commerce-error" role="alert">{progressError}</p>}
                 <div className="commerce-player-actions">
                   <button

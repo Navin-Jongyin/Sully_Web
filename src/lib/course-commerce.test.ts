@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { completionPercentage } from './course-progress';
+import { publicLessonMetadata } from './course-lessons';
 import { resolveVideoSource } from './video-source';
 import type { OnlineCourseLesson } from '../commerce/types';
 
@@ -35,5 +36,31 @@ describe('video source normalization', () => {
 
   it('rejects unsafe protocols', () => {
     expect(resolveVideoSource(lesson('javascript:alert(1)')).kind).toBe('none');
+  });
+});
+
+describe('lesson material metadata', () => {
+  it('keeps uploaded PDF and image material URLs in public metadata', () => {
+    const lessonWithMaterial: OnlineCourseLesson = {
+      id: 'lesson-2',
+      title: 'Material lesson',
+      description: 'Reading',
+      durationSeconds: 120,
+      materialUrl: 'https://firebasestorage.googleapis.com/example/lesson-guide.pdf',
+      materialType: 'pdf',
+      order: 1,
+    };
+
+    expect(publicLessonMetadata([lessonWithMaterial])).toEqual([
+      {
+        id: 'lesson-2',
+        title: 'Material lesson',
+        description: 'Reading',
+        durationSeconds: 120,
+        materialUrl: 'https://firebasestorage.googleapis.com/example/lesson-guide.pdf',
+        materialType: 'pdf',
+        order: 1,
+      },
+    ]);
   });
 });
