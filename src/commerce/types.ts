@@ -37,8 +37,6 @@ export type VideoProvider =
   | 'direct'
   | 'iframe';
 
-export type LessonMaterialType = 'pdf' | 'image';
-
 /** Provider-neutral course lesson. Legacy Mux fields remain migration-compatible. */
 export interface OnlineCourseLesson {
   id: string;
@@ -48,8 +46,6 @@ export interface OnlineCourseLesson {
   durationSeconds?: number;
   videoUrl?: string;
   videoProvider?: VideoProvider;
-  materialUrl?: string;
-  materialType?: LessonMaterialType;
   /** Mux Playback ID — placeholder until Mux upload pipeline is ready */
   muxPlaybackId?: string;
   /** Mux Asset ID — set after upload to Mux */

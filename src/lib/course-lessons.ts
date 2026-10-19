@@ -26,8 +26,6 @@ function mergeStoredLessons(
       durationSeconds: lesson.durationSeconds || fallback?.durationSeconds || 0,
       videoUrl: lesson.videoUrl?.trim() || fallback?.videoUrl,
       videoProvider: lesson.videoProvider ?? fallback?.videoProvider ?? 'auto',
-      materialUrl: lesson.materialUrl?.trim() || fallback?.materialUrl,
-      materialType: lesson.materialType ?? fallback?.materialType ?? undefined,
     };
   });
 }
@@ -52,8 +50,6 @@ export function publicLessonMetadata(lessons: OnlineCourseLesson[]): OnlineCours
     title: lesson.title,
     description: lesson.description ?? '',
     durationSeconds: lesson.durationSeconds ?? 0,
-    materialUrl: lesson.materialUrl?.trim() || undefined,
-    materialType: lesson.materialType ?? undefined,
     order: index,
   }));
 }
@@ -123,8 +119,6 @@ export async function persistCourseLessons(
     // Admins using the deferred session-only flow cannot read protected video
     // URLs; leaving the field blank retains the existing URL during metadata edits.
     if (!lesson.videoUrl) delete lessonData.videoUrl;
-    if (!lesson.materialUrl) delete lessonData.materialUrl;
-    if (!lesson.materialType) delete lessonData.materialType;
     batch.set(doc(lessonCollection, lesson.id), lessonData, { merge: true });
   });
   await batch.commit();
