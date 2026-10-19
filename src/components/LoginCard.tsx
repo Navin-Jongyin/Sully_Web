@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { FirebaseError } from 'firebase/app';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -69,29 +68,9 @@ const LoginCard: React.FC<LoginCardProps> = ({
   variant = 'card',
 }) => {
   const { t } = useTranslation();
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signInWithGoogle } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
-      if (mode === 'signin') {
-        await signInWithEmail(email, password);
-      } else {
-        await signUpWithEmail(email, password);
-      }
-    } catch (err) {
-      setError(getAuthFormErrorMessage(err, t));
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     setError(null);
@@ -113,86 +92,57 @@ const LoginCard: React.FC<LoginCardProps> = ({
         <p className="login-panel-desc">{description}</p>
       </div>
 
-      <div className="login-mode-toggle" role="tablist" aria-label="Auth mode">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === 'signin'}
-          className={mode === 'signin' ? 'is-active' : ''}
-          onClick={() => { setMode('signin'); setError(null); }}
-        >
-          {t.authForm.signIn}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === 'signup'}
-          className={mode === 'signup' ? 'is-active' : ''}
-          onClick={() => { setMode('signup'); setError(null); }}
-        >
-          {t.authForm.createAccount}
-        </button>
-      </div>
+      {
+        /*
+        Legacy email/password auth kept here as comments for now.
+        const { signInWithEmail, signUpWithEmail } = useAuth();
+        const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
 
-      <form className="login-form" onSubmit={handleEmailSubmit}>
-        <label className="login-field">
-          <span>{t.authForm.email}</span>
-          <div className="login-input-wrap">
-            <Mail size={18} aria-hidden="true" />
-            <input
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-        </label>
+        const handleEmailSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setError(null);
+          setSubmitting(true);
+          try {
+            if (mode === 'signin') {
+              await signInWithEmail(email, password);
+            } else {
+              await signUpWithEmail(email, password);
+            }
+          } catch (err) {
+            setError(getAuthFormErrorMessage(err, t));
+          } finally {
+            setSubmitting(false);
+          }
+        };
 
-        <label className="login-field">
-          <span>{t.authForm.password}</span>
-          <div className="login-input-wrap">
-            <Lock size={18} aria-hidden="true" />
-            <input
-              type="password"
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              required
-            />
-          </div>
-        </label>
+        <div className="login-mode-toggle" role="tablist" aria-label="Auth mode">
+          <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'is-active' : ''} onClick={() => { setMode('signin'); setError(null); }}>
+            {t.authForm.signIn}
+          </button>
+          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'is-active' : ''} onClick={() => { setMode('signup'); setError(null); }}>
+            {t.authForm.createAccount}
+          </button>
+        </div>
 
-        {error && (
-          <p role="alert" className="login-error">
-            {error}
-          </p>
-        )}
+        <form className="login-form" onSubmit={handleEmailSubmit}> ... </form>
+        <div className="login-divider"><span>{t.authForm.or}</span></div>
+        */
+      }
 
-        <button type="submit" className="button button-primary login-submit" disabled={submitting}>
-          <span>
-            {submitting
-              ? t.authForm.pleaseWait
-              : mode === 'signin'
-                ? t.authForm.signIn
-                : t.authForm.createAccount}
-          </span>
-          {!submitting && <ArrowRight size={18} />}
-        </button>
-      </form>
-
-      <div className="login-divider">
-        <span>{t.authForm.or}</span>
-      </div>
+      {error && (
+        <p role="alert" className="login-error" style={{ marginTop: '1rem' }}>
+          {error}
+        </p>
+      )}
 
       <button
         type="button"
         onClick={handleGoogleSignIn}
         disabled={submitting}
         className="login-google-btn"
+        style={{ marginTop: '1.5rem' }}
       >
         <GoogleIcon />
         {t.onlineTest.signInWithGoogle}
