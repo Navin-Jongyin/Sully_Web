@@ -195,15 +195,23 @@ const AssignCourseAdminPanel: React.FC = () => {
           </p>
         )}
 
-        <div className="assign-picker">
+        <div className="assign-picker" style={{ background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Users</label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Users</label>
             <input
               type="text"
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="Search users by name or email"
-              style={{ width: '100%', marginBottom: '0.75rem' }}
+              style={{
+                width: '100%',
+                marginBottom: '0.75rem',
+                background: 'rgba(96,165,250,0.06)',
+                border: '1px solid rgba(96,165,250,0.7)',
+                boxShadow: '0 0 0 3px rgba(96,165,250,0.15)',
+                outline: 'none',
+                color: 'var(--text-primary)',
+              }}
             />
             <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'grid', gap: '0.5rem' }}>
               {loading ? (
@@ -229,13 +237,21 @@ const AssignCourseAdminPanel: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Courses</label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Courses</label>
             <input
               type="text"
               value={courseSearch}
               onChange={(e) => setCourseSearch(e.target.value)}
               placeholder="Search courses"
-              style={{ width: '100%', marginBottom: '0.75rem' }}
+              style={{
+                width: '100%',
+                marginBottom: '0.75rem',
+                background: 'rgba(96,165,250,0.06)',
+                border: '1px solid rgba(96,165,250,0.7)',
+                boxShadow: '0 0 0 3px rgba(96,165,250,0.15)',
+                outline: 'none',
+                color: 'var(--text-primary)',
+              }}
             />
             <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'grid', gap: '0.5rem' }}>
               {visibleCourses.length === 0 ? (
