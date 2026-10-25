@@ -10,7 +10,13 @@ import {
 } from '../lib/student-intake';
 import './StudentIntakeDialog.css';
 
-const StudentIntakeDialog: React.FC = () => {
+interface StudentIntakeDialogProps {
+  mode?: 'required' | 'edit';
+  onClose?: () => void;
+  onSaved?: () => void;
+}
+
+const StudentIntakeDialog: React.FC<StudentIntakeDialogProps> = ({ mode = 'required', onClose, onSaved }) => {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [answers, setAnswers] = useState<StudentIntakeAnswers>(emptyStudentIntake);
@@ -18,6 +24,7 @@ const StudentIntakeDialog: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (mode === 'edit') return;
     if (loading || !user) {
       setOpen(false);
       return;
@@ -35,7 +42,30 @@ const StudentIntakeDialog: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [loading, user]);
+  }, [loading, mode, user]);
+
+  useEffect(() => {
+    if (mode !== 'edit' || loading || !user) return;
+
+    let cancelled = false;
+    fetchStudentIntake(user.uid)
+      .then((record) => {
+        if (cancelled) return;
+        if (record) {
+          setAnswers(Object.fromEntries(
+            STUDENT_INTAKE_FIELDS.map((field) => [field.key, record[field.key] ?? '']),
+          ) as StudentIntakeAnswers);
+        }
+        setOpen(true);
+      })
+      .catch(() => {
+        if (!cancelled) setOpen(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, mode, user]);
 
   if (!open || !user) return null;
 
@@ -49,6 +79,7 @@ const StudentIntakeDialog: React.FC = () => {
         age: ageFromBirthDate(answers.birthDate),
       });
       setOpen(false);
+      onSaved?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ');
     } finally {
@@ -62,7 +93,7 @@ const StudentIntakeDialog: React.FC = () => {
         <header className="intake-head">
           <p>Sully Academy</p>
           <h2 id="intake-title">ข้อมูลผู้สมัคร</h2>
-          <span>กรอกครั้งเดียว ระบบจะไม่ถามซ้ำหลังจากบันทึกแล้ว</span>
+          <span>{mode === 'edit' ? 'แก้ไขข้อมูลแล้วกดบันทึก' : 'กรอกครั้งเดียว ระบบจะไม่ถามซ้ำหลังจากบันทึกแล้ว'}</span>
         </header>
         <div className="intake-fields">
           {STUDENT_INTAKE_FIELDS.map((field) => {
@@ -90,6 +121,11 @@ const StudentIntakeDialog: React.FC = () => {
         </div>
         <footer className="intake-foot">
           {error && <p className="intake-error" role="alert">{error}</p>}
+          {mode === 'edit' && (
+            <button type="button" className="button button-secondary" disabled={saving} onClick={onClose}>
+              ยกเลิก
+            </button>
+          )}
           <button type="submit" className="button button-primary" disabled={saving}>
             {saving ? 'กำลังบันทึก…' : 'บันทึกข้อมูล'}
           </button>

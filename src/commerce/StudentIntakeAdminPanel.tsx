@@ -1,25 +1,31 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { collection, deleteDoc, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { ChevronDown } from 'lucide-react';
 import { db } from '../firebase';
+import { useAppDialog } from '../hooks/useAppDialog';
 import { STUDENT_INTAKE_FIELDS, type StudentIntakeRecord } from '../lib/student-intake';
 import './commerce.css';
 
 const StudentIntakeAdminPanel: React.FC = () => {
+  const { confirm } = useAppDialog();
   const [records, setRecords] = useState<StudentIntakeRecord[]>([]);
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const loadGeneration = useRef(0);
 
   useEffect(() => {
     return onSnapshot(
       collection(db, 'users'),
       (snapshot) => {
+        const generation = ++loadGeneration.current;
         void Promise.all(snapshot.docs.map(async (userDoc) => {
           const intake = await getDoc(doc(db, 'users', userDoc.id, 'studentIntake', 'profile'));
           if (!intake.exists() || intake.data().completed !== true) return null;
           return { uid: userDoc.id, email: userDoc.data().email, ...intake.data() } as StudentIntakeRecord;
         }))
           .then((rows) => {
+            if (generation !== loadGeneration.current) return;
             const completed = rows.filter((row): row is StudentIntakeRecord => row !== null);
             completed.sort((a, b) => (a.nickname || '').localeCompare(b.nickname || '', 'th', { sensitivity: 'base' }));
             setRecords(completed);
@@ -38,6 +44,24 @@ const StudentIntakeAdminPanel: React.FC = () => {
     if (!term) return records;
     return records.filter((record) => (record.nickname || '').toLowerCase().includes(term));
   }, [records, search]);
+
+  const deleteRecord = async (record: StudentIntakeRecord) => {
+    const label = record.nickname || record.email || 'this student';
+    const confirmed = await confirm(`Delete the information for ${label}?`);
+    if (!confirmed) return;
+
+    setDeletingId(record.uid);
+    setError(null);
+    try {
+      await deleteDoc(doc(db, 'users', record.uid, 'studentIntake', 'profile'));
+      loadGeneration.current += 1;
+      setRecords((current) => current.filter((entry) => entry.uid !== record.uid));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete student information.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="intake-admin-list">
@@ -62,7 +86,21 @@ const StudentIntakeAdminPanel: React.FC = () => {
                 <strong>{record.nickname || record.email || record.uid}</strong>
                 <small>{record.email}</small>
               </span>
-              <ChevronDown size={18} />
+              <span className="intake-admin-actions">
+                <button
+                  type="button"
+                  className="intake-admin-delete"
+                  disabled={deletingId === record.uid}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void deleteRecord(record);
+                  }}
+                >
+                  {deletingId === record.uid ? 'Deleting…' : 'Delete'}
+                </button>
+                <ChevronDown size={18} />
+              </span>
             </summary>
             <dl>
               {STUDENT_INTAKE_FIELDS.map((field) => (

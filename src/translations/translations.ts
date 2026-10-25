@@ -154,6 +154,14 @@ export interface Translations {
     viewAll: string;
     fromShop: string;
     profileNote: string;
+    studentInfo: string;
+    studentInfoEmpty: string;
+    studentInfoLoading: string;
+    personalInfo: string;
+    educationInfo: string;
+    workInfo: string;
+    healthInfo: string;
+    editInfo: string;
     navAria: string;
     studentFallback: string;
   };
@@ -383,6 +391,14 @@ export const translations: Record<Language, Translations> = {
       viewAll: 'View all',
       fromShop: 'From the shop',
       profileNote: 'Your account is linked to this email for courses and purchases.',
+      studentInfo: 'Student information',
+      studentInfoEmpty: 'You have not submitted your student information yet.',
+      studentInfoLoading: 'Loading your information…',
+      personalInfo: 'Personal',
+      educationInfo: 'Education',
+      workInfo: 'Work',
+      healthInfo: 'Health',
+      editInfo: 'Edit info',
       navAria: 'Dashboard',
       studentFallback: 'Student',
     },
@@ -610,6 +626,14 @@ export const translations: Record<Language, Translations> = {
       viewAll: 'ดูทั้งหมด',
       fromShop: 'จากร้านค้า',
       profileNote: 'บัญชีของคุณเชื่อมกับอีเมลนี้สำหรับคอร์สและการสั่งซื้อ',
+      studentInfo: 'ข้อมูลผู้สมัคร',
+      studentInfoEmpty: 'ยังไม่มีข้อมูลผู้สมัคร',
+      studentInfoLoading: 'กำลังโหลดข้อมูล…',
+      personalInfo: 'ข้อมูลส่วนตัว',
+      educationInfo: 'การศึกษา',
+      workInfo: 'การทำงาน',
+      healthInfo: 'สุขภาพ',
+      editInfo: 'แก้ไขข้อมูล',
       navAria: 'แดชบอร์ด',
       studentFallback: 'นักเรียน',
     },

@@ -642,6 +642,29 @@
   font-size: 0.82rem;
 }
 
+.intake-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: none;
+}
+
+.intake-admin-delete {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  color: #ef4444;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.intake-admin-delete:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .intake-admin-item summary svg {
   flex: none;
   color: var(--text-secondary);

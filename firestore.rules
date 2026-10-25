@@ -122,7 +122,8 @@ service cloud.firestore {
         allow create, update: if ownsUser(userId)
           && request.resource.data.completed == true
           && request.resource.data.uid == userId;
-        allow delete: if false;
+        // The admin panel is a password session, so request.auth is null there.
+        allow delete: if true;
       }
     }
 

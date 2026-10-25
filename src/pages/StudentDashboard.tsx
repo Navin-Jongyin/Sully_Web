@@ -17,8 +17,33 @@ import { useTranslation } from '../hooks/useTranslation';
 import { formatThb } from '../lib/payments';
 import { subscribeUserPurchases } from '../lib/purchases';
 import { subscribeCourseProgress } from '../lib/course-progress';
+import { fetchStudentIntake, STUDENT_INTAKE_FIELDS, type StudentIntakeKey, type StudentIntakeRecord } from '../lib/student-intake';
+import StudentIntakeDialog from '../components/StudentIntakeDialog';
 import type { CourseProgress, PurchaseRecord } from '../commerce/types';
 import './StudentDashboard.css';
+
+const PROFILE_SECTIONS: { id: 'personalInfo' | 'educationInfo' | 'workInfo' | 'healthInfo'; wide?: boolean; keys: StudentIntakeKey[] }[] = [
+  { id: 'personalInfo', wide: true, keys: ['nickname', 'birthDate', 'age', 'province', 'stayArea'] },
+  { id: 'educationInfo', keys: ['university', 'faculty', 'major', 'gpa', 'toeic', 'highSchoolTrack'] },
+  { id: 'workInfo', keys: ['workplace', 'workSchedule'] },
+  {
+    id: 'healthInfo',
+    wide: true,
+    keys: ['vision', 'lasikHistory', 'weight', 'height', 'chronicConditions', 'allergies', 'lastCheckup', 'exercise', 'regularSupplements', 'healthProblems'],
+  },
+];
+
+function formatIntakeValue(key: StudentIntakeKey, value: string, language: string) {
+  if (!value.trim()) return '—';
+  if (key !== 'birthDate') return value;
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(language === 'th' ? 'th-TH' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
 
 type DashSection = 'overview' | 'courses' | 'profile';
 
@@ -33,6 +58,10 @@ const StudentDashboard: React.FC = () => {
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
   const [courseProgress, setCourseProgress] = useState<Record<string, CourseProgress>>({});
   const [signingOut, setSigningOut] = useState(false);
+  const [intake, setIntake] = useState<StudentIntakeRecord | null>(null);
+  const [intakeLoading, setIntakeLoading] = useState(true);
+  const [editingIntake, setEditingIntake] = useState(false);
+  const [intakeVersion, setIntakeVersion] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -43,6 +72,25 @@ const StudentDashboard: React.FC = () => {
       unsubProgress();
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user || section !== 'profile') return;
+    let active = true;
+    setIntakeLoading(true);
+    fetchStudentIntake(user.uid)
+      .then((record) => {
+        if (active) setIntake(record);
+      })
+      .catch(() => {
+        if (active) setIntake(null);
+      })
+      .finally(() => {
+        if (active) setIntakeLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [section, user, intakeVersion]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -140,7 +188,7 @@ const StudentDashboard: React.FC = () => {
             <h1>
               {section === 'overview' && t.dashboard.welcome.replace('{name}', firstName)}
               {section === 'courses' && t.dashboard.myCourses}
-              {section === 'profile' && t.dashboard.profile}
+              {section === 'profile' && t.dashboard.studentInfo}
             </h1>
           </div>
           <div className="sd-user-chip">
@@ -311,27 +359,64 @@ const StudentDashboard: React.FC = () => {
           )}
 
           {section === 'profile' && (
-            <section className="sd-panel sd-profile">
-              <div className="sd-profile-card">
+            <div className="sd-profile-page">
+              <section className="sd-profile-hero">
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
                 ) : (
-                  <div className="sd-profile-avatar">{firstName.charAt(0).toUpperCase()}</div>
+                  <div className="sd-profile-avatar">{(intake?.nickname || firstName).charAt(0).toUpperCase()}</div>
                 )}
                 <div>
-                  <h2>{user.displayName ?? firstName}</h2>
-                  <p>{user.email}</p>
-                  <p className="sd-profile-note">{t.dashboard.profileNote}</p>
+                  <p>{t.dashboard.profile}</p>
+                  <h2>{intake?.nickname || user.displayName || firstName}</h2>
+                  <span>{user.email}</span>
                 </div>
-              </div>
-              <button type="button" className="button button-secondary" onClick={handleSignOut} disabled={signingOut}>
-                <LogOut size={16} />
-                {signingOut ? t.onlineTest.signingOut : t.onlineTest.signOut}
-              </button>
-            </section>
+                {intake && (
+                  <button type="button" className="sd-profile-edit" onClick={() => setEditingIntake(true)}>
+                    {t.dashboard.editInfo}
+                  </button>
+                )}
+              </section>
+
+              {intakeLoading ? (
+                <section className="sd-profile-empty">{t.dashboard.studentInfoLoading}</section>
+              ) : !intake ? (
+                <section className="sd-profile-empty">{t.dashboard.studentInfoEmpty}</section>
+              ) : (
+                <div className="sd-profile-sections">
+                  {PROFILE_SECTIONS.map((group) => (
+                    <section key={group.id} className={group.wide ? 'sd-profile-section is-wide' : 'sd-profile-section'}>
+                      <h2>{t.dashboard[group.id]}</h2>
+                      <dl className="sd-profile-fields">
+                        {group.keys.map((key) => {
+                          const field = STUDENT_INTAKE_FIELDS.find((item) => item.key === key);
+                          if (!field) return null;
+                          return (
+                            <div key={key}>
+                              <dt>{language === 'th' ? field.th : field.en}</dt>
+                              <dd>{formatIntakeValue(key, intake[key] || '', language)}</dd>
+                            </div>
+                          );
+                        })}
+                      </dl>
+                    </section>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
+      {editingIntake && (
+        <StudentIntakeDialog
+          mode="edit"
+          onClose={() => setEditingIntake(false)}
+          onSaved={() => {
+            setEditingIntake(false);
+            setIntakeVersion((version) => version + 1);
+          }}
+        />
+      )}
     </div>
   );
 };

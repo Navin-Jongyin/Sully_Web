@@ -72,6 +72,18 @@ describe.skipIf(!emulatorAvailable)('course commerce Firestore rules', () => {
     await assertSucceeds(deleteDoc(doc(guest, 'onlineVideoCourses/course-1')));
   });
 
+  it('allows the admin session to delete a student intake form', async () => {
+    const guest = environment.unauthenticatedContext().firestore();
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'users/alice/studentIntake/profile'), {
+        completed: true,
+        uid: 'alice',
+        nickname: 'Ann',
+      });
+    });
+    await assertSucceeds(deleteDoc(doc(guest, 'users/alice/studentIntake/profile')));
+  });
+
   it('allows admins to manage another user\'s enrollment records', async () => {
     const admin = environment.authenticatedContext('admin', { email: 'admin@example.com' }).firestore();
     const bob = environment.authenticatedContext('bob').firestore();
