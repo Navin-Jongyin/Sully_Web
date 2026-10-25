@@ -19,6 +19,7 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { AppDialogProvider } from "./context/AppDialogContext";
 import RequireAuth from "./components/RequireAuth";
 import AdminShortcut from "./components/AdminShortcut";
+import StudentIntakeDialog from "./components/StudentIntakeDialog";
 import { LanguageToggle } from "./components/LanguageToggle";
 import { CartIcon } from "./ecommerce/components/CartIcon";
 import { RequireCustomerAuth } from "./ecommerce/components/RequireCustomerAuth";
@@ -226,6 +227,7 @@ const AppShell: React.FC = () => {
             </div>
           </footer>
           )}
+          {isDashboard && <StudentIntakeDialog />}
     </>
   );
 };

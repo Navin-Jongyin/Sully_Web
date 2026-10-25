@@ -28,8 +28,8 @@ const AssignCourseAdminPanel: React.FC = () => {
   const { onlineVideoCourses } = useData();
   const { confirm } = useAppDialog();
   const [users, setUsers] = useState<UserRecord[]>([]);
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [addingCourse, setAddingCourse] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [courseSearch, setCourseSearch] = useState('');
   const [userFilter, setUserFilter] = useState('all');
@@ -68,13 +68,30 @@ const AssignCourseAdminPanel: React.FC = () => {
     });
   }, [userSearch, users]);
 
-  const visibleCourses = useMemo(() => {
+  const selectedUser = users.find((entry) => entry.id === selectedUserId) ?? null;
+
+  const activeCourseIds = (userId: string) => {
+    const entry = users.find((item) => item.id === userId);
+    return (entry?.courses ?? [])
+      .filter((course) => course.status !== 'revoked' && course.courseId)
+      .map((course) => course.courseId);
+  };
+
+  const enrolledCourses = useMemo(() => {
+    if (!selectedUserId) return [];
+    const assigned = new Set(activeCourseIds(selectedUserId));
+    return onlineVideoCourses.filter((course) => assigned.has(course.id));
+  }, [onlineVideoCourses, selectedUserId, users]);
+
+  const coursesToAdd = useMemo(() => {
     const term = courseSearch.trim().toLowerCase();
+    const assigned = new Set(selectedUserId ? activeCourseIds(selectedUserId) : []);
     return onlineVideoCourses.filter((course) => {
+      if (assigned.has(course.id)) return false;
       if (!term) return true;
       return `${course.title} ${course.category}`.toLowerCase().includes(term);
     });
-  }, [courseSearch, onlineVideoCourses]);
+  }, [courseSearch, onlineVideoCourses, selectedUserId, users]);
 
   const userCourseRows = useMemo(() => {
     const rows: Array<{ userId: string; courseId: string; assignedBy?: string; assignedAt?: unknown; status?: 'active' | 'revoked' }> = [];
@@ -99,56 +116,42 @@ const AssignCourseAdminPanel: React.FC = () => {
     });
   }, [courseFilter, userFilter, users]);
 
-  const toggleUser = (userId: string) => {
-    setSelectedUserIds((current) =>
-      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId],
-    );
-  };
-
-  const toggleCourse = (courseId: string) => {
-    setSelectedCourseIds((current) =>
-      current.includes(courseId) ? current.filter((id) => id !== courseId) : [...current, courseId],
-    );
-  };
-
-  const handleAssign = async () => {
-    if (!selectedUserIds.length || !selectedCourseIds.length) {
-      setMessage({ type: 'error', text: 'Choose at least one user and one course.' });
+  const selectUser = (userId: string) => {
+    setAddingCourse(false);
+    setCourseSearch('');
+    if (selectedUserId === userId) {
+      setSelectedUserId(null);
       return;
     }
+    setSelectedUserId(userId);
+  };
+
+  const handleAssign = async (courseId: string) => {
+    if (!selectedUserId) return;
 
     setMessage(null);
     setAssigning(true);
 
     try {
       const adminId = user?.uid ?? 'unknown-admin';
-      for (const userId of selectedUserIds) {
-        const existingUser = users.find((entry) => entry.id === userId);
-        const currentCourses = existingUser?.courses ?? [];
-        const nextCourses = [...currentCourses];
+      const existingUser = users.find((entry) => entry.id === selectedUserId);
+      const currentCourses = existingUser?.courses ?? [];
+      const nextCourses = [...currentCourses];
+      const index = nextCourses.findIndex((item) => item.courseId === courseId);
+      const entry: UserCourseAccess = {
+        courseId,
+        assignedBy: adminId,
+        assignedAt: Timestamp.now(),
+        status: 'active',
+        expiresAt: null,
+      };
 
-        for (const courseId of selectedCourseIds) {
-          const index = nextCourses.findIndex((item) => item.courseId === courseId);
-          const entry: UserCourseAccess = {
-            courseId,
-            assignedBy: adminId,
-            assignedAt: Timestamp.now(),
-            status: 'active',
-            expiresAt: null,
-          };
+      if (index >= 0) nextCourses[index] = { ...nextCourses[index], ...entry, status: 'active' };
+      else nextCourses.push(entry);
 
-          if (index >= 0) {
-            nextCourses[index] = { ...nextCourses[index], ...entry, status: 'active' };
-          } else {
-            nextCourses.push(entry);
-          }
-        }
-
-        await setDoc(doc(db, 'users', userId), { courses: nextCourses }, { merge: true });
-      }
-
-      setSelectedUserIds([]);
-      setSelectedCourseIds([]);
+      await setDoc(doc(db, 'users', selectedUserId), { courses: nextCourses }, { merge: true });
+      setAddingCourse(false);
+      setCourseSearch('');
       setMessage({ type: 'success', text: 'Course access assigned successfully.' });
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Assignments could not be saved.' });
@@ -176,7 +179,7 @@ const AssignCourseAdminPanel: React.FC = () => {
       <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
         <h3 style={{ marginTop: 0 }}>Assign Course Access</h3>
         <p style={{ marginTop: 0, color: 'var(--text-secondary)' }}>
-          Choose one or more students and courses. Access is saved on the student account and opens the course player.
+          Search for one student. Their courses appear after you select them.
         </p>
 
         {message && (
@@ -222,9 +225,10 @@ const AssignCourseAdminPanel: React.FC = () => {
                 visibleUsers.map((entry) => (
                   <label key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
                     <input
-                      type="checkbox"
-                      checked={selectedUserIds.includes(entry.id)}
-                      onChange={() => toggleUser(entry.id)}
+                      type="radio"
+                      name="assign-user"
+                      checked={selectedUserId === entry.id}
+                      onChange={() => selectUser(entry.id)}
                     />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600 }}>{entry.displayName || 'Unnamed user'}</div>
@@ -237,55 +241,80 @@ const AssignCourseAdminPanel: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Courses</label>
-            <input
-              type="text"
-              value={courseSearch}
-              onChange={(e) => setCourseSearch(e.target.value)}
-              placeholder="Search courses"
-              style={{
-                width: '100%',
-                marginBottom: '0.75rem',
-                background: 'rgba(96,165,250,0.06)',
-                border: '1px solid rgba(96,165,250,0.7)',
-                boxShadow: '0 0 0 3px rgba(96,165,250,0.15)',
-                outline: 'none',
-                color: 'var(--text-primary)',
-              }}
-            />
-            <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'grid', gap: '0.5rem' }}>
-              {visibleCourses.length === 0 ? (
-                <p style={{ color: 'var(--text-secondary)' }}>No courses found.</p>
-              ) : (
-                visibleCourses.map((course) => (
-                  <label key={course.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedCourseIds.includes(course.id)}
-                      onChange={() => toggleCourse(course.id)}
-                    />
-                    {course.thumbnailUrl ? (
-                      <img src={course.thumbnailUrl} alt={course.title} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '0.5rem' }} />
-                    ) : (
-                      <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.06)', display: 'grid', placeItems: 'center' }}>
-                        {course.title.slice(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600 }}>{course.title}</div>
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{course.category}</div>
-                    </div>
-                  </label>
-                ))
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <label style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                {selectedUser ? `Courses for ${selectedUser.displayName || selectedUser.email || 'student'}` : 'Courses'}
+              </label>
+              {selectedUserId && (
+                <button type="button" className="button button-primary" onClick={() => setAddingCourse((open) => !open)}>
+                  {addingCourse ? 'Close' : 'Add'}
+                </button>
               )}
             </div>
+            {!selectedUserId ? (
+              <p style={{ color: 'var(--text-secondary)' }}>Select one student to see their courses.</p>
+            ) : (
+              <>
+                {addingCourse && (
+                  <>
+                    <input
+                      type="text"
+                      value={courseSearch}
+                      onChange={(e) => setCourseSearch(e.target.value)}
+                      placeholder="Search a course to assign"
+                      style={{
+                        width: '100%',
+                        marginBottom: '0.75rem',
+                        background: 'rgba(96,165,250,0.06)',
+                        border: '1px solid rgba(96,165,250,0.7)',
+                        boxShadow: '0 0 0 3px rgba(96,165,250,0.15)',
+                        outline: 'none',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                      {coursesToAdd.length === 0 ? (
+                        <p style={{ color: 'var(--text-secondary)' }}>No more courses to assign.</p>
+                      ) : (
+                        coursesToAdd.map((course) => (
+                          <div key={course.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)' }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontWeight: 600 }}>{course.title}</div>
+                              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{course.category}</div>
+                            </div>
+                            <button type="button" className="button button-secondary" disabled={assigning} onClick={() => void handleAssign(course.id)}>
+                              Add
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+                <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'grid', gap: '0.5rem' }}>
+                  {enrolledCourses.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)' }}>No courses assigned yet.</p>
+                  ) : (
+                    enrolledCourses.map((course) => (
+                      <div key={course.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
+                        {course.thumbnailUrl ? (
+                          <img src={course.thumbnailUrl} alt="" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '0.5rem' }} />
+                        ) : (
+                          <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.06)', display: 'grid', placeItems: 'center' }}>
+                            {course.title.slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600 }}>{course.title}</div>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{course.category}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        </div>
-
-        <div style={{ marginTop: '1rem' }}>
-          <button type="button" className="button button-primary" disabled={assigning || !selectedUserIds.length || !selectedCourseIds.length} onClick={() => void handleAssign()}>
-            {assigning ? 'Assigning…' : 'Assign'}
-          </button>
         </div>
       </div>
 
@@ -316,6 +345,7 @@ const AssignCourseAdminPanel: React.FC = () => {
               <thead>
                 <tr style={{ textAlign: 'left', color: 'var(--text-secondary)' }}>
                   <th style={{ padding: '0.75rem' }}>User</th>
+                  <th style={{ padding: '0.75rem' }}>Email</th>
                   <th style={{ padding: '0.75rem' }}>Course</th>
                   <th style={{ padding: '0.75rem' }}>Assigned At</th>
                   <th style={{ padding: '0.75rem' }}>Assigned By</th>
@@ -333,7 +363,8 @@ const AssignCourseAdminPanel: React.FC = () => {
 
                   return (
                     <tr key={`${assignment.userId}-${assignment.courseId}`} style={{ borderTop: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '0.75rem' }}>{userInfo?.displayName || userInfo?.email || assignment.userId}</td>
+                      <td style={{ padding: '0.75rem' }}>{userInfo?.displayName || 'Unnamed user'}</td>
+                      <td style={{ padding: '0.75rem' }}>{userInfo?.email || '—'}</td>
                       <td style={{ padding: '0.75rem' }}>{courseInfo?.title || assignment.courseId}</td>
                       <td style={{ padding: '0.75rem' }}>{assignedAt}</td>
                       <td style={{ padding: '0.75rem' }}>{assignment.assignedBy || '—'}</td>

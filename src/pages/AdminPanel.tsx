@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, FileJson, ShoppingBag, MonitorPlay } from 'lucide-react';
+import { BookOpen, Layout, Settings, Edit2, Plus, Save, X, Image as ImageIcon, Trash2, Award, MessageSquare, GripVertical, Check, Loader2, LogOut, Calendar, FileJson, ShoppingBag, MonitorPlay, ClipboardList } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Reorder } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -13,6 +13,7 @@ import { OnlineTestAdminPanel } from '../online-test/OnlineTestAdminPanel';
 import { MerchandiseAdminPanel } from '../commerce/MerchandiseAdminPanel';
 import { OnlineVideoCourseAdminPanel } from '../commerce/OnlineVideoCourseAdminPanel';
 import AssignCourseAdminPanel from '../commerce/AssignCourseAdminPanel';
+import StudentIntakeAdminPanel from '../commerce/StudentIntakeAdminPanel';
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
 
@@ -300,6 +301,7 @@ const AdminPanel: React.FC = () => {
     { key: 'onlineTests', icon: <FileJson size={18} />, label: 'Online Tests' },
     { key: 'onlineCourses', icon: <MonitorPlay size={18} />, label: 'Online Courses' },
     { key: 'assign', icon: <MonitorPlay size={18} />, label: 'Assign Courses' },
+    { key: 'studentInfo', icon: <ClipboardList size={18} />, label: 'Student Info' },
     { key: 'merchandise', icon: <ShoppingBag size={18} />, label: 'Merchandise' },
     { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ] as const;
@@ -356,6 +358,7 @@ const AdminPanel: React.FC = () => {
                activeMenu === 'booking' ? 'Interview Booking' :
                activeMenu === 'onlineTests' ? 'Online Tests' :
                activeMenu === 'onlineCourses' ? 'Online Video Courses' :
+               activeMenu === 'studentInfo' ? 'Student Info' :
                activeMenu === 'merchandise' ? 'Merchandise' : 'Site Settings'}
             </h1>
             {activeMenu === 'track' && (
@@ -367,10 +370,13 @@ const AdminPanel: React.FC = () => {
             {activeMenu === 'onlineCourses' && (
               <p style={{ color: 'var(--text-secondary)' }}>Create lessons, publish the course, then assign it to students from Assign Courses.</p>
             )}
+            {activeMenu === 'studentInfo' && (
+              <p style={{ color: 'var(--text-secondary)' }}>Answers submitted after a student signs in. The form is not shown again once it is saved.</p>
+            )}
             {activeMenu === 'merchandise' && (
               <p style={{ color: 'var(--text-secondary)' }}>Shop products. Stripe Price IDs are optional until payments are wired — see docs/PAYMENTS.md.</p>
             )}
-            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'onlineTests' && activeMenu !== 'onlineCourses' && activeMenu !== 'merchandise' && (
+            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'onlineTests' && activeMenu !== 'onlineCourses' && activeMenu !== 'merchandise' && activeMenu !== 'assign' && activeMenu !== 'studentInfo' && (
             <p style={{ color: 'var(--text-secondary)' }}>Drag the <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}><GripVertical size={14} /></span> handle to reposition items.</p>
             )}
           </div>
@@ -1032,6 +1038,10 @@ const AdminPanel: React.FC = () => {
 
         {activeMenu === 'assign' && (
           <AssignCourseAdminPanel />
+        )}
+
+        {activeMenu === 'studentInfo' && (
+          <StudentIntakeAdminPanel />
         )}
 
         {activeMenu === 'merchandise' && (

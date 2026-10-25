@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
+import { auth } from '../firebase';
 
 function getAuthFormErrorMessage(err: unknown, t: ReturnType<typeof useTranslation>['t']): string {
   if (err instanceof FirebaseError) {
@@ -67,16 +68,22 @@ const LoginCard: React.FC<LoginCardProps> = ({
   description,
   variant = 'card',
 }) => {
-  const { t } = useTranslation();
-  const { signInWithGoogle } = useAuth();
+  const { t, language } = useTranslation();
+  const { signInWithGoogle, signOutGoogle } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const gmailOnly = language === 'th' ? 'ใช้บัญชี Gmail เท่านั้น' : 'Use a Gmail account only.';
 
   const handleGoogleSignIn = async () => {
     setError(null);
     setSubmitting(true);
     try {
       await signInWithGoogle();
+      const email = auth.currentUser?.email ?? '';
+      if (!/@gmail\.com$/i.test(email) && !/@googlemail\.com$/i.test(email)) {
+        await signOutGoogle();
+        setError(gmailOnly);
+      }
     } catch (err) {
       setError(getAuthFormErrorMessage(err, t));
     } finally {
@@ -92,61 +99,18 @@ const LoginCard: React.FC<LoginCardProps> = ({
         <p className="login-panel-desc">{description}</p>
       </div>
 
-      {
-        /*
-        Legacy email/password auth kept here as comments for now.
-        const { signInWithEmail, signUpWithEmail } = useAuth();
-        const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-        const [email, setEmail] = useState('');
-        const [password, setPassword] = useState('');
-
-        const handleEmailSubmit = async (e: React.FormEvent) => {
-          e.preventDefault();
-          setError(null);
-          setSubmitting(true);
-          try {
-            if (mode === 'signin') {
-              await signInWithEmail(email, password);
-            } else {
-              await signUpWithEmail(email, password);
-            }
-          } catch (err) {
-            setError(getAuthFormErrorMessage(err, t));
-          } finally {
-            setSubmitting(false);
-          }
-        };
-
-        <div className="login-mode-toggle" role="tablist" aria-label="Auth mode">
-          <button type="button" role="tab" aria-selected={mode === 'signin'} className={mode === 'signin' ? 'is-active' : ''} onClick={() => { setMode('signin'); setError(null); }}>
-            {t.authForm.signIn}
-          </button>
-          <button type="button" role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'is-active' : ''} onClick={() => { setMode('signup'); setError(null); }}>
-            {t.authForm.createAccount}
-          </button>
-        </div>
-
-        <form className="login-form" onSubmit={handleEmailSubmit}> ... </form>
-        <div className="login-divider"><span>{t.authForm.or}</span></div>
-        */
-      }
-
-      {error && (
-        <p role="alert" className="login-error" style={{ marginTop: '1rem' }}>
-          {error}
-        </p>
-      )}
+      {error && <p role="alert" className="login-error">{error}</p>}
 
       <button
         type="button"
         onClick={handleGoogleSignIn}
         disabled={submitting}
         className="login-google-btn"
-        style={{ marginTop: '1.5rem' }}
       >
         <GoogleIcon />
-        {t.onlineTest.signInWithGoogle}
+        {submitting ? t.authForm.pleaseWait : (language === 'th' ? 'เข้าสู่ระบบด้วย Gmail' : 'Continue with Gmail')}
       </button>
+      <p className="login-panel-desc" style={{ marginTop: '0.85rem' }}>{gmailOnly}</p>
     </div>
   );
 };
