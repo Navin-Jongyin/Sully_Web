@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
+  Calendar,
   GraduationCap,
   Home,
   LayoutDashboard,
@@ -19,6 +20,8 @@ import { subscribeUserPurchases } from '../lib/purchases';
 import { subscribeCourseProgress } from '../lib/course-progress';
 import { fetchStudentIntake, STUDENT_INTAKE_FIELDS, type StudentIntakeKey, type StudentIntakeRecord } from '../lib/student-intake';
 import StudentIntakeDialog from '../components/StudentIntakeDialog';
+import { BookingPage } from '../booking/pages/BookingPage';
+import '../booking/booking-theme.css';
 import type { CourseProgress, PurchaseRecord } from '../commerce/types';
 import './StudentDashboard.css';
 
@@ -45,16 +48,18 @@ function formatIntakeValue(key: StudentIntakeKey, value: string, language: strin
   });
 }
 
-type DashSection = 'overview' | 'courses' | 'profile';
+type DashSection = 'overview' | 'courses' | 'profile' | 'booking';
 
 const StudentDashboard: React.FC = () => {
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language } = useTranslation();
   const { user, loading, signOutGoogle } = useAuth();
   const { onlineVideoCourses, merchandise } = useData();
   const { assignedCourseIds } = useAssignedCourses(user?.uid ?? null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [section, setSection] = useState<DashSection>('overview');
+  const [section, setSection] = useState<DashSection>(
+    searchParams.get('section') === 'booking' ? 'booking' : 'overview',
+  );
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
   const [courseProgress, setCourseProgress] = useState<Record<string, CourseProgress>>({});
   const [signingOut, setSigningOut] = useState(false);
@@ -111,7 +116,7 @@ const StudentDashboard: React.FC = () => {
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: { pathname: '/dashboard' } }} replace />;
+    return <Navigate to="/login" state={{ from: { pathname: '/dashboard', search: window.location.search } }} replace />;
   }
 
   const firstName = (user.displayName ?? user.email ?? t.dashboard.studentFallback).split(/[\s@]/)[0];
@@ -122,6 +127,7 @@ const StudentDashboard: React.FC = () => {
   const navItems: { id: DashSection; icon: typeof LayoutDashboard; label: string }[] = [
     { id: 'overview', icon: LayoutDashboard, label: t.dashboard.overview },
     { id: 'courses', icon: BookOpen, label: t.dashboard.myCourses },
+    { id: 'booking', icon: Calendar, label: t.home.bookInterview },
     { id: 'profile', icon: UserRound, label: t.dashboard.profile },
   ];
 
@@ -154,22 +160,6 @@ const StudentDashboard: React.FC = () => {
         </nav>
 
         <div className="sd-sidebar-footer">
-          <div className="sd-lang-toggle" role="group" aria-label="Language">
-            <button
-              type="button"
-              className={language === 'en' ? 'is-active' : ''}
-              onClick={() => setLanguage('en')}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              className={language === 'th' ? 'is-active' : ''}
-              onClick={() => setLanguage('th')}
-            >
-              TH
-            </button>
-          </div>
           <Link to="/" className="sd-sidebar-link">
             <Home size={16} />
             {t.dashboard.backToSite}
@@ -188,6 +178,7 @@ const StudentDashboard: React.FC = () => {
             <h1>
               {section === 'overview' && t.dashboard.welcome.replace('{name}', firstName)}
               {section === 'courses' && t.dashboard.myCourses}
+              {section === 'booking' && t.home.bookInterview}
               {section === 'profile' && t.dashboard.studentInfo}
             </h1>
           </div>
@@ -228,13 +219,6 @@ const StudentDashboard: React.FC = () => {
               </div>
 
               <div className="sd-quick">
-                <Link to="/online-courses" className="sd-quick-card">
-                  <BookOpen size={22} />
-                  <div>
-                    <strong>{t.commerce.onlineCoursesTitle}</strong>
-                    <span>{t.dashboard.browseCoursesHint}</span>
-                  </div>
-                </Link>
                 <Link to="/shop" className="sd-quick-card">
                   <ShoppingBag size={22} />
                   <div>
@@ -255,9 +239,6 @@ const StudentDashboard: React.FC = () => {
                   <div className="sd-empty">
                     <BookOpen size={32} />
                     <p>{t.commerce.noOwnedCourses}</p>
-                    <Link to="/online-courses" className="button button-primary">
-                      {t.commerce.browseCourses}
-                    </Link>
                   </div>
                 ) : (
                   <div className="sd-course-grid">
@@ -320,9 +301,6 @@ const StudentDashboard: React.FC = () => {
                 <div className="sd-empty">
                   <BookOpen size={32} />
                   <p>{t.commerce.noOwnedCourses}</p>
-                  <Link to="/online-courses" className="button button-primary">
-                    {t.commerce.browseCourses}
-                  </Link>
                 </div>
               ) : (
                 <div className="sd-course-grid">
@@ -356,6 +334,12 @@ const StudentDashboard: React.FC = () => {
                 </div>
               )}
             </section>
+          )}
+
+          {section === 'booking' && (
+            <div className="booking-shell sd-booking">
+              <BookingPage />
+            </div>
           )}
 
           {section === 'profile' && (

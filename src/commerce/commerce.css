@@ -428,6 +428,70 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
+  min-width: 0;
+}
+
+.assign-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.assign-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.assign-table th,
+.assign-table td {
+  padding: 0.7rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.assign-table th {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.assign-table tbody tr {
+  border-top: 1px solid var(--glass-border);
+}
+
+.assign-table th:nth-child(1),
+.assign-table td:nth-child(1) { width: 22%; }
+.assign-table th:nth-child(2),
+.assign-table td:nth-child(2) { width: 28%; }
+.assign-table th:nth-child(3),
+.assign-table td:nth-child(3) { width: 24%; }
+.assign-table th:nth-child(4),
+.assign-table td:nth-child(4) { width: 12%; }
+.assign-table th:nth-child(5),
+.assign-table td:nth-child(5) { width: 14%; }
+
+.assign-revoke {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  background: #fef2f2;
+  color: #dc2626;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.assign-revoke:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
 }
 
 @media (max-width: 720px) {

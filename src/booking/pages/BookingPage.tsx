@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BookingCalendar, isSelectedDateStillValid, sectionsForDate } from '../components/BookingCalendar'
 import { TimeSlotList } from '../components/TimeSlotList'
-import {
-  EMAIL_PATTERN,
-  SLOT_CATEGORIES,
-} from '../constants'
-import { useApplicants } from '../hooks/useApplicants'
+import { SLOT_CATEGORIES } from '../constants'
 import { useCloudSync } from '../hooks/useCloudSync'
+import { useAuth } from '../../hooks/useAuth'
 import {
   canCancelBooking,
   dateAvailabilityState,
@@ -19,40 +16,35 @@ import {
   bookingRecordKey,
 } from '../lib/bookings'
 import { categoryForSectionSlot, datesWithOpeningsSet, slotMatchesCategoryFilter, slotStartKey } from '../lib/slots'
-import { digitsOnly, normalizeEmail, todayISODate } from '../lib/dates'
+import { normalizeEmail, todayISODate } from '../lib/dates'
 import type { BookingRecord } from '../types'
 import './booking.css'
 
 type FieldErrors = Record<string, string>
 
 export function BookingPage() {
+  const { user } = useAuth()
   const { slots, bookingCounts, bookings, saveCounts, saveBookings } = useCloudSync()
-  const { applicantsByEmail, loaded: applicantsLoaded, loadFailed: applicantsLoadFailed } = useApplicants()
+  const email = user?.email ?? ''
+  const bookedName = (user?.displayName || email.split('@')[0] || 'Student').trim()
 
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
   const [viewMonth, setViewMonth] = useState(now.getMonth())
 
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedDateISO, setSelectedDateISO] = useState('')
   const [selectedSectionId, setSelectedSectionId] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [errors, setErrors] = useState<FieldErrors>({})
   const [successMessage, setSuccessMessage] = useState('')
-
-  const [cancelEmail, setCancelEmail] = useState('')
-  const [cancelPhone, setCancelPhone] = useState('')
   const [cancelMessage, setCancelMessage] = useState('')
   const [cancelMessageKind, setCancelMessageKind] = useState<'ok' | 'error' | ''>('')
-  const [cancelResults, setCancelResults] = useState<Array<{ key: string; record: BookingRecord }>>([])
 
-  const displayName = useMemo(() => {
-    const applicant = applicantsByEmail[normalizeEmail(email)]
-    if (!applicant) return ''
-    return String(applicant.fullName || applicant.thaiName || '').trim()
-  }, [email, applicantsByEmail])
+  const myBookings = useMemo(
+    () => (email ? lookupBookings(email, '', bookings) : []),
+    [bookings, email],
+  )
 
   useEffect(() => {
     if (
@@ -64,29 +56,6 @@ export function BookingPage() {
       setSelectedTime('')
     }
   }, [selectedDateISO, slots, bookingCounts, selectedCategory])
-
-  function validateEmail(value: string) {
-    if (!value?.trim()) return 'Please enter your email.'
-    if (!EMAIL_PATTERN.test(value.trim())) return 'Please enter a valid email address.'
-    if (applicantsLoadFailed) return 'Could not check the applicant database. Refresh and try again.'
-    if (!applicantsLoaded) return 'Checking the applicant database. Try again in a moment.'
-    if (!applicantsByEmail[normalizeEmail(value)]) return 'This email is not registered as an applicant.'
-    return ''
-  }
-
-  function validateName() {
-    if (!email.trim()) return 'Enter your email to load your name.'
-    if (validateEmail(email)) return 'Enter a registered email to load your name.'
-    if (!displayName) return 'No name was found for this applicant.'
-    return ''
-  }
-
-  function validatePhone(value: string) {
-    const d = digitsOnly(value)
-    if (!value?.trim()) return 'Please enter your phone number.'
-    if (d.length !== 10) return 'Phone number must be exactly 10 digits.'
-    return ''
-  }
 
   function validateCategory() {
     if (!selectedCategory) return 'Please select Student Pilot, Qualified Pilot, or ATC.'
@@ -137,7 +106,7 @@ export function BookingPage() {
   }
 
   function validateBookingQuota() {
-    if (validateEmail(email)) return ''
+    if (!email.trim()) return 'Sign in to book an interview.'
     const norm = normalizeEmail(email)
     const dateVal = selectedDateISO
     if (!dateVal) return ''
@@ -150,16 +119,13 @@ export function BookingPage() {
 
   const isFormValid = useMemo(() => {
     return (
-      !validateName() &&
-      !validateEmail(email) &&
-      !validatePhone(phone) &&
       !validateCategory() &&
       !validateDate(selectedDateISO) &&
       !validateSection() &&
       !validateTime() &&
       !validateBookingQuota()
     )
-  }, [email, phone, displayName, selectedCategory, selectedDateISO, selectedSectionId, selectedTime, slots, bookingCounts, bookings, applicantsLoaded, applicantsLoadFailed, applicantsByEmail])
+  }, [email, selectedCategory, selectedDateISO, selectedSectionId, selectedTime, slots, bookingCounts, bookings])
 
   function handleCategoryChange(category: string) {
     setSelectedCategory(category)
@@ -211,9 +177,6 @@ export function BookingPage() {
     setSuccessMessage('')
 
     const nextErrors: FieldErrors = {
-      name: validateName(),
-      email: validateEmail(email),
-      phone: validatePhone(phone),
       category: validateCategory(),
       date: validateDate(selectedDateISO),
       section: validateSection(),
@@ -224,7 +187,6 @@ export function BookingPage() {
     if (Object.values(nextErrors).some(Boolean)) return
 
     const emailTrim = email.trim()
-    const applicant = applicantsByEmail[normalizeEmail(emailTrim)]
     const timeRangeLabel = rangeLabelForStoredTime(slots, selectedSectionId, selectedTime, selectedCategory)
 
     const nextCounts = incrementBookingCount(
@@ -239,9 +201,9 @@ export function BookingPage() {
       id: 'bk-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
       emailNorm: emailTrim.toLowerCase(),
       email: emailTrim,
-      name: displayName.trim(),
-      nickname: applicant ? String(applicant.nickname || '').trim() : '',
-      phone: digitsOnly(phone),
+      name: bookedName,
+      nickname: '',
+      phone: '',
       date: selectedDateISO,
       sectionId: selectedSectionId,
       startTime: selectedTime,
@@ -252,11 +214,9 @@ export function BookingPage() {
     saveBookings([...bookings, newRecord])
 
     setSuccessMessage(
-      `Booked for ${selectedDateISO}${timeRangeLabel ? ' · ' + timeRangeLabel : ' at ' + selectedTime}. Confirmation goes to ${emailTrim}.`,
+      `Booked for ${selectedDateISO}${timeRangeLabel ? ' · ' + timeRangeLabel : ' at ' + selectedTime}.`,
     )
 
-    setEmail('')
-    setPhone('')
     setSelectedCategory('')
     setSelectedDateISO('')
     setSelectedSectionId('')
@@ -267,41 +227,11 @@ export function BookingPage() {
     setViewMonth(d.getMonth())
   }
 
-  function handleCancelSearch(e: React.FormEvent) {
-    e.preventDefault()
-    const phoneDigits = digitsOnly(cancelPhone)
-    setCancelPhone(phoneDigits)
-
-    if (!cancelEmail.trim() || !EMAIL_PATTERN.test(cancelEmail.trim())) {
-      setCancelMessage('Enter the email used for the booking.')
-      setCancelMessageKind('error')
-      setCancelResults([])
-      return
-    }
-    if (cancelPhone && phoneDigits.length !== 10) {
-      setCancelMessage('Phone is optional, but if entered it must be 10 digits.')
-      setCancelMessageKind('error')
-      setCancelResults([])
-      return
-    }
-
-    const results = lookupBookings(cancelEmail, cancelPhone, bookings)
-    setCancelResults(results)
-    if (!results.length) {
-      setCancelMessage('No bookings found for that email and phone number.')
-      setCancelMessageKind('error')
-    } else {
-      setCancelMessage(`Found ${results.length} booking${results.length === 1 ? '.' : 's.'}`)
-      setCancelMessageKind('ok')
-    }
-  }
-
   function handleCancelBooking(key: string, rec: BookingRecord) {
     if (!confirm('Cancel this booking?')) return
     if (!canCancelBooking(rec)) {
       setCancelMessage('This booking is now within 24 hours and cannot be cancelled.')
       setCancelMessageKind('error')
-      setCancelResults(lookupBookings(cancelEmail, cancelPhone, bookings))
       return
     }
 
@@ -321,8 +251,6 @@ export function BookingPage() {
     )
     saveCounts(nextCounts)
 
-    const remaining = lookupBookings(cancelEmail, cancelPhone, nextBookings)
-    setCancelResults(remaining)
     setCancelMessage('Booking cancelled.')
     setCancelMessageKind('ok')
   }
@@ -344,76 +272,12 @@ export function BookingPage() {
             <div className="booking-block booking-block--contact">
               <div className="block-heading">
                 <span className="step-num">1</span>
-                <h2>Your details</h2>
+                <h2>Category</h2>
               </div>
-              <div className={`form-group${errors.name ? ' has-error' : ''}`} data-field="name">
-                <label htmlFor="full-name">Full Name</label>
-                <input
-                  type="text"
-                  id="full-name"
-                  name="fullName"
-                  autoComplete="name"
-                  placeholder="Enter email to load your name"
-                  readOnly
-                  value={displayName}
-                />
-                {errors.name && (
-                  <span className="error-text" role="alert">
-                    {errors.name}
-                  </span>
-                )}
-              </div>
-
-              <div className={`form-group${errors.email ? ' has-error' : ''}`} data-field="email">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    setErrors((err) => ({ ...err, email: '', name: '', bookingQuota: '' }))
-                  }}
-                  onBlur={() => setErrors((err) => ({ ...err, email: validateEmail(email), name: validateName() }))}
-                />
-                {errors.email && (
-                  <span className="error-text" role="alert">
-                    {errors.email}
-                  </span>
-                )}
-              </div>
-
               <div className={`form-group form-group--quota${errors.bookingQuota ? ' has-error' : ''}`} data-field="bookingQuota">
                 {errors.bookingQuota && (
                   <span className="error-text" role="alert">
                     {errors.bookingQuota}
-                  </span>
-                )}
-              </div>
-
-              <div className={`form-group${errors.phone ? ' has-error' : ''}`} data-field="phone">
-                <label htmlFor="phone">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  autoComplete="tel"
-                  inputMode="numeric"
-                  maxLength={10}
-                  placeholder="1234567890"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(digitsOnly(e.target.value).slice(0, 10))
-                    setErrors((err) => ({ ...err, phone: '' }))
-                  }}
-                  onBlur={() => setErrors((err) => ({ ...err, phone: validatePhone(phone) }))}
-                />
-                {errors.phone && (
-                  <span className="error-text" role="alert">
-                    {errors.phone}
                   </span>
                 )}
               </div>
@@ -527,48 +391,8 @@ export function BookingPage() {
           <h2>Cancel a Booking</h2>
         </div>
         <p className="hint">
-          Enter the same email used to book. Phone number is optional and can narrow the search. Cancellations are
-          allowed only at least 24 hours before the booked start time.
+          These are the interviews booked with your signed-in account. You can cancel until 24 hours before the start time.
         </p>
-        <form onSubmit={handleCancelSearch} noValidate>
-          <div className="cancel-layout">
-            <div className="form-group">
-              <label htmlFor="cancel-email">Email</label>
-              <input
-                type="email"
-                id="cancel-email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={cancelEmail}
-                onChange={(e) => {
-                  setCancelEmail(e.target.value)
-                  setCancelResults([])
-                  setCancelMessage('')
-                }}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="cancel-phone">Phone Number (optional)</label>
-              <input
-                type="tel"
-                id="cancel-phone"
-                autoComplete="tel"
-                inputMode="numeric"
-                maxLength={10}
-                placeholder="1234567890"
-                value={cancelPhone}
-                onChange={(e) => {
-                  setCancelPhone(digitsOnly(e.target.value).slice(0, 10))
-                  setCancelResults([])
-                  setCancelMessage('')
-                }}
-              />
-            </div>
-          </div>
-          <button type="submit" className="btn btn-ghost">
-            Find My Bookings
-          </button>
-        </form>
         {cancelMessage && (
           <div
             className={`success-banner visible${cancelMessageKind === 'error' ? ' error' : ''}`}
@@ -579,7 +403,9 @@ export function BookingPage() {
           </div>
         )}
         <div className="cancel-list">
-          {cancelResults.map(({ key, record: rec }) => (
+          {myBookings.length === 0 ? (
+            <p className="hint">You have no interview bookings.</p>
+          ) : myBookings.map(({ key, record: rec }) => (
             <div key={key} className="cancel-booking">
               <div>
                 <strong>{rec.timeLabel || rec.startTime || 'Interview'}</strong>

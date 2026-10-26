@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore'
+import { db } from '../firebase'
 import { MAX_BOOKINGS_PER_SLOT, SLOT_CATEGORIES } from './constants'
-import { useApplicants } from './hooks/useApplicants'
 import { useCloudSync } from './hooks/useCloudSync'
 import {
   attendanceSummary,
@@ -204,7 +205,6 @@ function PersonBookingRow({
             <span className="person-email">{rec.email || '—'}</span>
             <span className="person-nickname">Nickname: {nickname || '—'}</span>
             <span className="person-category">{categoryLabel}</span>
-            <span className="person-phone">Phone: {rec.phone || '—'}</span>
             <span className="person-sessions-left">{sessionsLabel}</span>
           </>
         )}
@@ -232,7 +232,7 @@ function PersonBookingRow({
 
 export function BookingAdminPanel() {
   const { slots, bookingCounts, bookings, saveSlots, saveCounts, saveBookings } = useCloudSync()
-  const { applicantsByEmail } = useApplicants()
+  const [nicknameByEmail, setNicknameByEmail] = useState<Record<string, string>>({})
 
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
@@ -264,6 +264,25 @@ export function BookingAdminPanel() {
       setBookingTabDate(tabDates[0] || null)
     }
   }, [tabDates, bookingTabDate])
+
+  useEffect(() => {
+    return onSnapshot(collection(db, 'users'), (snapshot) => {
+      void Promise.all(snapshot.docs.map(async (userDoc) => {
+        const email = normalizeEmail(String(userDoc.data().email || ''))
+        if (!email) return null
+        const intake = await getDoc(doc(db, 'users', userDoc.id, 'studentIntake', 'profile'))
+        if (!intake.exists()) return null
+        const nickname = String(intake.data().nickname || '').trim()
+        return nickname ? [email, nickname] as const : null
+      })).then((rows) => {
+        const next: Record<string, string> = {}
+        rows.forEach((row) => {
+          if (row) next[row[0]] = row[1]
+        })
+        setNicknameByEmail(next)
+      })
+    })
+  }, [])
 
   const publishedRow = useMemo(
     () => slots.find((r) => r.date === selectedDateISO),
@@ -427,10 +446,7 @@ export function BookingAdminPanel() {
   }
 
   function bookingNickname(rec: BookingRecord) {
-    const saved = String(rec.nickname || '').trim()
-    if (saved) return saved
-    const applicant = applicantsByEmail[normalizeEmail(rec.email)]
-    return applicant ? String(applicant.nickname || '').trim() : ''
+    return nicknameByEmail[normalizeEmail(rec.email)] || ''
   }
 
   function sessionsLeftLabel(rec: BookingRecord) {
@@ -441,8 +457,7 @@ export function BookingAdminPanel() {
   function bookingMatchesSearch(rec: BookingRecord) {
     if (!bookingSearch.trim()) return true
     const q = bookingSearch.trim().toLowerCase()
-    const applicant = applicantsByEmail[normalizeEmail(rec.email)]
-    const parts = [rec.name, rec.email, bookingNickname(rec), applicant?.fullName, applicant?.nickname]
+    const parts = [rec.name, rec.email, bookingNickname(rec)]
     return parts.some((p) => p && String(p).toLowerCase().includes(q))
   }
 

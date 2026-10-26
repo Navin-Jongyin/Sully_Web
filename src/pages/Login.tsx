@@ -6,14 +6,15 @@ import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface LocationState {
-  from?: { pathname?: string };
+  from?: { pathname?: string; search?: string };
 }
 
 const Login: React.FC = () => {
   const { t, language, setLanguage } = useTranslation();
   const { user, loading } = useAuth();
   const location = useLocation();
-  const from = (location.state as LocationState | null)?.from?.pathname || '/dashboard';
+  const fromState = (location.state as LocationState | null)?.from;
+  const from = `${fromState?.pathname || '/dashboard'}${fromState?.search || ''}`;
 
   if (loading) {
     return (

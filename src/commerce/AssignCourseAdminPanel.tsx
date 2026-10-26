@@ -109,12 +109,25 @@ const AssignCourseAdminPanel: React.FC = () => {
         }
       });
     });
-    return rows.filter((assignment) => {
-      if (userFilter !== 'all' && assignment.userId !== userFilter) return false;
-      if (courseFilter !== 'all' && assignment.courseId !== courseFilter) return false;
-      return true;
-    });
-  }, [courseFilter, userFilter, users]);
+    const nameOf = (userId: string) => {
+      const entry = users.find((item) => item.id === userId);
+      return (entry?.displayName || 'Unnamed user').trim();
+    };
+
+    return rows
+      .filter((assignment) => {
+        if (userFilter !== 'all' && assignment.userId !== userFilter) return false;
+        if (courseFilter !== 'all' && assignment.courseId !== courseFilter) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const byName = nameOf(a.userId).localeCompare(nameOf(b.userId), undefined, { sensitivity: 'base' });
+        if (byName !== 0) return byName;
+        const courseA = courseMap[a.courseId]?.title || a.courseId;
+        const courseB = courseMap[b.courseId]?.title || b.courseId;
+        return courseA.localeCompare(courseB, undefined, { sensitivity: 'base' });
+      });
+  }, [courseFilter, courseMap, userFilter, users]);
 
   const selectUser = (userId: string) => {
     setAddingCourse(false);
@@ -175,7 +188,7 @@ const AssignCourseAdminPanel: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'grid', gap: '1.5rem' }}>
+    <div className="assign-admin" style={{ display: 'grid', gap: '1.5rem', minWidth: 0, maxWidth: '100%' }}>
       <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
         <h3 style={{ marginTop: 0 }}>Assign Course Access</h3>
         <p style={{ marginTop: 0, color: 'var(--text-secondary)' }}>
@@ -340,37 +353,30 @@ const AssignCourseAdminPanel: React.FC = () => {
         {userCourseRows.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)' }}>No assignments found.</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="assign-table-wrap">
+            <table className="assign-table">
               <thead>
-                <tr style={{ textAlign: 'left', color: 'var(--text-secondary)' }}>
-                  <th style={{ padding: '0.75rem' }}>User</th>
-                  <th style={{ padding: '0.75rem' }}>Email</th>
-                  <th style={{ padding: '0.75rem' }}>Course</th>
-                  <th style={{ padding: '0.75rem' }}>Assigned At</th>
-                  <th style={{ padding: '0.75rem' }}>Assigned By</th>
-                  <th style={{ padding: '0.75rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem' }}>Action</th>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {userCourseRows.map((assignment) => {
                   const userInfo = users.find((entry) => entry.id === assignment.userId);
                   const courseInfo = courseMap[assignment.courseId];
-                  const assignedAt = assignment.assignedAt && typeof assignment.assignedAt === 'object' && 'toDate' in (assignment.assignedAt as Record<string, unknown>)
-                    ? (assignment.assignedAt as Timestamp).toDate().toLocaleString()
-                    : '—';
 
                   return (
-                    <tr key={`${assignment.userId}-${assignment.courseId}`} style={{ borderTop: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '0.75rem' }}>{userInfo?.displayName || 'Unnamed user'}</td>
-                      <td style={{ padding: '0.75rem' }}>{userInfo?.email || '—'}</td>
-                      <td style={{ padding: '0.75rem' }}>{courseInfo?.title || assignment.courseId}</td>
-                      <td style={{ padding: '0.75rem' }}>{assignedAt}</td>
-                      <td style={{ padding: '0.75rem' }}>{assignment.assignedBy || '—'}</td>
-                      <td style={{ padding: '0.75rem' }}>{assignment.status ?? 'active'}</td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <button type="button" className="button button-secondary" onClick={() => void revokeAssignment(assignment.userId, assignment.courseId)}>
+                    <tr key={`${assignment.userId}-${assignment.courseId}`}>
+                      <td>{userInfo?.displayName || 'Unnamed user'}</td>
+                      <td>{userInfo?.email || '—'}</td>
+                      <td>{courseInfo?.title || assignment.courseId}</td>
+                      <td>{assignment.status ?? 'active'}</td>
+                      <td>
+                        <button type="button" className="assign-revoke" onClick={() => void revokeAssignment(assignment.userId, assignment.courseId)}>
                           Revoke
                         </button>
                       </td>

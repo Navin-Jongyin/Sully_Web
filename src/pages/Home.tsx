@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide-react';
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
@@ -32,7 +31,6 @@ const Home: React.FC = () => {
             {t.home.heroDescription}
           </p>
           <div className="hero-actions">
-            <Link to="/book" className="button button-primary">{t.home.bookInterview}</Link>
             <a href="https://sully-test.com" target="_blank" rel="noopener noreferrer" className="button button-purple">{t.home.aptitudePractice}</a>
             <a href="#contact" className="button button-gold">{t.home.contactUs}</a>
           </div>

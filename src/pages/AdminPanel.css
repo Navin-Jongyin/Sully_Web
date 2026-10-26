@@ -1,7 +1,9 @@
 .admin-layout {
   display: flex;
-  height: 100vh;
-  min-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   background: var(--bg-primary);
 }
@@ -464,6 +466,7 @@
   .admin-layout {
     flex-direction: column;
     height: auto;
+    max-height: none;
     min-height: 100vh;
     overflow: visible;
   }
