@@ -93,40 +93,31 @@ const AssignCourseAdminPanel: React.FC = () => {
     });
   }, [courseSearch, onlineVideoCourses, selectedUserId, users]);
 
-  const userCourseRows = useMemo(() => {
-    const rows: Array<{ userId: string; courseId: string; assignedBy?: string; assignedAt?: unknown; status?: 'active' | 'revoked' }> = [];
-    users.forEach((entry) => {
-      const courses = entry.courses ?? [];
-      courses.forEach((courseAccess) => {
-        if (courseAccess.status !== 'revoked') {
-          rows.push({
-            userId: entry.id,
-            courseId: courseAccess.courseId,
-            assignedBy: courseAccess.assignedBy,
-            assignedAt: courseAccess.assignedAt,
-            status: courseAccess.status ?? 'active',
-          });
-        }
-      });
-    });
+  const assignmentGroups = useMemo(() => {
     const nameOf = (userId: string) => {
       const entry = users.find((item) => item.id === userId);
       return (entry?.displayName || 'Unnamed user').trim();
     };
 
-    return rows
-      .filter((assignment) => {
-        if (userFilter !== 'all' && assignment.userId !== userFilter) return false;
-        if (courseFilter !== 'all' && assignment.courseId !== courseFilter) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        const byName = nameOf(a.userId).localeCompare(nameOf(b.userId), undefined, { sensitivity: 'base' });
-        if (byName !== 0) return byName;
-        const courseA = courseMap[a.courseId]?.title || a.courseId;
-        const courseB = courseMap[b.courseId]?.title || b.courseId;
-        return courseA.localeCompare(courseB, undefined, { sensitivity: 'base' });
-      });
+    const groups = users.flatMap((entry) => {
+      if (userFilter !== 'all' && entry.id !== userFilter) return [];
+      const courses = (entry.courses ?? [])
+        .filter((courseAccess) => courseAccess.status !== 'revoked' && courseAccess.courseId)
+        .filter((courseAccess) => courseFilter === 'all' || courseAccess.courseId === courseFilter)
+        .map((courseAccess) => ({
+          courseId: courseAccess.courseId,
+          status: courseAccess.status ?? 'active' as const,
+        }))
+        .sort((a, b) => {
+          const titleA = courseMap[a.courseId]?.title || a.courseId;
+          const titleB = courseMap[b.courseId]?.title || b.courseId;
+          return titleA.localeCompare(titleB, undefined, { sensitivity: 'base' });
+        });
+      if (courses.length === 0) return [];
+      return [{ userId: entry.id, courses }];
+    });
+
+    return groups.sort((a, b) => nameOf(a.userId).localeCompare(nameOf(b.userId), undefined, { sensitivity: 'base' }));
   }, [courseFilter, courseMap, userFilter, users]);
 
   const selectUser = (userId: string) => {
@@ -350,7 +341,7 @@ const AssignCourseAdminPanel: React.FC = () => {
           </div>
         </div>
 
-        {userCourseRows.length === 0 ? (
+        {assignmentGroups.length === 0 ? (
           <p style={{ color: 'var(--text-secondary)' }}>No assignments found.</p>
         ) : (
           <div className="assign-table-wrap">
@@ -359,26 +350,31 @@ const AssignCourseAdminPanel: React.FC = () => {
                 <tr>
                   <th>User</th>
                   <th>Email</th>
-                  <th>Course</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th>Courses</th>
                 </tr>
               </thead>
               <tbody>
-                {userCourseRows.map((assignment) => {
-                  const userInfo = users.find((entry) => entry.id === assignment.userId);
-                  const courseInfo = courseMap[assignment.courseId];
+                {assignmentGroups.map((group) => {
+                  const userInfo = users.find((entry) => entry.id === group.userId);
 
                   return (
-                    <tr key={`${assignment.userId}-${assignment.courseId}`}>
+                    <tr key={group.userId}>
                       <td>{userInfo?.displayName || 'Unnamed user'}</td>
                       <td>{userInfo?.email || '—'}</td>
-                      <td>{courseInfo?.title || assignment.courseId}</td>
-                      <td>{assignment.status ?? 'active'}</td>
                       <td>
-                        <button type="button" className="assign-revoke" onClick={() => void revokeAssignment(assignment.userId, assignment.courseId)}>
-                          Revoke
-                        </button>
+                        <ul className="assign-course-list">
+                          {group.courses.map((course) => (
+                            <li key={course.courseId} className="assign-course-item">
+                              <span>
+                                {courseMap[course.courseId]?.title || course.courseId}
+                                <small>{course.status}</small>
+                              </span>
+                              <button type="button" className="assign-revoke" onClick={() => void revokeAssignment(group.userId, course.courseId)}>
+                                Revoke
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       </td>
                     </tr>
                   );

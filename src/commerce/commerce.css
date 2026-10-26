@@ -461,15 +461,37 @@
 }
 
 .assign-table th:nth-child(1),
-.assign-table td:nth-child(1) { width: 22%; }
+.assign-table td:nth-child(1) { width: 24%; }
 .assign-table th:nth-child(2),
-.assign-table td:nth-child(2) { width: 28%; }
+.assign-table td:nth-child(2) { width: 30%; }
 .assign-table th:nth-child(3),
-.assign-table td:nth-child(3) { width: 24%; }
-.assign-table th:nth-child(4),
-.assign-table td:nth-child(4) { width: 12%; }
-.assign-table th:nth-child(5),
-.assign-table td:nth-child(5) { width: 14%; }
+.assign-table td:nth-child(3) { width: 46%; }
+
+.assign-course-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assign-course-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.assign-course-item span {
+  min-width: 0;
+}
+
+.assign-course-item small {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
 
 .assign-revoke {
   display: inline-flex;
