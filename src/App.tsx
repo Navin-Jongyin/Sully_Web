@@ -20,7 +20,6 @@ import { AppDialogProvider } from "./context/AppDialogContext";
 import RequireAuth from "./components/RequireAuth";
 import AdminShortcut from "./components/AdminShortcut";
 import StudentIntakeDialog from "./components/StudentIntakeDialog";
-import { LanguageToggle } from "./components/LanguageToggle";
 import { CartIcon } from "./ecommerce/components/CartIcon";
 import { RequireCustomerAuth } from "./ecommerce/components/RequireCustomerAuth";
 import { useTranslation } from "./hooks/useTranslation";
@@ -129,7 +128,6 @@ const AppShell: React.FC = () => {
                 <Link to="/courses" onClick={() => setMenuOpen(false)}>{t.common.courses}</Link>
                 <Link to="/shop" onClick={() => setMenuOpen(false)}>{t.common.shop}</Link>
                 <CartIcon />
-                <LanguageToggle />
                 {!authLoading && (
                   user ? (
                     <Link

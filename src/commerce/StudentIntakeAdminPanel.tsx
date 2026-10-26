@@ -42,7 +42,11 @@ const StudentIntakeAdminPanel: React.FC = () => {
   const visibleRecords = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return records;
-    return records.filter((record) => (record.nickname || '').toLowerCase().includes(term));
+    return records.filter((record) => {
+      const nickname = (record.nickname || '').toLowerCase();
+      const email = (record.email || '').toLowerCase();
+      return nickname.includes(term) || email.includes(term);
+    });
   }, [records, search]);
 
   const deleteRecord = async (record: StudentIntakeRecord) => {
@@ -70,14 +74,14 @@ const StudentIntakeAdminPanel: React.FC = () => {
         type="search"
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        placeholder="ค้นหาชื่อเล่น"
-        aria-label="ค้นหาชื่อเล่น"
+        placeholder="Search nickname or email"
+        aria-label="Search nickname or email"
       />
       {error && <p className="commerce-error" role="alert">{error}</p>}
       {records.length === 0 && !error ? (
         <p style={{ color: 'var(--text-secondary)' }}>No student information has been submitted yet.</p>
       ) : visibleRecords.length === 0 ? (
-        <p style={{ color: 'var(--text-secondary)' }}>ไม่พบชื่อเล่นนี้</p>
+        <p style={{ color: 'var(--text-secondary)' }}>No matching nickname or email.</p>
       ) : (
         visibleRecords.map((record) => (
           <details key={record.uid} className="intake-admin-item">

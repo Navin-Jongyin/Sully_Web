@@ -10,7 +10,7 @@ interface LocationState {
 }
 
 const Login: React.FC = () => {
-  const { t, language, setLanguage } = useTranslation();
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const location = useLocation();
   const fromState = (location.state as LocationState | null)?.from;
@@ -57,22 +57,6 @@ const Login: React.FC = () => {
           <ArrowLeft size={18} />
           <span>{t.common.backToHome}</span>
         </Link>
-        <div className="login-lang-toggle" role="group" aria-label="Language">
-          <button
-            type="button"
-            className={language === 'en' ? 'is-active' : ''}
-            onClick={() => setLanguage('en')}
-          >
-            EN
-          </button>
-          <button
-            type="button"
-            className={language === 'th' ? 'is-active' : ''}
-            onClick={() => setLanguage('th')}
-          >
-            TH
-          </button>
-        </div>
         <LoginCard
           variant="page"
           eyebrow={t.common.login}

@@ -5,6 +5,7 @@ import type { Course } from '../components/courses/CourseCard';
 import CategoryTab from '../components/courses/CategoryTab';
 import type { CourseCategory } from '../components/courses/CategoryTab';
 import { useTranslation } from '../hooks/useTranslation';
+import { youtubeEmbedUrl } from '../lib/video-source';
 
 const tabs: CourseCategory[] = ['Student Pilot', 'Qualified Pilot', 'ATC', 'Others'];
 
@@ -105,13 +106,13 @@ const Courses: React.FC = () => {
               {selectedCourse.videoUrl && (
                 <div style={{ marginBottom: '2rem' }}>
                   <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}>
-                    {selectedCourse.videoUrl.includes('youtube.com') || selectedCourse.videoUrl.includes('youtu.be') ? (
+                    {/youtube\.com|youtu\.be|youtube-nocookie\.com/.test(selectedCourse.videoUrl) ? (
                       <iframe
                         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                        src={`https://www.youtube.com/embed/${getYouTubeId(selectedCourse.videoUrl)}`}
+                        src={youtubeEmbedUrl(getYouTubeId(selectedCourse.videoUrl))}
                         title="Course Video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                       />
                     ) : selectedCourse.videoUrl.includes('vimeo.com') ? (

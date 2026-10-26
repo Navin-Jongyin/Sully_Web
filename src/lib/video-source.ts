@@ -18,6 +18,23 @@ function safeUrl(raw: string): URL | null {
   }
 }
 
+const YOUTUBE_EMBED_QUERY = 'rel=0&iv_load_policy=3&playsinline=1&controls=1&fs=1';
+
+export function youtubeEmbedUrl(videoId: string): string {
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${YOUTUBE_EMBED_QUERY}`;
+}
+
+function youtubeVideoId(parsed: URL): string | undefined {
+  const host = parsed.hostname.toLowerCase();
+  const path = parsed.pathname;
+  if (host === 'youtu.be') return path.split('/').filter(Boolean)[0];
+  return parsed.searchParams.get('v') ?? path.match(/\/(?:embed|shorts)\/([^/?]+)/)?.[1];
+}
+
+function isYouTubeHost(host: string): boolean {
+  return host === 'youtu.be' || host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com');
+}
+
 export function resolveVideoSource(lesson?: OnlineCourseLesson): ResolvedVideoSource {
   if (!lesson) return { kind: 'none', provider: 'auto' };
   if (!lesson.videoUrl && lesson.muxPlaybackId && lesson.muxPlaybackId !== 'PLACEHOLDER') {
@@ -30,16 +47,10 @@ export function resolveVideoSource(lesson?: OnlineCourseLesson): ResolvedVideoSo
   const host = parsed.hostname.toLowerCase();
   const path = parsed.pathname;
 
-  if (requested === 'youtube' || host === 'youtu.be' || host.endsWith('youtube.com')) {
-    const id = host === 'youtu.be'
-      ? path.split('/').filter(Boolean)[0]
-      : parsed.searchParams.get('v') ?? path.match(/\/(?:embed|shorts)\/([^/]+)/)?.[1];
+  if (requested === 'youtube' || isYouTubeHost(host)) {
+    const id = youtubeVideoId(parsed);
     return id
-      ? {
-          kind: 'iframe',
-          provider: 'youtube',
-          url: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1`,
-        }
+      ? { kind: 'iframe', provider: 'youtube', url: youtubeEmbedUrl(id) }
       : { kind: 'none', provider: 'youtube' };
   }
 

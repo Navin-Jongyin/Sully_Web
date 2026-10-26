@@ -23,7 +23,7 @@ describe('video source normalization', () => {
     expect(resolveVideoSource(lesson('https://youtu.be/dQw4w9WgXcQ'))).toEqual({
       kind: 'iframe',
       provider: 'youtube',
-      url: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1',
+      url: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&iv_load_policy=3&playsinline=1&controls=1&fs=1',
     });
   });
 
