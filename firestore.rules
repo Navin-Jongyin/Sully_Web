@@ -158,5 +158,23 @@ service cloud.firestore {
 
       allow delete: if false;
     }
+
+    match /aptitudeReviews/{reviewId} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && request.auth.uid == reviewId
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0
+        && request.resource.data.comment.size() <= 500
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.keys().hasOnly(['uid', 'displayName', 'rating', 'comment', 'updatedAt']);
+      allow delete: if signedIn() && request.auth.uid == reviewId;
+    }
   }
 }

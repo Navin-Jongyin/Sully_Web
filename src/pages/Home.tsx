@@ -3,6 +3,7 @@ import { BookOpen, Award, ArrowRight, Plane, Users, MessageCircle } from 'lucide
 import { useData } from '../hooks/useData';
 import { useTranslation } from '../hooks/useTranslation';
 import { FeaturedProducts } from '../ecommerce/components/FeaturedProducts';
+import AptitudePromo from '../components/AptitudePromo';
 
 
 const Home: React.FC = () => {
@@ -47,19 +48,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <section id="stats" className="container reveal is-visible">
-        <div className="stats-grid">
-          <div className="stat-item">
-            <span className="stat-number">100+</span>
-            <span className="stat-label">{t.home.studentsPassed}</span>
-          </div>
-         
-          <div className="stat-item">
-            <span className="stat-number">2017</span>
-            <span className="stat-label">{t.home.estSince}</span>
-          </div>
-        </div>
-      </section>
+      <AptitudePromo />
 
       <section className="container section">
         <div className="section-head reveal is-visible">

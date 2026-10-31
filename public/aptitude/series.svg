@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" fill="none">
+  <rect width="320" height="160" fill="#F0FDFA"/>
+
+  <g font-family="Inter,sans-serif" font-weight="700" fill="#0F766E">
+    <rect x="20"  y="56" width="44" height="48" rx="8" fill="#fff" stroke="#0D9488" stroke-width="2"/>
+    <text x="42"  y="86" text-anchor="middle" font-size="20">2</text>
+
+    <rect x="76"  y="56" width="44" height="48" rx="8" fill="#fff" stroke="#0D9488" stroke-width="2"/>
+    <text x="98"  y="86" text-anchor="middle" font-size="20">5</text>
+
+    <rect x="132" y="56" width="44" height="48" rx="8" fill="#fff" stroke="#0D9488" stroke-width="2"/>
+    <text x="154" y="86" text-anchor="middle" font-size="20">11</text>
+
+    <rect x="188" y="56" width="44" height="48" rx="8" fill="#fff" stroke="#0D9488" stroke-width="2"/>
+    <text x="210" y="86" text-anchor="middle" font-size="20">23</text>
+
+    <rect x="244" y="56" width="44" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <text x="266" y="88" text-anchor="middle" font-size="22" font-weight="800" fill="#0D9488">?</text>
+  </g>
+
+  <g stroke="#5EEAD4" stroke-width="2" stroke-linecap="round" fill="none">
+    <path d="M64  52 Q76  36  84  52"/>
+    <path d="M120 52 Q132 36 140 52"/>
+    <path d="M176 52 Q188 36 196 52"/>
+    <path d="M232 52 Q244 36 252 52"/>
+  </g>
+
+  <text x="160" y="32" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#0D9488">FIND THE NEXT NUMBER</text>
+  <text x="160" y="138" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#14B8A6">SPOT THE PATTERN</text>
+</svg>

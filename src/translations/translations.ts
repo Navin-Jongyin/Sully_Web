@@ -64,6 +64,17 @@ export interface Translations {
     getInTouchTitle: string;
     getInTouchDesc: string;
     addLine: string;
+    aptitudeEyebrow: string;
+    aptitudeTitle: string;
+    aptitudeDesc: string;
+    aptitudeOpen: string;
+    aptitudeRateTitle: string;
+    aptitudeCommentPlaceholder: string;
+    aptitudeSubmit: string;
+    aptitudeUpdate: string;
+    aptitudeSignIn: string;
+    aptitudeNoReviews: string;
+    aptitudeReviews: string;
   };
   footer: {
     copyright: string;
@@ -301,6 +312,17 @@ export const translations: Record<Language, Translations> = {
       getInTouchTitle: 'Ready to Start Your Journey?',
       getInTouchDesc: 'Have questions about our courses or the admission process? Our experienced instructors are ready to help guide you on the Line Official account.',
       addLine: 'Add Line Official @sully2017',
+      aptitudeEyebrow: 'Aptitude practice',
+      aptitudeTitle: 'Practice airline aptitude tests',
+      aptitudeDesc: 'Prepare for airline screening with timed practice on Sully Test, then tell other students how it went.',
+      aptitudeOpen: 'Open Sully Test',
+      aptitudeRateTitle: 'Rate Sully Test',
+      aptitudeCommentPlaceholder: 'How did the practice tests help you?',
+      aptitudeSubmit: 'Post review',
+      aptitudeUpdate: 'Update review',
+      aptitudeSignIn: 'Sign in to leave a rating',
+      aptitudeNoReviews: 'No reviews yet. Be the first to rate it.',
+      aptitudeReviews: 'Reviews',
     },
     footer: {
       copyright: 'All rights reserved.',
@@ -536,6 +558,17 @@ export const translations: Record<Language, Translations> = {
       getInTouchTitle: 'พร้อมเริ่มต้นเส้นทางการบินแล้วหรือยัง?',
       getInTouchDesc: 'มีคำถามเรื่องหลักสูตรหรือการสมัครเรียน ทีมงานครู พร้อมให้คำปรึกษาผ่าน Line Official',
       addLine: 'ติดต่อทาง Line @sully2017',
+      aptitudeEyebrow: 'ฝึกทดสอบความถนัด',
+      aptitudeTitle: 'ฝึกทำข้อสอบความถนัดสายการบิน',
+      aptitudeDesc: 'เตรียมตัวสอบคัดเลือกด้วยแบบทดสอบจับเวลาบน Sully Test แล้วบอกเพื่อนๆ ว่าเป็นอย่างไร',
+      aptitudeOpen: 'เปิด Sully Test',
+      aptitudeRateTitle: 'ให้คะแนน Sully Test',
+      aptitudeCommentPlaceholder: 'แบบทดสอบช่วยคุณได้อย่างไร',
+      aptitudeSubmit: 'ส่งรีวิว',
+      aptitudeUpdate: 'อัปเดตรีวิว',
+      aptitudeSignIn: 'เข้าสู่ระบบเพื่อให้คะแนน',
+      aptitudeNoReviews: 'ยังไม่มีรีวิว เป็นคนแรกที่ให้คะแนน',
+      aptitudeReviews: 'รีวิว',
     },
     footer: {
       copyright: 'สงวนลิขสิทธิ์',

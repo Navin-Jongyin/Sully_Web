@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" fill="none">
+  <rect width="320" height="160" fill="#EFF6FF"/>
+
+  <text x="160" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#2563EB">MATCH SHAPE + NUMBER → LETTER</text>
+
+  <g font-family="Inter,sans-serif" font-weight="700">
+    <rect x="14" y="46" width="56" height="62" rx="8" fill="#fff" stroke="#2563EB" stroke-width="2"/>
+    <circle cx="42" cy="70" r="12" fill="#2563EB"/>
+    <text x="42" y="100" text-anchor="middle" font-size="12" fill="#1E40AF">3</text>
+
+    <rect x="76" y="46" width="56" height="62" rx="8" fill="#fff" stroke="#2563EB" stroke-width="2"/>
+    <rect x="92" y="58" width="24" height="24" rx="2" fill="#2563EB"/>
+    <text x="104" y="100" text-anchor="middle" font-size="12" fill="#1E40AF">7</text>
+
+    <rect x="138" y="46" width="56" height="62" rx="8" fill="#fff" stroke="#2563EB" stroke-width="2"/>
+    <polygon points="166,58 178,82 154,82" fill="#2563EB"/>
+    <text x="166" y="100" text-anchor="middle" font-size="12" fill="#1E40AF">4</text>
+
+    <rect x="200" y="46" width="56" height="62" rx="8" fill="#fff" stroke="#2563EB" stroke-width="2"/>
+    <polygon points="228,58 240,70 228,82 216,70" fill="#2563EB"/>
+    <text x="228" y="100" text-anchor="middle" font-size="12" fill="#1E40AF">2</text>
+
+    <rect x="262" y="46" width="44" height="62" rx="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <text x="284" y="86" text-anchor="middle" font-size="24" font-weight="800" fill="#2563EB">?</text>
+  </g>
+
+  <text x="160" y="138" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#3B82F6">TYPE THE MATCHING LETTER</text>
+</svg>
