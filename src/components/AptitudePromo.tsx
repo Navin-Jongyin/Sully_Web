@@ -17,6 +17,12 @@ interface AptitudeReview {
 
 const TEST_URL = 'https://sully-test.com/';
 
+function maskName(name: string): string {
+  const chars = Array.from(name.trim());
+  if (chars.length <= 1) return chars[0] ?? '';
+  return `${chars[0]}${'*'.repeat(chars.length - 1)}`;
+}
+
 const TEST_PREVIEWS = [
   { src: '/aptitude/shape.svg', title: 'Shape Scanning' },
   { src: '/aptitude/cube-unfold.svg', title: 'Cube Unfold' },
@@ -49,6 +55,7 @@ const AptitudePromo: React.FC = () => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<AptitudeReview[]>([]);
   const [rating, setRating] = useState(5);
+  const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,10 +81,15 @@ const AptitudePromo: React.FC = () => {
   const mine = reviews.find((review) => review.uid === user?.uid);
 
   useEffect(() => {
-    if (!mine) return;
-    setRating(mine.rating || 5);
-    setComment(mine.comment);
-  }, [mine?.uid, mine?.rating, mine?.comment]);
+    if (!user) return;
+    if (mine) {
+      setRating(mine.rating || 5);
+      setComment(mine.comment);
+      setName(mine.displayName);
+      return;
+    }
+    setName((user.displayName || user.email?.split('@')[0] || '').slice(0, 80));
+  }, [user?.uid, user?.displayName, user?.email, mine?.uid, mine?.rating, mine?.comment, mine?.displayName]);
 
   const average = useMemo(() => {
     if (reviews.length === 0) return 0;
@@ -89,13 +101,14 @@ const AptitudePromo: React.FC = () => {
     event.preventDefault();
     if (!user) return;
     const text = comment.trim();
-    if (!text) return;
+    const displayName = name.trim().slice(0, 80);
+    if (!text || !displayName) return;
     setSaving(true);
     setError(null);
     try {
       await setDoc(doc(db, 'aptitudeReviews', user.uid), {
         uid: user.uid,
-        displayName: (user.displayName || user.email?.split('@')[0] || 'Student').slice(0, 80),
+        displayName,
         rating,
         comment: text.slice(0, 500),
         updatedAt: serverTimestamp(),
@@ -141,6 +154,17 @@ const AptitudePromo: React.FC = () => {
           {user ? (
             <>
               <Stars value={rating} onChange={setRating} />
+              <label className="aptitude-field">
+                <span>{t.home.aptitudeName}</span>
+                <input
+                  type="text"
+                  value={name}
+                  maxLength={80}
+                  required
+                  placeholder={t.home.aptitudeNamePlaceholder}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </label>
               <textarea
                 value={comment}
                 maxLength={500}
@@ -149,7 +173,7 @@ const AptitudePromo: React.FC = () => {
                 onChange={(event) => setComment(event.target.value)}
               />
               {error && <p className="aptitude-error" role="alert">{error}</p>}
-              <button type="submit" className="button button-primary" disabled={saving || !comment.trim()}>
+              <button type="submit" className="button button-primary" disabled={saving || !comment.trim() || !name.trim()}>
                 {saving ? t.common.loading : mine ? t.home.aptitudeUpdate : t.home.aptitudeSubmit}
               </button>
             </>
@@ -164,7 +188,7 @@ const AptitudePromo: React.FC = () => {
           ) : reviews.map((review) => (
             <article key={review.id}>
               <div>
-                <strong>{review.displayName}</strong>
+                <strong>{maskName(review.displayName)}</strong>
                 <Stars value={review.rating} />
               </div>
               <p>{review.comment}</p>

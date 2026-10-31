@@ -14,6 +14,7 @@ import { MerchandiseAdminPanel } from '../commerce/MerchandiseAdminPanel';
 import { OnlineVideoCourseAdminPanel } from '../commerce/OnlineVideoCourseAdminPanel';
 import AssignCourseAdminPanel from '../commerce/AssignCourseAdminPanel';
 import StudentIntakeAdminPanel from '../commerce/StudentIntakeAdminPanel';
+import AptitudeReviewAdminPanel from '../commerce/AptitudeReviewAdminPanel';
 import '../booking/booking-theme.css';
 import './AdminPanel.css';
 
@@ -302,6 +303,7 @@ const AdminPanel: React.FC = () => {
     { key: 'onlineCourses', icon: <MonitorPlay size={18} />, label: 'Online Courses' },
     { key: 'assign', icon: <MonitorPlay size={18} />, label: 'Assign Courses' },
     { key: 'studentInfo', icon: <ClipboardList size={18} />, label: 'Student Info' },
+    { key: 'aptitudeReviews', icon: <MessageSquare size={18} />, label: 'Aptitude Reviews' },
     { key: 'merchandise', icon: <ShoppingBag size={18} />, label: 'Merchandise' },
     { key: 'settings', icon: <Settings size={18} />, label: 'Settings' },
   ] as const;
@@ -359,6 +361,7 @@ const AdminPanel: React.FC = () => {
                activeMenu === 'onlineTests' ? 'Online Tests' :
                activeMenu === 'onlineCourses' ? 'Online Video Courses' :
                activeMenu === 'studentInfo' ? 'Student Info' :
+               activeMenu === 'aptitudeReviews' ? 'Aptitude Reviews' :
                activeMenu === 'merchandise' ? 'Merchandise' : 'Site Settings'}
             </h1>
             {activeMenu === 'track' && (
@@ -373,10 +376,13 @@ const AdminPanel: React.FC = () => {
             {activeMenu === 'studentInfo' && (
               <p style={{ color: 'var(--text-secondary)' }}>Answers submitted after a student signs in. The form is not shown again once it is saved.</p>
             )}
+            {activeMenu === 'aptitudeReviews' && (
+              <p style={{ color: 'var(--text-secondary)' }}>Ratings and comments left on the home page for Sully Test. Names are shown in full here.</p>
+            )}
             {activeMenu === 'merchandise' && (
               <p style={{ color: 'var(--text-secondary)' }}>Shop products. Stripe Price IDs are optional until payments are wired — see docs/PAYMENTS.md.</p>
             )}
-            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'onlineTests' && activeMenu !== 'onlineCourses' && activeMenu !== 'merchandise' && activeMenu !== 'assign' && activeMenu !== 'studentInfo' && (
+            {activeMenu !== 'booking' && activeMenu !== 'track' && activeMenu !== 'onlineTests' && activeMenu !== 'onlineCourses' && activeMenu !== 'merchandise' && activeMenu !== 'assign' && activeMenu !== 'studentInfo' && activeMenu !== 'aptitudeReviews' && (
             <p style={{ color: 'var(--text-secondary)' }}>Drag the <span style={{ display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}><GripVertical size={14} /></span> handle to reposition items.</p>
             )}
           </div>
@@ -1042,6 +1048,10 @@ const AdminPanel: React.FC = () => {
 
         {activeMenu === 'studentInfo' && (
           <StudentIntakeAdminPanel />
+        )}
+
+        {activeMenu === 'aptitudeReviews' && (
+          <AptitudeReviewAdminPanel />
         )}
 
         {activeMenu === 'merchandise' && (

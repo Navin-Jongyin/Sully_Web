@@ -752,6 +752,33 @@
   cursor: default;
 }
 
+.review-admin-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+}
+
+.review-admin-item > div {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.review-admin-item small,
+.review-admin-item p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.review-admin-item p {
+  overflow-wrap: anywhere;
+}
+
 .intake-admin-item summary svg {
   flex: none;
   color: var(--text-secondary);

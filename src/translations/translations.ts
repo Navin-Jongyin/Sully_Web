@@ -69,6 +69,8 @@ export interface Translations {
     aptitudeDesc: string;
     aptitudeOpen: string;
     aptitudeRateTitle: string;
+    aptitudeName: string;
+    aptitudeNamePlaceholder: string;
     aptitudeCommentPlaceholder: string;
     aptitudeSubmit: string;
     aptitudeUpdate: string;
@@ -317,6 +319,8 @@ export const translations: Record<Language, Translations> = {
       aptitudeDesc: 'Prepare for airline screening with timed practice on Sully Test, then tell other students how it went.',
       aptitudeOpen: 'Open Sully Test',
       aptitudeRateTitle: 'Rate Sully Test',
+      aptitudeName: 'Name',
+      aptitudeNamePlaceholder: 'Name shown with your review',
       aptitudeCommentPlaceholder: 'How did the practice tests help you?',
       aptitudeSubmit: 'Post review',
       aptitudeUpdate: 'Update review',
@@ -563,6 +567,8 @@ export const translations: Record<Language, Translations> = {
       aptitudeDesc: 'เตรียมตัวสอบคัดเลือกด้วยแบบทดสอบจับเวลาบน Sully Test แล้วบอกเพื่อนๆ ว่าเป็นอย่างไร',
       aptitudeOpen: 'เปิด Sully Test',
       aptitudeRateTitle: 'ให้คะแนน Sully Test',
+      aptitudeName: 'ชื่อ',
+      aptitudeNamePlaceholder: 'ชื่อที่แสดงกับรีวิว',
       aptitudeCommentPlaceholder: 'แบบทดสอบช่วยคุณได้อย่างไร',
       aptitudeSubmit: 'ส่งรีวิว',
       aptitudeUpdate: 'อัปเดตรีวิว',
