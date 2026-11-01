@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { Star } from 'lucide-react';
 import { aptitudeDb } from '../lib/aptitude-firebase';
@@ -43,8 +43,13 @@ const AptitudePromo: React.FC = () => {
   const { t } = useTranslation();
   const [reviews, setReviews] = useState<HubReview[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!aptitudeDb) {
+      setError('Reviews are not configured.');
+      return;
+    }
     return onSnapshot(collection(aptitudeDb, 'hubReviews'), (snapshot) => {
       const next = snapshot.docs.map((entry) => {
         const data = entry.data();
@@ -59,11 +64,35 @@ const AptitudePromo: React.FC = () => {
       next.sort((a, b) => b.createdAt - a.createdAt);
       setReviews(next);
       setError(null);
-    }, (err) => {
-      const message = err instanceof Error ? err.message : 'Could not load reviews.';
-      setError(message);
+    }, () => {
+      setError('Could not load reviews.');
     });
   }, []);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    const fitFive = () => {
+      const articles = [...list.querySelectorAll(':scope > article')];
+      if (articles.length <= 5) {
+        list.style.maxHeight = '';
+        list.classList.remove('is-scroll');
+        return;
+      }
+      const gap = Number.parseFloat(getComputedStyle(list).rowGap) || 0;
+      const height = articles
+        .slice(0, 5)
+        .reduce((sum, article) => sum + article.getBoundingClientRect().height, 0);
+      list.style.maxHeight = `${Math.ceil(height + gap * 4)}px`;
+      list.classList.add('is-scroll');
+    };
+
+    fitFive();
+    const observer = new ResizeObserver(fitFive);
+    list.querySelectorAll(':scope > article').forEach((article) => observer.observe(article));
+    return () => observer.disconnect();
+  }, [reviews]);
 
   const average = useMemo(() => {
     if (reviews.length === 0) return 0;
@@ -98,7 +127,7 @@ const AptitudePromo: React.FC = () => {
         </div>
       </div>
 
-      <div className="aptitude-list">
+      <div className="aptitude-list" ref={listRef}>
         {error ? (
           <p className="aptitude-error" role="alert">{error}</p>
         ) : reviews.length === 0 ? (
