@@ -2638,21 +2638,14 @@ p {
   gap: 0.2rem;
 }
 
-.aptitude-stars button {
+.aptitude-stars span {
   display: inline-flex;
   padding: 0.15rem;
-  border: 0;
-  background: transparent;
   color: var(--text-secondary);
-  cursor: pointer;
 }
 
-.aptitude-stars button.is-on {
+.aptitude-stars span.is-on {
   color: var(--accent-gold);
-}
-
-.aptitude-stars button:disabled {
-  cursor: default;
 }
 
 .aptitude-list {
@@ -2682,9 +2675,5 @@ p {
 @media (min-width: 800px) {
   .aptitude-hero {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  }
-
-  .aptitude-board {
-    grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 0.8fr);
   }
 }
