@@ -57,10 +57,10 @@ const AptitudePromo: React.FC = () => {
           id: entry.id,
           userName: String(data.userName || 'Player'),
           rating: Number(data.rating) || 0,
-          comment: String(data.comment || ''),
+          comment: String(data.comment || '').trim(),
           createdAt: typeof data.createdAt?.toMillis === 'function' ? data.createdAt.toMillis() : 0,
         };
-      });
+      }).filter((review) => review.rating >= 1 && review.rating <= 5);
       next.sort((a, b) => b.createdAt - a.createdAt);
       setReviews(next);
       setError(null);
@@ -68,6 +68,11 @@ const AptitudePromo: React.FC = () => {
       setError('Could not load reviews.');
     });
   }, []);
+
+  const commented = useMemo(
+    () => reviews.filter((review) => review.comment.length > 0),
+    [reviews],
+  );
 
   useEffect(() => {
     const list = listRef.current;
@@ -92,7 +97,7 @@ const AptitudePromo: React.FC = () => {
     const observer = new ResizeObserver(fitFive);
     list.querySelectorAll(':scope > article').forEach((article) => observer.observe(article));
     return () => observer.disconnect();
-  }, [reviews]);
+  }, [commented]);
 
   const average = useMemo(() => {
     if (reviews.length === 0) return 0;
@@ -130,9 +135,9 @@ const AptitudePromo: React.FC = () => {
       <div className="aptitude-list" ref={listRef}>
         {error ? (
           <p className="aptitude-error" role="alert">{error}</p>
-        ) : reviews.length === 0 ? (
+        ) : commented.length === 0 ? (
           <p className="aptitude-empty">{t.home.aptitudeNoReviews}</p>
-        ) : reviews.map((review) => (
+        ) : commented.map((review) => (
           <article key={review.id}>
             <div>
               <strong>{maskName(review.userName)}</strong>
