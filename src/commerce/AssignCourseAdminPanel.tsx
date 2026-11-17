@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { collection, doc, onSnapshot, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
@@ -28,15 +29,13 @@ const AssignCourseAdminPanel: React.FC = () => {
   const { onlineVideoCourses } = useData();
   const { confirm } = useAppDialog();
   const [users, setUsers] = useState<UserRecord[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [addingCourse, setAddingCourse] = useState(false);
   const [userSearch, setUserSearch] = useState('');
-  const [courseSearch, setCourseSearch] = useState('');
   const [userFilter, setUserFilter] = useState('all');
   const [courseFilter, setCourseFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const studentListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -61,14 +60,39 @@ const AssignCourseAdminPanel: React.FC = () => {
 
   const visibleUsers = useMemo(() => {
     const term = userSearch.trim().toLowerCase();
-    return users.filter((entry) => {
-      if (!term) return true;
-      const label = `${entry.displayName ?? ''} ${entry.email ?? ''}`.toLowerCase();
-      return label.includes(term);
-    });
+    return users
+      .filter((entry) => {
+        if (!term) return true;
+        const label = `${entry.displayName ?? ''} ${entry.email ?? ''}`.toLowerCase();
+        return label.includes(term);
+      })
+      .sort((a, b) =>
+        (a.displayName || a.email || '').localeCompare(b.displayName || b.email || '', undefined, { sensitivity: 'base' }),
+      );
   }, [userSearch, users]);
 
-  const selectedUser = users.find((entry) => entry.id === selectedUserId) ?? null;
+  useEffect(() => {
+    const list = studentListRef.current;
+    if (!list) return;
+
+    const fitFive = () => {
+      const rows = [...list.querySelectorAll(':scope > .assign-student summary')];
+      if (rows.length <= 5) {
+        list.style.maxHeight = '';
+        list.classList.remove('is-scroll');
+        return;
+      }
+      const gap = Number.parseFloat(getComputedStyle(list).rowGap) || 0;
+      const height = rows.slice(0, 5).reduce((sum, row) => sum + row.getBoundingClientRect().height, 0);
+      list.style.maxHeight = `${Math.ceil(height + gap * 4)}px`;
+      list.classList.add('is-scroll');
+    };
+
+    fitFive();
+    const observer = new ResizeObserver(fitFive);
+    list.querySelectorAll(':scope > .assign-student summary').forEach((row) => observer.observe(row));
+    return () => observer.disconnect();
+  }, [visibleUsers]);
 
   const activeCourseIds = (userId: string) => {
     const entry = users.find((item) => item.id === userId);
@@ -77,21 +101,19 @@ const AssignCourseAdminPanel: React.FC = () => {
       .map((course) => course.courseId);
   };
 
-  const enrolledCourses = useMemo(() => {
-    if (!selectedUserId) return [];
-    const assigned = new Set(activeCourseIds(selectedUserId));
-    return onlineVideoCourses.filter((course) => assigned.has(course.id));
-  }, [onlineVideoCourses, selectedUserId, users]);
+  const enrolledCoursesFor = (userId: string) => {
+    const assigned = new Set(activeCourseIds(userId));
+    return onlineVideoCourses
+      .filter((course) => assigned.has(course.id))
+      .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+  };
 
-  const coursesToAdd = useMemo(() => {
-    const term = courseSearch.trim().toLowerCase();
-    const assigned = new Set(selectedUserId ? activeCourseIds(selectedUserId) : []);
-    return onlineVideoCourses.filter((course) => {
-      if (assigned.has(course.id)) return false;
-      if (!term) return true;
-      return `${course.title} ${course.category}`.toLowerCase().includes(term);
-    });
-  }, [courseSearch, onlineVideoCourses, selectedUserId, users]);
+  const unassignedCoursesFor = (userId: string) => {
+    const assigned = new Set(activeCourseIds(userId));
+    return onlineVideoCourses
+      .filter((course) => !assigned.has(course.id))
+      .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
+  };
 
   const assignmentGroups = useMemo(() => {
     const nameOf = (userId: string) => {
@@ -120,25 +142,14 @@ const AssignCourseAdminPanel: React.FC = () => {
     return groups.sort((a, b) => nameOf(a.userId).localeCompare(nameOf(b.userId), undefined, { sensitivity: 'base' }));
   }, [courseFilter, courseMap, userFilter, users]);
 
-  const selectUser = (userId: string) => {
-    setAddingCourse(false);
-    setCourseSearch('');
-    if (selectedUserId === userId) {
-      setSelectedUserId(null);
-      return;
-    }
-    setSelectedUserId(userId);
-  };
-
-  const handleAssign = async (courseId: string) => {
-    if (!selectedUserId) return;
+  const handleAssign = async (userId: string, courseId: string) => {
 
     setMessage(null);
     setAssigning(true);
 
     try {
       const adminId = user?.uid ?? 'unknown-admin';
-      const existingUser = users.find((entry) => entry.id === selectedUserId);
+      const existingUser = users.find((entry) => entry.id === userId);
       const currentCourses = existingUser?.courses ?? [];
       const nextCourses = [...currentCourses];
       const index = nextCourses.findIndex((item) => item.courseId === courseId);
@@ -153,9 +164,7 @@ const AssignCourseAdminPanel: React.FC = () => {
       if (index >= 0) nextCourses[index] = { ...nextCourses[index], ...entry, status: 'active' };
       else nextCourses.push(entry);
 
-      await setDoc(doc(db, 'users', selectedUserId), { courses: nextCourses }, { merge: true });
-      setAddingCourse(false);
-      setCourseSearch('');
+      await setDoc(doc(db, 'users', userId), { courses: nextCourses }, { merge: true });
       setMessage({ type: 'success', text: 'Course access assigned successfully.' });
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Assignments could not be saved.' });
@@ -183,7 +192,7 @@ const AssignCourseAdminPanel: React.FC = () => {
       <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
         <h3 style={{ marginTop: 0 }}>Assign Course Access</h3>
         <p style={{ marginTop: 0, color: 'var(--text-secondary)' }}>
-          Search for one student. Their courses appear after you select them.
+          Open a student to see the courses already assigned.
         </p>
 
         {message && (
@@ -202,7 +211,7 @@ const AssignCourseAdminPanel: React.FC = () => {
           </p>
         )}
 
-        <div className="assign-picker" style={{ background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: 'var(--radius-lg)', padding: '1rem' }}>
+        <div className="assign-picker">
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Users</label>
             <input
@@ -213,111 +222,75 @@ const AssignCourseAdminPanel: React.FC = () => {
               style={{
                 width: '100%',
                 marginBottom: '0.75rem',
+                padding: '0.7rem 0.9rem',
+                fontSize: '1rem',
                 background: 'rgba(96,165,250,0.06)',
                 border: '1px solid rgba(96,165,250,0.7)',
                 boxShadow: '0 0 0 3px rgba(96,165,250,0.15)',
                 outline: 'none',
                 color: 'var(--text-primary)',
+                borderRadius: 'var(--radius)',
               }}
             />
-            <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'grid', gap: '0.5rem' }}>
+            <div className="assign-student-list" ref={studentListRef}>
               {loading ? (
                 <p style={{ color: 'var(--text-secondary)' }}>Loading users…</p>
               ) : visibleUsers.length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)' }}>No users found.</p>
               ) : (
-                visibleUsers.map((entry) => (
-                  <label key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
-                    <input
-                      type="radio"
-                      name="assign-user"
-                      checked={selectedUserId === entry.id}
-                      onChange={() => selectUser(entry.id)}
-                    />
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600 }}>{entry.displayName || 'Unnamed user'}</div>
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', overflowWrap: 'anywhere' }}>{entry.email || 'No email'}</div>
-                    </div>
-                  </label>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-              <label style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                {selectedUser ? `Courses for ${selectedUser.displayName || selectedUser.email || 'student'}` : 'Courses'}
-              </label>
-              {selectedUserId && (
-                <button type="button" className="button button-primary" onClick={() => setAddingCourse((open) => !open)}>
-                  {addingCourse ? 'Close' : 'Add'}
-                </button>
-              )}
-            </div>
-            {!selectedUserId ? (
-              <p style={{ color: 'var(--text-secondary)' }}>Select one student to see their courses.</p>
-            ) : (
-              <>
-                {addingCourse && (
-                  <>
-                    <input
-                      type="text"
-                      value={courseSearch}
-                      onChange={(e) => setCourseSearch(e.target.value)}
-                      placeholder="Search a course to assign"
-                      style={{
-                        width: '100%',
-                        marginBottom: '0.75rem',
-                        background: 'rgba(96,165,250,0.06)',
-                        border: '1px solid rgba(96,165,250,0.7)',
-                        boxShadow: '0 0 0 3px rgba(96,165,250,0.15)',
-                        outline: 'none',
-                        color: 'var(--text-primary)',
-                      }}
-                    />
-                    <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'grid', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      {coursesToAdd.length === 0 ? (
-                        <p style={{ color: 'var(--text-secondary)' }}>No more courses to assign.</p>
-                      ) : (
-                        coursesToAdd.map((course) => (
-                          <div key={course.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)' }}>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontWeight: 600 }}>{course.title}</div>
-                              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{course.category}</div>
-                            </div>
-                            <button type="button" className="button button-secondary" disabled={assigning} onClick={() => void handleAssign(course.id)}>
-                              Add
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </>
-                )}
-                <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'grid', gap: '0.5rem' }}>
-                  {enrolledCourses.length === 0 ? (
-                    <p style={{ color: 'var(--text-secondary)' }}>No courses assigned yet.</p>
-                  ) : (
-                    enrolledCourses.map((course) => (
-                      <div key={course.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
-                        {course.thumbnailUrl ? (
-                          <img src={course.thumbnailUrl} alt="" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '0.5rem' }} />
-                        ) : (
-                          <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.06)', display: 'grid', placeItems: 'center' }}>
-                            {course.title.slice(0, 1).toUpperCase()}
-                          </div>
-                        )}
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 600 }}>{course.title}</div>
-                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{course.category}</div>
+                visibleUsers.map((entry) => {
+                  const enrolled = enrolledCoursesFor(entry.id);
+                  const unassigned = unassignedCoursesFor(entry.id);
+                  return (
+                    <details key={entry.id} className="assign-student">
+                      <summary>
+                        <span>
+                          <strong>{entry.displayName || 'Unnamed user'}</strong>
+                          <small>{entry.email || 'No email'} · {enrolled.length} assigned</small>
+                        </span>
+                        <ChevronDown size={18} />
+                      </summary>
+                      <div className="assign-student-body">
+                        <div>
+                          <h4>Assigned</h4>
+                          {enrolled.length === 0 ? (
+                            <p>None</p>
+                          ) : (
+                            <ul>
+                              {enrolled.map((course) => (
+                                <li key={course.id}>
+                                  <span>{course.title}</span>
+                                  <button type="button" className="assign-revoke" onClick={() => void revokeAssignment(entry.id, course.id)}>
+                                    Revoke
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div>
+                          <h4>Unassigned</h4>
+                          {unassigned.length === 0 ? (
+                            <p>None</p>
+                          ) : (
+                            <ul>
+                              {unassigned.map((course) => (
+                                <li key={course.id}>
+                                  <span>{course.title}</span>
+                                  <button type="button" className="assign-add" disabled={assigning} aria-label={`Assign ${course.title}`} onClick={() => void handleAssign(entry.id, course.id)}>
+                                    +
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </>
-            )}
+                    </details>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>

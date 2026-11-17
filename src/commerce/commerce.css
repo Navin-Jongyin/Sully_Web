@@ -427,9 +427,122 @@
 
 .assign-picker {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.65rem;
   min-width: 0;
+  width: 100%;
+}
+
+.assign-student-list {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  align-content: start;
+}
+
+.assign-student-list.is-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.assign-student {
+  min-width: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.assign-student summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.assign-student summary::-webkit-details-marker {
+  display: none;
+}
+
+.assign-student summary > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.assign-student summary small {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.assign-student summary svg {
+  flex: none;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.assign-student[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.assign-student-body {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0 0.9rem 0.9rem;
+}
+
+.assign-student-body h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.assign-student-body ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.assign-student-body li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.assign-student-body p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.assign-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.assign-add:hover {
+  background: #15803d;
+}
+
+.assign-add:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .assign-table-wrap {
