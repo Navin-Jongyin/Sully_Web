@@ -9,6 +9,7 @@ import { db, storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
 import { createCourseId, createLessonId } from '../lib/course-ids';
+import { useAdminToast } from './useAdminToast';
 import './commerce.css';
 
 const emptyLesson = (order: number): OnlineCourseLesson => ({
@@ -97,7 +98,9 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const messageToast = useAdminToast<string>();
+  const message = messageToast.value;
+  const setMessage = (value: string | null) => (value ? messageToast.show(value) : messageToast.clear());
 
   useEffect(() => {
     const stale = onlineVideoCourses.filter((course) => {
@@ -278,7 +281,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
           </button>
         </div>
       )}
-      {message && <p className={message.includes('saved') || message.includes('Deleted') || message.includes('Migrated') || message.includes('already') || message.includes('Loaded') ? 'commerce-notice' : 'commerce-error'}>{message}</p>}
+      {message && <p className={`admin-toast ${message.includes('saved') || message.includes('Deleted') || message.includes('Migrated') || message.includes('already') || message.includes('Loaded') ? 'commerce-notice' : 'commerce-error'}`} role="status">{message}</p>}
 
       {!showForm && (
         <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>

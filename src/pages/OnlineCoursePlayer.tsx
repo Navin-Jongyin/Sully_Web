@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Circle,
   Clock,
+  Download,
   Lock,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -20,6 +21,7 @@ import {
   saveLessonProgress,
 } from '../lib/course-progress';
 import { CourseVideoPlayer } from '../commerce/CourseVideoPlayer';
+import { courseDownloadFiles } from '../commerce/course-files';
 import type { OnlineCourseLesson } from '../commerce/types';
 import '../commerce/commerce.css';
 
@@ -152,6 +154,15 @@ const OnlineCoursePlayerPage: React.FC = () => {
         </Link>
         <div>
           <h1>{course.title}</h1>
+          {courseDownloadFiles(course).length > 0 && (
+            <div className="commerce-player-downloads">
+              {courseDownloadFiles(course).map((file) => (
+                <a key={file.id} className="button button-secondary" href={file.url} target="_blank" rel="noopener noreferrer" title={file.name}>
+                  <Download size={16} /> <span>{file.name || t.commerce.downloadMaterial}</span>
+                </a>
+              ))}
+            </div>
+          )}
           <div className="commerce-course-progress">
             <span>{t.commerce.percentComplete.replace('{percent}', String(percentage))}</span>
             <div><i style={{ width: `${percentage}%` }} /></div>

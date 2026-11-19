@@ -434,6 +434,12 @@ p {
   padding: clamp(3rem, 8vw, 6rem) 0;
 }
 
+.container.section,
+.hero.container {
+  padding-left: clamp(1.25rem, 5vw, 4rem);
+  padding-right: clamp(1.25rem, 5vw, 4rem);
+}
+
 .section-head {
   text-align: center;
   margin-bottom: clamp(2rem, 5vw, 4rem);
@@ -1380,7 +1386,8 @@ p {
 
   /* Hero: tighter top spacing on small phones */
   .hero {
-    padding: 1.5rem 0 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
   }
 }
 

@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { useAppDialog } from '../hooks/useAppDialog';
+import { useAdminToast } from './useAdminToast';
 import './commerce.css';
 
 interface UserRecord {
@@ -34,7 +35,11 @@ const AssignCourseAdminPanel: React.FC = () => {
   const [courseFilter, setCourseFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const messageToast = useAdminToast<{ type: 'success' | 'error'; text: string }>();
+  const message = messageToast.value;
+  const setMessage = (value: { type: 'success' | 'error'; text: string } | null) => (
+    value ? messageToast.show(value) : messageToast.clear()
+  );
   const studentListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -198,14 +203,7 @@ const AssignCourseAdminPanel: React.FC = () => {
         {message && (
           <p
             role="status"
-            style={{
-              marginBottom: '1rem',
-              color: message.type === 'success' ? '#22c55e' : '#ef4444',
-              background: message.type === 'success' ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
-              border: `1px solid ${message.type === 'success' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-              borderRadius: 'var(--radius)',
-              padding: '0.75rem 1rem',
-            }}
+            className={`admin-toast ${message.type === 'success' ? 'commerce-notice' : 'commerce-error'}`}
           >
             {message.text}
           </p>

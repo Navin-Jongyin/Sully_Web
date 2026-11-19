@@ -53,6 +53,12 @@ export interface OnlineCourseLesson {
   order: number;
 }
 
+export interface CourseDownloadFile {
+  id: string;
+  name: string;
+  url: string;
+}
+
 /** Online course. Access is granted from the admin Assign tab. */
 export interface OnlineVideoCourse {
   id: string;
@@ -61,6 +67,11 @@ export interface OnlineVideoCourse {
   category: 'Student Pilot' | 'Qualified Pilot' | 'ATC' | 'Other';
   priceThb: number;
   thumbnailUrl: string;
+  /** Files assigned students can download for this course. */
+  downloadFiles?: CourseDownloadFile[];
+  /** Older single-file fields, still read until the course is saved again. */
+  downloadFileUrl?: string;
+  downloadFileName?: string;
   instructor?: string;
   lessons: OnlineCourseLesson[];
   lessonCount?: number;

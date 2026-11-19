@@ -257,15 +257,6 @@ export function BookingPage() {
 
   return (
     <div className="page booking-page">
-      <header className="page-hero">
-        <span className="badge">Interview Scheduling</span>
-        <h1>Book Your Interview</h1>
-        <p>
-          Pick a date, choose one available time slot, then confirm. Each email may book up to 2 sessions total, and at
-          most one per calendar day.
-        </p>
-      </header>
-
       <div className="card card--main">
         <form onSubmit={handleSubmit} noValidate>
           <div className="booking-layout">

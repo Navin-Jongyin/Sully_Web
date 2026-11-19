@@ -155,6 +155,9 @@ export interface Translations {
     welcome: string;
     overview: string;
     myCourses: string;
+    myCourse: string;
+    files: string;
+    noFiles: string;
     orders: string;
     profile: string;
     backToSite: string;
@@ -164,6 +167,7 @@ export interface Translations {
     browseCoursesHint: string;
     browseShopHint: string;
     continueLearning: string;
+    study: string;
     viewAll: string;
     fromShop: string;
     profileNote: string;
@@ -217,6 +221,7 @@ export interface Translations {
     noOrders: string;
     courseNotFound: string;
     backToCourses: string;
+    downloadMaterial: string;
     accessLocked: string;
     accessLockedDesc: string;
     muxPlaceholder: string;
@@ -405,6 +410,9 @@ export const translations: Record<Language, Translations> = {
       welcome: 'Welcome back, {name}',
       overview: 'Overview',
       myCourses: 'My courses',
+      myCourse: 'My Course',
+      files: 'Files',
+      noFiles: 'No files yet. Downloads appear here when a course you are assigned includes them.',
       orders: 'Orders',
       profile: 'Profile',
       backToSite: 'Main site',
@@ -414,6 +422,7 @@ export const translations: Record<Language, Translations> = {
       browseCoursesHint: 'Browse and unlock video lessons',
       browseShopHint: 'Official Sully Academy merch',
       continueLearning: 'Continue learning',
+      study: 'Study',
       viewAll: 'View all',
       fromShop: 'From the shop',
       profileNote: 'Your account is linked to this email for courses and purchases.',
@@ -467,6 +476,7 @@ export const translations: Record<Language, Translations> = {
       noOrders: 'No orders yet. Purchases will appear here after Stripe checkout is live.',
       courseNotFound: 'Course not found.',
       backToCourses: 'Back to courses',
+      downloadMaterial: 'Download',
       accessLocked: 'Course locked',
       accessLockedDesc: 'This course is available after an admin assigns it to your account.',
       muxPlaceholder: 'Mux player placeholder — replace with Mux Player when the API service is ready.',
@@ -653,6 +663,9 @@ export const translations: Record<Language, Translations> = {
       welcome: 'ยินดีต้อนรับ, {name}',
       overview: 'ภาพรวม',
       myCourses: 'คอร์สของฉัน',
+      myCourse: 'คอร์สของฉัน',
+      files: 'ไฟล์',
+      noFiles: 'ยังไม่มีไฟล์ ไฟล์จะแสดงที่นี่เมื่อคอร์สที่ได้รับมอบหมายมีเอกสารให้ดาวน์โหลด',
       orders: 'คำสั่งซื้อ',
       profile: 'โปรไฟล์',
       backToSite: 'หน้าเว็บหลัก',
@@ -662,6 +675,7 @@ export const translations: Record<Language, Translations> = {
       browseCoursesHint: 'เลือกและปลดล็อกวิดีโอบทเรียน',
       browseShopHint: 'สินค้าอย่างเป็นทางการของ Sully Academy',
       continueLearning: 'เรียนต่อ',
+      study: 'เรียน',
       viewAll: 'ดูทั้งหมด',
       fromShop: 'จากร้านค้า',
       profileNote: 'บัญชีของคุณเชื่อมกับอีเมลนี้สำหรับคอร์สและการสั่งซื้อ',
@@ -715,6 +729,7 @@ export const translations: Record<Language, Translations> = {
       noOrders: 'ยังไม่มีคำสั่งซื้อ จะแสดงที่นี่เมื่อเชื่อมต่อ Stripe แล้ว',
       courseNotFound: 'ไม่พบคอร์ส',
       backToCourses: 'กลับไปคอร์ส',
+      downloadMaterial: 'ดาวน์โหลด',
       accessLocked: 'คอร์สถูกล็อก',
       accessLockedDesc: 'คอร์สนี้จะเปิดได้เมื่อแอดมินมอบหมายให้บัญชีของคุณ',
       muxPlaceholder: 'ตัวเล่น Mux ชั่วคราว — เปลี่ยนเป็น Mux Player เมื่อ API พร้อม',

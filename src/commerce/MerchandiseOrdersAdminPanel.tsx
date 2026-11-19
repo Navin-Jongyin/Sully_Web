@@ -13,6 +13,8 @@ import {
   purchaseLineItems,
 } from './merchandise-order-utils';
 import { useMerchandiseOrders } from './useMerchandiseOrders';
+import { useAdminToast } from './useAdminToast';
+import './commerce.css';
 
 const STATUS_FILTERS: Array<PurchaseStatus | 'all'> = [
   'all',
@@ -29,8 +31,9 @@ export const MerchandiseOrdersAdminPanel: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<PurchaseStatus | 'all'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [statusError, setStatusError] = useState<string | null>(null);
+  const statusToast = useAdminToast<{ kind: 'ok' | 'error'; text: string }>();
+  const setStatusMessage = (text: string | null) => (text ? statusToast.show({ kind: 'ok', text }) : statusToast.clear());
+  const setStatusError = (text: string | null) => (text ? statusToast.show({ kind: 'error', text }) : statusToast.clear());
 
   const filteredOrders = useMemo(
     () => (statusFilter === 'all'
@@ -87,8 +90,8 @@ export const MerchandiseOrdersAdminPanel: React.FC = () => {
         ))}
       </div>
 
-      {statusMessage && <p className="commerce-notice">{statusMessage}</p>}
-      {statusError && <p className="commerce-error">{statusError}</p>}
+      {statusMessage && <p className="admin-toast commerce-notice" role="status">{statusMessage}</p>}
+      {statusError && <p className="admin-toast commerce-error" role="status">{statusError}</p>}
 
       {loading && (
         <div className="merch-orders-empty">

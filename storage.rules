@@ -8,6 +8,19 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
+    function isCourseDownload() {
+      return request.resource != null
+        && request.resource.size < 50 * 1024 * 1024
+        && (
+          request.resource.contentType.matches('application/pdf')
+          || request.resource.contentType.matches('application/zip')
+          || request.resource.contentType.matches('application/x-zip-compressed')
+          || request.resource.contentType.matches('application/msword')
+          || request.resource.contentType.matches('application/vnd\\..*')
+          || request.resource.contentType.matches('text/plain')
+        );
+    }
+
     function profileIsAdmin() {
       return request.auth != null
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
@@ -16,6 +29,12 @@ service firebase.storage {
     match /online-course-thumbnails/{courseId}/{fileName} {
       allow read: if true;
       allow create, update, delete: if isImage();
+    }
+
+    match /online-course-files/{courseId}/{fileName} {
+      allow read: if true;
+      allow create, update: if isCourseDownload();
+      allow delete: if true;
     }
 
     match /uploads/{fileName} {
