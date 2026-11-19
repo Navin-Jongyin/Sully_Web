@@ -13,7 +13,6 @@ import {
   purchaseLineItems,
 } from './merchandise-order-utils';
 import { useMerchandiseOrders } from './useMerchandiseOrders';
-import { useAdminToast } from './useAdminToast';
 import './commerce.css';
 
 const STATUS_FILTERS: Array<PurchaseStatus | 'all'> = [
@@ -31,9 +30,8 @@ export const MerchandiseOrdersAdminPanel: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<PurchaseStatus | 'all'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const statusToast = useAdminToast<{ kind: 'ok' | 'error'; text: string }>();
-  const setStatusMessage = (text: string | null) => (text ? statusToast.show({ kind: 'ok', text }) : statusToast.clear());
-  const setStatusError = (text: string | null) => (text ? statusToast.show({ kind: 'error', text }) : statusToast.clear());
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const filteredOrders = useMemo(
     () => (statusFilter === 'all'

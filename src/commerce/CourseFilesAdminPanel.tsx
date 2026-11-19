@@ -6,7 +6,6 @@ import { db, storage } from '../firebase';
 import { useData } from '../hooks/useData';
 import { courseDownloadFiles } from './course-files';
 import type { CourseDownloadFile, OnlineVideoCourse } from './types';
-import { useAdminToast } from './useAdminToast';
 import './commerce.css';
 
 function contentTypeForCourseFile(file: File): string {
@@ -28,9 +27,7 @@ function contentTypeForCourseFile(file: File): string {
 const CourseFilesAdminPanel: React.FC = () => {
   const { onlineVideoCourses } = useData();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const messageToast = useAdminToast<string>();
-  const message = messageToast.value;
-  const setMessage = (value: string | null) => (value ? messageToast.show(value) : messageToast.clear());
+  const [message, setMessage] = useState<string | null>(null);
 
   const saveFiles = async (courseId: string, files: CourseDownloadFile[]) => {
     await updateDoc(doc(db, 'onlineVideoCourses', courseId), {

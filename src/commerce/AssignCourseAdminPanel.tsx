@@ -5,7 +5,6 @@ import { db } from '../firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useData } from '../hooks/useData';
 import { useAppDialog } from '../hooks/useAppDialog';
-import { useAdminToast } from './useAdminToast';
 import './commerce.css';
 
 interface UserRecord {
@@ -35,11 +34,7 @@ const AssignCourseAdminPanel: React.FC = () => {
   const [courseFilter, setCourseFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
-  const messageToast = useAdminToast<{ type: 'success' | 'error'; text: string }>();
-  const message = messageToast.value;
-  const setMessage = (value: { type: 'success' | 'error'; text: string } | null) => (
-    value ? messageToast.show(value) : messageToast.clear()
-  );
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const studentListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

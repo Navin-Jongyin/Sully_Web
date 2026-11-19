@@ -9,7 +9,6 @@ import { db, storage } from '../firebase';
 import type { OnlineCourseLesson, OnlineVideoCourse } from '../commerce/types';
 import { migrateEmbeddedLessons, fetchCourseLessons } from '../lib/course-lessons';
 import { createCourseId, createLessonId } from '../lib/course-ids';
-import { useAdminToast } from './useAdminToast';
 import './commerce.css';
 
 const emptyLesson = (order: number): OnlineCourseLesson => ({
@@ -98,9 +97,7 @@ export const OnlineVideoCourseAdminPanel: React.FC = () => {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const messageToast = useAdminToast<string>();
-  const message = messageToast.value;
-  const setMessage = (value: string | null) => (value ? messageToast.show(value) : messageToast.clear());
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const stale = onlineVideoCourses.filter((course) => {
